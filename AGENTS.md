@@ -21,6 +21,7 @@
 - Indentation is 2 spaces and semicolons are used consistently.
 - Component folders and component names use PascalCase (for example, `components/Marketing/MarketingTools.tsx`).
 - Hooks follow the `useX` pattern in `hooks/`; shared types live in `types.ts` and `shared/`.
+- Use Biome for formatting and linting (add a `biome.json` in the repo root if not present); run `npx biome check .` before pushing.
 
 ## Testing Guidelines
 - No automated test framework is configured yet (no Jest/Vitest scripts).
