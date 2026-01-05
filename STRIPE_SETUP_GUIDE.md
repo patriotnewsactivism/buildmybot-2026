@@ -57,6 +57,16 @@
    - Billing period: `Monthly`
 3. **Copy the Price ID**
 
+
+**5. WHITELABEL Partner Fee - $499 every 30 days**
+1. Products -> **+ Add product**
+2. Fill in:
+   - Name: `BuildMyBot - Whitelabel Partner Fee`
+   - Description: `Whitelabel partner fee for guaranteed 50% revenue split`
+   - Pricing: `Recurring`
+   - Price: `$499.00 USD`
+   - Billing period: `Every 30 days`
+3. **Copy the Price ID**
 ## Step 4: Configure Environment Variables
 
 Add the following to your environment:
@@ -68,6 +78,8 @@ STRIPE_PRICE_STARTER=price_YOUR_STARTER_PRICE_ID
 STRIPE_PRICE_PROFESSIONAL=price_YOUR_PROFESSIONAL_PRICE_ID
 STRIPE_PRICE_EXECUTIVE=price_YOUR_EXECUTIVE_PRICE_ID
 STRIPE_PRICE_ENTERPRISE=price_YOUR_ENTERPRISE_PRICE_ID
+STRIPE_WHITELABEL_PRICE_ID=price_YOUR_WHITELABEL_PRICE_ID
+STRIPE_WEBHOOK_SECRET=whsec_YOUR_WEBHOOK_SECRET
 ```
 
 ## Step 5: Test the Integration
