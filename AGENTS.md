@@ -24,6 +24,7 @@
 - Hooks follow the `useX` pattern in `hooks/`; shared types live in `types.ts` and `shared/`.
 - Use Biome for formatting and linting (`biome.json` in the repo root); run `npm run lint` before pushing.
 - For architectural naming and logic, follow Airbnb JavaScript Style Guide principles: clear module boundaries, descriptive naming, and minimal side effects.
+- Use TypeScript to enforce legally sound data structures: prefer explicit interfaces, avoid `any`, and validate external inputs before use.
 
 ## Testing Guidelines
 - No automated test framework is configured yet (no Jest/Vitest scripts).
