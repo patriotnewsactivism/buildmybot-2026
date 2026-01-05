@@ -39,4 +39,4 @@
 - Use `.env.example` as the baseline for required environment variables; never commit secrets.
 - Stripe setup steps live in `STRIPE_SETUP_GUIDE.md`.
 - When touching database schema, update `shared/schema.ts` and re-run `npm run db:push`.
-- Billing requires `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, and `APP_BASE_URL` for redirects/webhooks.
+- Billing requires `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_WHITELABEL_PRICE_ID`, and `APP_BASE_URL` for redirects/webhooks.

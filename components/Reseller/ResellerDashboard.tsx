@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { DollarSign, Users, TrendingUp, Copy, CheckCircle, Shield, Lock, CreditCard, ChevronRight, AlertTriangle, Building, LayoutDashboard, Loader, FileText, Download, Mail, Presentation, Image, ExternalLink, Gift } from 'lucide-react';
 import { ResellerStats, User } from '../../types';
-import { RESELLER_TIERS, PLANS, REFERRAL_REWARDS } from '../../constants';
+import { RESELLER_TIERS, PLANS, REFERRAL_REWARDS, WHITELABEL_FEE } from '../../constants';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { dbService } from '../../services/dbService';
 
@@ -25,6 +25,7 @@ export const ResellerDashboard: React.FC<ResellerProps> = ({ user, stats: initia
   const [isLoading, setIsLoading] = useState(true);
   const [realStats, setRealStats] = useState<ResellerStats>(initialStats);
   const [referralCredits, setReferralCredits] = useState<{ credits: number; expiry: Date | null }>({ credits: 0, expiry: null });
+  const [whitelabelProcessing, setWhitelabelProcessing] = useState(false);
 
   if (user.status === 'Pending') {
     return (
@@ -45,32 +46,50 @@ export const ResellerDashboard: React.FC<ResellerProps> = ({ user, stats: initia
     );
   }
 
+  const computeFallbackStats = (usersList: User[]): ResellerStats => {
+    const clientCount = usersList.length;
+    const totalRev = usersList.reduce((acc, u) => {
+      const plan = PLANS[u.plan as keyof typeof PLANS];
+      return acc + (plan?.price || 0);
+    }, 0);
+
+    const currentTier = RESELLER_TIERS.find(t => clientCount >= t.min && clientCount <= t.max) || RESELLER_TIERS[0];
+    const whitelabelEnabled = Boolean(user.whitelabelEnabled);
+    const commissionRate = whitelabelEnabled ? WHITELABEL_FEE.commission : currentTier.commission;
+    const paidThrough = user.whitelabelPaidThrough ? new Date(user.whitelabelPaidThrough) : null;
+    const whitelabelFeeDue = whitelabelEnabled && (!paidThrough || paidThrough.getTime() < Date.now());
+    const grossCommission = totalRev * commissionRate;
+    const whitelabelFeeAmount = whitelabelFeeDue ? WHITELABEL_FEE.price : 0;
+
+    return {
+      totalClients: clientCount,
+      totalRevenue: totalRev,
+      commissionRate,
+      grossCommission,
+      pendingPayout: Math.max(grossCommission - whitelabelFeeAmount, 0),
+      whitelabelFeeDue,
+      whitelabelFeeAmount,
+      whitelabelPaidThrough: paidThrough ? paidThrough.toISOString() : null,
+    };
+  };
+
   useEffect(() => {
     if (user.resellerCode) {
-      const unsubscribe = dbService.subscribeToReferrals(user.resellerCode, (users) => {
+      const unsubscribe = dbService.subscribeToResellerSummary(user.resellerCode, (users, stats) => {
         setReferredUsers(users);
-        
-        // Calculate real stats
-        const clientCount = users.length;
-        const totalRev = users.reduce((acc, u) => acc + (PLANS[u.plan]?.price || 0), 0);
-        
-        // Determine commission tier
-        const currentTier = RESELLER_TIERS.find(t => clientCount >= t.min && clientCount <= t.max) || RESELLER_TIERS[0];
-        
-        setRealStats({
-          totalClients: clientCount,
-          totalRevenue: totalRev,
-          commissionRate: currentTier.commission,
-          pendingPayout: totalRev * currentTier.commission
-        });
-        
+
+        const nextStats = stats && typeof stats.totalClients === 'number'
+          ? stats
+          : computeFallbackStats(users);
+
+        setRealStats(nextStats);
         setIsLoading(false);
       });
       return () => unsubscribe();
     } else {
       setIsLoading(false);
     }
-  }, [user.resellerCode]);
+  }, [user.resellerCode, user.whitelabelEnabled, user.whitelabelPaidThrough]);
 
   useEffect(() => {
     const fetchCredits = async () => {
@@ -98,6 +117,37 @@ export const ResellerDashboard: React.FC<ResellerProps> = ({ user, stats: initia
 
   const displayDomain = user.customDomain || (typeof window !== 'undefined' ? window.location.host : 'buildmybot.app');
   const referralUrl = `https://${displayDomain}/?ref=${user.resellerCode || 'CODE'}`;
+  const isWhitelabel = Boolean(user.whitelabelEnabled);
+  const whitelabelFeeDue = Boolean(realStats.whitelabelFeeDue);
+  const whitelabelFeeAmount = realStats.whitelabelFeeAmount || 0;
+  const grossCommission = realStats.grossCommission ?? realStats.pendingPayout;
+  const whitelabelPaidThrough = realStats.whitelabelPaidThrough
+    ? new Date(realStats.whitelabelPaidThrough)
+    : null;
+
+  const handleWhitelabelCheckout = async () => {
+    if (!user?.id) {
+      return;
+    }
+    setWhitelabelProcessing(true);
+    try {
+      const res = await fetch('/api/stripe/whitelabel/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('No checkout URL returned');
+      }
+    } catch (error) {
+      console.error('Whitelabel checkout error:', error);
+      alert('Failed to start whitelabel checkout. Please try again.');
+      setWhitelabelProcessing(false);
+    }
+  };
 
   const OverviewTab = () => (
     <div className="space-y-6 animate-fade-in">
@@ -132,7 +182,13 @@ export const ResellerDashboard: React.FC<ResellerProps> = ({ user, stats: initia
             <span className="text-xs font-semibold bg-cyan-100 text-cyan-700 px-2 py-1 rounded">{(realStats.commissionRate * 100)}% Split</span>
           </div>
           <p className="text-3xl font-bold text-slate-800">${realStats.pendingPayout.toLocaleString()}</p>
-          <p className="text-sm text-slate-500 mt-1">Your Est. Commission</p>
+          <p className="text-sm text-slate-500 mt-1">Estimated Payout (net)</p>
+          {grossCommission !== realStats.pendingPayout && (
+            <p className="text-xs text-slate-400 mt-1">Gross: ${grossCommission.toLocaleString()}</p>
+          )}
+          {whitelabelFeeDue && (
+            <p className="text-xs text-amber-700 mt-2">Includes $499 whitelabel fee deduction</p>
+          )}
         </div>
 
         <div className="bg-gradient-to-br from-blue-900 to-slate-900 p-6 rounded-xl shadow-lg text-white">
@@ -177,6 +233,34 @@ export const ResellerDashboard: React.FC<ResellerProps> = ({ user, stats: initia
         </div>
       </div>
 
+      {/* Whitelabel Fee Status */}
+      <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h3 className="font-bold text-slate-800">Whitelabel Program</h3>
+            <p className="text-sm text-slate-600 mt-1">
+              ${WHITELABEL_FEE.price} billed every 30 days (net 30) for a guaranteed 50% revenue split.
+            </p>
+            {isWhitelabel ? (
+              <p className={`text-sm mt-2 ${whitelabelFeeDue ? 'text-amber-700' : 'text-emerald-700'}`}>
+                {whitelabelFeeDue
+                  ? 'Payment due. Fee will be deducted from payouts until current.'
+                  : `Paid through ${whitelabelPaidThrough ? whitelabelPaidThrough.toLocaleDateString() : 'current period'}.`}
+              </p>
+            ) : (
+              <p className="text-sm text-slate-500 mt-2">Not enrolled. Upgrade to lock the 50% split.</p>
+            )}
+          </div>
+          <button
+            onClick={handleWhitelabelCheckout}
+            disabled={whitelabelProcessing}
+            className="px-5 py-2 bg-blue-900 text-white rounded-lg text-sm font-bold hover:bg-blue-950 transition disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {whitelabelProcessing ? 'Redirecting...' : isWhitelabel ? 'Pay $499 Now' : 'Upgrade to Whitelabel'}
+          </button>
+        </div>
+      </div>
+
       {/* Tier Progress */}
       <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
          <div className="flex justify-between mb-2">
@@ -187,9 +271,11 @@ export const ResellerDashboard: React.FC<ResellerProps> = ({ user, stats: initia
             <div className="bg-blue-900 h-full transition-all duration-1000" style={{ width: `${progress}%` }}></div>
          </div>
          <p className="text-sm text-slate-500">
-           {nextTier 
-             ? `Recruit ${nextTier.min - realStats.totalClients} more clients to unlock ${nextTier.commission * 100}% commission!` 
-             : "You've reached the top tier!"}
+           {isWhitelabel
+             ? 'Whitelabel partners keep a 50% split while the fee is current.'
+             : nextTier 
+               ? `Recruit ${nextTier.min - realStats.totalClients} more clients to unlock ${nextTier.commission * 100}% commission!` 
+               : "You've reached the top tier!"}
          </p>
       </div>
 
@@ -654,6 +740,15 @@ Thanks for being a great partner!
 
   const PayoutsTab = () => (
       <div className="max-w-3xl space-y-6 animate-fade-in">
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 flex gap-4">
+             <AlertTriangle className="text-amber-700 shrink-0" size={22} />
+             <div>
+                 <h4 className="font-bold text-amber-900">Whitelabel Fee Terms</h4>
+                 <p className="text-sm text-amber-800 mt-1">
+                     The ${WHITELABEL_FEE.price} whitelabel fee is billed every 30 days (net 30). If unpaid, the fee is deducted from your monthly payouts.
+                 </p>
+             </div>
+          </div>
           <div className="bg-blue-50 border border-blue-100 rounded-xl p-6 flex gap-4">
              <Shield className="text-blue-900 shrink-0" size={24} />
              <div>

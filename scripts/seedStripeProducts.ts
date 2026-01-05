@@ -24,6 +24,13 @@ const PLANS = [
     description: 'Enterprise-grade white-label solution with unlimited bots',
     price: 49900,
     metadata: { planKey: 'ENTERPRISE', bots: 'unlimited', conversations: '50000' }
+  },
+  {
+    name: 'Whitelabel Partner Fee',
+    description: 'Whitelabel partner fee for guaranteed 50% revenue split',
+    price: 49900,
+    metadata: { planKey: 'WHITELABEL_FEE', productType: 'WHITELABEL_FEE', billingTerms: 'net_30' },
+    recurring: { interval: 'day', interval_count: 30 }
   }
 ];
 
@@ -51,7 +58,7 @@ async function seedProducts() {
       product: product.id,
       unit_amount: plan.price,
       currency: 'usd',
-      recurring: { interval: 'month' },
+      recurring: plan.recurring || { interval: 'month' },
     });
 
     console.log(`Created: ${plan.name} (${product.id}) - $${plan.price / 100}/mo (${price.id})`);

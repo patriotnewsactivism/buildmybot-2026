@@ -1,4 +1,4 @@
-import { Bot, Lead, User, PlanType, Conversation, BotDocument } from '../types';
+import { Bot, Lead, User, PlanType, Conversation, BotDocument, ResellerStats } from '../types';
 
 const API_BASE = '/api';
 
@@ -177,6 +177,27 @@ export const dbService = {
     };
     fetchReferrals();
     const interval = setInterval(fetchReferrals, 10000);
+    return () => clearInterval(interval);
+  },
+
+  subscribeToResellerSummary: (
+    resellerCode: string,
+    onUpdate: (users: User[], stats: ResellerStats) => void
+  ) => {
+    const fetchSummary = async () => {
+      try {
+        const response = await fetch(`${API_BASE}/resellers/${resellerCode}/summary`);
+        if (response.ok) {
+          const data = await response.json();
+          onUpdate((data.users || []) as User[], data.stats as ResellerStats);
+          return;
+        }
+      } catch (error) {
+        console.error('Error fetching reseller summary:', error);
+      }
+    };
+    fetchSummary();
+    const interval = setInterval(fetchSummary, 10000);
     return () => clearInterval(interval);
   },
 

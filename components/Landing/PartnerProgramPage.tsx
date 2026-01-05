@@ -115,7 +115,7 @@ export const PartnerProgramPage: React.FC<PartnerProps> = ({ onBack, onLogin, on
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-slate-900 mb-4">Choose Your Path to 50% Commission</h2>
-            <p className="text-lg text-slate-600">Two ways to build your AI agency—pick what works for you.</p>
+            <p className="text-lg text-slate-600">Two ways to build your AI agency - pick what works for you.</p>
           </div>
 
           {/* Path Comparison */}
@@ -177,12 +177,12 @@ export const PartnerProgramPage: React.FC<PartnerProps> = ({ onBack, onLogin, on
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-white">Whitelabel Partner</h3>
-                  <p className="text-blue-300 text-sm">Skip the tiers, instant 50%</p>
+                  <p className="text-blue-300 text-sm">Skip the tiers, 50% split while current</p>
                 </div>
               </div>
               
-              <div className="text-3xl font-extrabold text-white mb-2">${WHITELABEL_FEE.price} <span className="text-lg font-normal text-blue-300">one-time</span></div>
-              <p className="text-blue-200 mb-6">Pay once and immediately earn 50% commission on every account—no minimums, no waiting.</p>
+              <div className="text-3xl font-extrabold text-white mb-2">${WHITELABEL_FEE.price} <span className="text-lg font-normal text-blue-300">/ 30 days</span></div>
+              <p className="text-blue-200 mb-6">Billed every 30 days (net 30). Keep a 50% split while the fee is current. If unpaid, $499 is deducted from payouts.</p>
               
               <div className="bg-white/10 rounded-xl p-4 mb-6">
                 <div className="flex items-center justify-between">
@@ -320,3 +320,4 @@ export const PartnerProgramPage: React.FC<PartnerProps> = ({ onBack, onLogin, on
     </div>
   );
 };
+
