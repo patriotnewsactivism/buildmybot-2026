@@ -477,6 +477,64 @@ app.get('/api/users/referrals/:code', async (req, res) => {
   }
 });
 
+app.get('/api/resellers/:code/summary', async (req, res) => {
+  try {
+    const [reseller] = await db
+      .select()
+      .from(users)
+      .where(eq(users.resellerCode, req.params.code));
+
+    if (!reseller) {
+      return res.status(404).json({ error: 'Reseller not found' });
+    }
+
+    const referrals = await db
+      .select()
+      .from(users)
+      .where(eq(users.referredBy, req.params.code));
+
+    const clientCount = referrals.length;
+    const totalRevenue = referrals.reduce((acc, user) => {
+      const plan = PLANS[user.plan as keyof typeof PLANS];
+      return acc + (plan?.price || 0);
+    }, 0);
+
+    const whitelabelEnabled = Boolean(reseller.whitelabelEnabled);
+    const paidThrough = reseller.whitelabelPaidThrough
+      ? new Date(reseller.whitelabelPaidThrough)
+      : null;
+    const whitelabelFeeDue = whitelabelEnabled && (!paidThrough || paidThrough.getTime() < Date.now());
+
+    const currentTier = RESELLER_TIERS.find(
+      (tier) => clientCount >= tier.min && clientCount <= tier.max
+    ) || RESELLER_TIERS[0];
+
+    const commissionRate = whitelabelEnabled
+      ? WHITELABEL_FEE.commission
+      : currentTier.commission;
+    const grossCommission = totalRevenue * commissionRate;
+    const whitelabelFeeAmount = whitelabelFeeDue ? WHITELABEL_FEE.price : 0;
+    const pendingPayout = Math.max(grossCommission - whitelabelFeeAmount, 0);
+
+    res.json({
+      users: referrals,
+      stats: {
+        totalClients: clientCount,
+        totalRevenue,
+        commissionRate,
+        grossCommission,
+        pendingPayout,
+        whitelabelFeeDue,
+        whitelabelFeeAmount,
+        whitelabelPaidThrough: paidThrough ? paidThrough.toISOString() : null,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching reseller summary:', error);
+    res.status(500).json({ error: 'Failed to fetch reseller summary' });
+  }
+});
+
 app.get('/api/users/:id/credits', async (req, res) => {
   try {
     const credits = await stripeService.getUserCredits(req.params.id);
