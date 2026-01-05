@@ -63,13 +63,16 @@ export class WebhookHandlers {
       return;
     }
 
-    if (event.type === 'invoice.paid') {
-      const invoice = event.data.object as Stripe.Invoice;
-      const subscriptionId = invoice.subscription?.toString();
-      const periodEnd = invoice.lines?.data?.[0]?.period?.end;
-      if (!subscriptionId || !periodEnd) {
-        return;
-      }
+      if (event.type === 'invoice.paid') {
+        const invoice = event.data.object as Stripe.Invoice;
+        const subscriptionId =
+          'subscription' in invoice && invoice.subscription
+            ? invoice.subscription.toString()
+            : undefined;
+        const periodEnd = invoice.lines?.data?.[0]?.period?.end;
+        if (!subscriptionId || !periodEnd) {
+          return;
+        }
 
       const paidThrough = new Date(periodEnd * 1000);
       await db
