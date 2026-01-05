@@ -55,6 +55,20 @@ const app = express();
 const isProduction = process.env.NODE_ENV === 'production';
 const PORT = isProduction ? 5000 : parseInt(process.env.API_PORT || '3001', 10);
 
+function getBaseUrl() {
+  const appBaseUrl = process.env.APP_BASE_URL?.trim();
+  if (appBaseUrl) {
+    return appBaseUrl.replace(/\/+$/, '');
+  }
+
+  const replitDomain = process.env.REPLIT_DOMAINS?.split(',')[0];
+  if (replitDomain) {
+    return `https://${replitDomain}`;
+  }
+
+  return null;
+}
+
 async function initStripe() {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) {
@@ -63,6 +77,11 @@ async function initStripe() {
   }
 
   try {
+    const baseUrl = getBaseUrl();
+    if (!baseUrl) {
+      throw new Error('APP_BASE_URL must be set for Stripe webhooks and redirects');
+    }
+
     console.log('Initializing Stripe schema...');
     await runMigrations({ databaseUrl });
     console.log('Stripe schema ready');
@@ -70,10 +89,9 @@ async function initStripe() {
     const stripeSync = await getStripeSync();
 
     console.log('Setting up managed webhook...');
-    const webhookBaseUrl = `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`;
     try {
       const result = await stripeSync.findOrCreateManagedWebhook(
-        `${webhookBaseUrl}/api/stripe/webhook`
+        `${baseUrl}/api/stripe/webhook`
       );
       console.log('Webhook configured:', result?.webhook?.url || 'setup complete');
     } catch (webhookError) {
@@ -119,6 +137,11 @@ app.post(
 app.use(express.json());
 
 async function initAuth() {
+  if (!process.env.REPL_ID || !process.env.SESSION_SECRET) {
+    console.log('Replit Auth disabled (missing REPL_ID or SESSION_SECRET)');
+    return;
+  }
+
   try {
     await setupAuth(app);
     registerAuthRoutes(app);
@@ -192,7 +215,10 @@ app.post('/api/stripe/checkout', async (req, res) => {
       customerId = customer.id;
     }
 
-    const baseUrl = `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`;
+    const baseUrl = getBaseUrl();
+    if (!baseUrl) {
+      return res.status(500).json({ error: 'APP_BASE_URL must be set for Stripe redirects' });
+    }
     const session = await stripeService.createCheckoutSession(
       customerId,
       priceId,
@@ -219,7 +245,10 @@ app.post('/api/stripe/portal', async (req, res) => {
       return res.status(400).json({ error: 'No subscription found' });
     }
 
-    const baseUrl = `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`;
+    const baseUrl = getBaseUrl();
+    if (!baseUrl) {
+      return res.status(500).json({ error: 'APP_BASE_URL must be set for Stripe redirects' });
+    }
     const session = await stripeService.createCustomerPortalSession(
       user.stripeCustomerId,
       `${baseUrl}/billing`

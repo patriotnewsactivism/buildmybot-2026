@@ -37,7 +37,7 @@ BuildMyBot is an all-in-one AI Operating System that empowers businesses to auto
 
 - **Frontend:** React, TypeScript, Vite, Tailwind CSS
 - **Backend:** Express.js API server
-- **Database:** Replit PostgreSQL with Drizzle ORM
+- **Database:** Postgres (Neon or Supabase) with Drizzle ORM
 - **AI Models:** OpenAI GPT-4o / GPT-4o Mini
 - **Voice:** Cartesia (ultra-realistic voice synthesis)
 - **Icons:** Lucide React
@@ -70,8 +70,15 @@ BuildMyBot is an all-in-one AI Operating System that empowers businesses to auto
    # Cartesia (for voice agent)
    CARTESIA_API_KEY=...
    
-   # Database (auto-configured on Replit)
-   DATABASE_URL=...
+   # Database (Neon/Supabase Postgres)
+   DATABASE_URL=postgresql://USER:PASSWORD@HOST:5432/DATABASE?sslmode=require
+
+   # App base URL (used for Stripe redirects/webhooks)
+   APP_BASE_URL=https://your-domain.com
+
+   # Stripe
+   STRIPE_SECRET_KEY=sk_live_...
+   STRIPE_PUBLISHABLE_KEY=pk_live_...
    ```
 
 4. Run Development Server:

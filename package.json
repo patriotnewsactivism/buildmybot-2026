@@ -54,7 +54,8 @@
     "@types/react": "^18.2.64",
     "@types/react-dom": "^18.2.21",
     "@vitejs/plugin-react": "^4.2.1",
-    "biome": "^1.8.3",
+    "biome": "^1.7.3",
+    "dotenv": "^16.4.5",
     "typescript": "^5.4.2",
     "vite": "^5.1.5"
   }
