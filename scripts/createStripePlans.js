@@ -79,6 +79,23 @@ const PLANS = [
       'Custom data residency & backups',
       'Dedicated success manager'
     ]
+  },
+  {
+    id: 'whitelabel_fee',
+    name: 'Whitelabel Partner Fee',
+    amount: 49900, // $499.00
+    description: 'Whitelabel partner fee for guaranteed 50% revenue split.',
+    features: [
+      'Guaranteed 50% revenue split while fee is current',
+      'Billed every 30 days (net 30)',
+      'If unpaid, $499 is deducted from partner payouts',
+      'Custom domain & branding',
+      'White-label dashboard',
+      'Priority support',
+      'No client minimums required'
+    ],
+    recurring: { interval: 'day', interval_count: 30 },
+    metadata: { product_type: 'whitelabel_fee', billing_terms: 'net_30' }
   }
 ];
 
@@ -100,7 +117,8 @@ async function createPlans() {
         description: plan.description,
         metadata: {
           app_plan_id: plan.id,
-          features_list: JSON.stringify(plan.features) // Store full list in metadata
+          features_list: JSON.stringify(plan.features),
+          ...(plan.metadata || {})
         }
       });
 
@@ -109,7 +127,7 @@ async function createPlans() {
       const price = await stripe.prices.create({
         unit_amount: plan.amount,
         currency: 'usd',
-        recurring: { interval: 'month' },
+        recurring: plan.recurring || { interval: 'month' },
         product: product.id,
         metadata: {
           app_plan_id: plan.id
