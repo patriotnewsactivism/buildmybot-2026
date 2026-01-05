@@ -69,7 +69,7 @@ export const ResellerDashboard: React.FC<ResellerProps> = ({ user, stats: initia
       pendingPayout: Math.max(grossCommission - whitelabelFeeAmount, 0),
       whitelabelFeeDue,
       whitelabelFeeAmount,
-      whitelabelPaidThrough: paidThrough ? paidThrough.toISOString() : null,
+      whitelabelPaidThrough: paidThrough ? paidThrough.toISOString() : undefined,
     };
   };
 
