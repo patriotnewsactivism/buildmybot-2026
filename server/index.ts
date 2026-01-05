@@ -234,6 +234,59 @@ app.post('/api/stripe/checkout', async (req, res) => {
   }
 });
 
+app.post('/api/stripe/whitelabel/checkout', async (req, res) => {
+  try {
+    const { userId } = req.body;
+    if (!userId) {
+      return res.status(400).json({ error: 'Missing userId' });
+    }
+
+    const priceId = process.env.STRIPE_WHITELABEL_PRICE_ID;
+    if (!priceId) {
+      return res.status(500).json({ error: 'STRIPE_WHITELABEL_PRICE_ID must be set' });
+    }
+
+    const [user] = await db.select().from(users).where(eq(users.id, userId));
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    let customerId = user.stripeCustomerId;
+    if (!customerId) {
+      const customer = await stripeService.createCustomer(user.email, user.id, user.name);
+      await stripeService.updateUserStripeInfo(user.id, { stripeCustomerId: customer.id });
+      customerId = customer.id;
+    }
+
+    const baseUrl = getBaseUrl();
+    if (!baseUrl) {
+      return res.status(500).json({ error: 'APP_BASE_URL must be set for Stripe redirects' });
+    }
+
+    const session = await stripeService.createCheckoutSession(
+      customerId,
+      priceId,
+      `${baseUrl}/?whitelabel=success`,
+      `${baseUrl}/?whitelabel=canceled`,
+      {
+        metadata: {
+          purpose: 'whitelabel_fee',
+          userId,
+        },
+        subscriptionMetadata: {
+          purpose: 'whitelabel_fee',
+          userId,
+        },
+      }
+    );
+
+    res.json({ url: session.url });
+  } catch (error) {
+    console.error('Error creating whitelabel checkout session:', error);
+    res.status(500).json({ error: 'Failed to create whitelabel checkout session' });
+  }
+});
+
 app.post('/api/stripe/portal', async (req, res) => {
   try {
     const { userId } = req.body;
