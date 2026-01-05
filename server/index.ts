@@ -8,9 +8,10 @@ import { db } from './db';
 import { users, bots, leads, conversations, botDocuments } from '../shared/schema';
 import { eq, desc } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
-import { getStripeSync, getUncachableStripeClient, getStripePublishableKey } from './stripeClient';
+import { getStripeSync, getStripePublishableKey } from './stripeClient';
 import { WebhookHandlers } from './webhookHandlers';
 import { stripeService } from './stripeService';
+import { PLANS, RESELLER_TIERS, WHITELABEL_FEE } from '../constants';
 import multer from 'multer';
 import { setupAuth, registerAuthRoutes } from './replit_integrations/auth';
 

@@ -37,6 +37,9 @@ export interface User {
   phoneConfig?: PhoneAgentConfig;
   status?: 'Active' | 'Suspended' | 'Pending'; // For admin management
   createdAt?: string; // ISO date string
+  whitelabelEnabled?: boolean;
+  whitelabelPaidThrough?: string;
+  whitelabelSubscriptionId?: string;
 }
 
 export interface Bot {
@@ -90,6 +93,10 @@ export interface ResellerStats {
   totalRevenue: number;
   commissionRate: number;
   pendingPayout: number;
+  grossCommission?: number;
+  whitelabelFeeDue?: boolean;
+  whitelabelFeeAmount?: number;
+  whitelabelPaidThrough?: string;
 }
 
 export interface BotDocument {

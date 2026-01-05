@@ -99,10 +99,14 @@ export const RESELLER_TIERS = [
 
 export const WHITELABEL_FEE = {
   price: 499,
+  intervalDays: 30,
+  netTermsDays: 30,
   commission: 0.50,
   label: 'Whitelabel',
   features: [
-    'Immediate 50% commission on all accounts',
+    'Guaranteed 50% revenue split while fee is current',
+    'Billed every 30 days (net 30)',
+    'If unpaid, $499 is deducted from partner payouts',
     'Skip the tiered structure entirely',
     'Custom domain & branding',
     'White-label dashboard',

@@ -21,7 +21,16 @@ export class StripeService {
     });
   }
 
-  async createCheckoutSession(customerId: string, priceId: string, successUrl: string, cancelUrl: string) {
+  async createCheckoutSession(
+    customerId: string,
+    priceId: string,
+    successUrl: string,
+    cancelUrl: string,
+    options?: {
+      metadata?: Record<string, string>;
+      subscriptionMetadata?: Record<string, string>;
+    }
+  ) {
     const stripe = await getUncachableStripeClient();
     return await stripe.checkout.sessions.create({
       customer: customerId,
@@ -30,6 +39,10 @@ export class StripeService {
       mode: 'subscription',
       success_url: successUrl,
       cancel_url: cancelUrl,
+      metadata: options?.metadata,
+      subscription_data: options?.subscriptionMetadata
+        ? { metadata: options.subscriptionMetadata }
+        : undefined,
     });
   }
 
