@@ -65,14 +65,16 @@ BuildMyBot is an all-in-one AI Operating System that empowers businesses to auto
    Create a `.env` file and add your keys:
    ```env
    # OpenAI
-   OPENAI_API_KEY=sk-...
-   
+   OPENAI_API_KEY=your-openai-api-key
+
    # Cartesia (for voice agent)
-   CARTESIA_API_KEY=...
-   
+   CARTESIA_API_KEY=your-cartesia-api-key
+
    # Database (auto-configured on Replit)
-   DATABASE_URL=...
+   DATABASE_URL=postgresql://username:password@host:5432/database?sslmode=require
    ```
+
+   Copy `.env.example` to `.env` and replace the placeholder values with your own secrets. Database commands (for example, `npm run db:push`) rely on `DATABASE_URL` being present.
 
 4. Run Development Server:
    ```bash
