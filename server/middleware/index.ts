@@ -1,4 +1,5 @@
-export { authenticate, authorize, loadOrganizationContext, requirePermission, AuthRequest } from './auth';
+export { authenticate, authorize, loadOrganizationContext, requirePermission } from './auth';
+export type { AuthRequest } from './auth';
 export { validateRequest, validateQuery, BotSchema, LeadSchema, UserSchema, OrganizationSchema } from './validation';
 export { tenantIsolation, verifyResourceOwnership } from './tenant';
 export { auditLog, auditSensitiveAction } from './audit';

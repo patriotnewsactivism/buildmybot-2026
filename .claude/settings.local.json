@@ -23,7 +23,12 @@
       "*",
       "Bash(node -e:*)",
       "Bash(git push:*)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(npm run migrate:schema:*)",
+      "Bash(tsx scripts/testDbConnection.ts:*)",
+      "Bash(npx tsx:*)",
+      "Bash(npm run db:push:*)",
+      "Bash(npm run migrate:data:*)"
     ]
   }
 }

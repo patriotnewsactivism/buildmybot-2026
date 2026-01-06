@@ -1,7 +1,20 @@
+// Load environment variables first
+import { config } from 'dotenv';
+import fs from 'fs';
+import path from 'path';
+
+const envPath = path.resolve(process.cwd(), '.env');
+if (fs.existsSync(envPath)) {
+  config({ path: envPath });
+}
+
+const envLocalPath = path.resolve(process.cwd(), '.env.local');
+if (fs.existsSync(envLocalPath)) {
+  config({ path: envLocalPath, override: true });
+}
+
 import express from 'express';
 import cors from 'cors';
-import path from 'path';
-import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { runMigrations } from 'stripe-replit-sync';
 import { db } from './db';

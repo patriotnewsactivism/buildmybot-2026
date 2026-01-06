@@ -8,9 +8,21 @@ import postgres from 'postgres';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { config } from 'dotenv';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Load environment variables from .env and .env.local
+const envPath = path.resolve(process.cwd(), '.env');
+if (fs.existsSync(envPath)) {
+  config({ path: envPath });
+}
+
+const envLocalPath = path.resolve(process.cwd(), '.env.local');
+if (fs.existsSync(envLocalPath)) {
+  config({ path: envLocalPath, override: true });
+}
 
 async function runMigrations() {
   console.log('🚀 Starting Phase 1 Database Migrations...\n');
@@ -22,6 +34,10 @@ async function runMigrations() {
     console.error('Please set DATABASE_URL in your .env file or environment variables.');
     process.exit(1);
   }
+
+  // Remove PGPORT to prevent it from interfering with the connection
+  // The DATABASE_URL already contains the correct connection details
+  delete process.env.PGPORT;
 
   console.log('✓ Database URL found');
 
@@ -38,14 +54,31 @@ async function runMigrations() {
 
   // Connect to database
   console.log('📡 Connecting to database...');
-  const connection = postgres(databaseUrl, { max: 1 });
+  console.log('⏳ Note: Neon databases may take a few seconds to wake up from sleep...');
+  const connection = postgres(databaseUrl, {
+    max: 1,
+    connect_timeout: 30, // Give Neon time to wake up
+    idle_timeout: 60,
+    max_lifetime: 300
+  });
 
   try {
     // Split SQL into individual statements
     const statements = sql
       .split(';')
       .map(s => s.trim())
-      .filter(s => s.length > 0 && !s.startsWith('--'));
+      .filter(s => {
+        // Remove empty statements
+        if (s.length === 0) return false;
+
+        // Remove comment-only lines
+        const lines = s.split('\n').filter(line => {
+          const trimmed = line.trim();
+          return trimmed.length > 0 && !trimmed.startsWith('--');
+        });
+
+        return lines.length > 0;
+      });
 
     console.log(`📝 Found ${statements.length} SQL statements to execute\n`);
     console.log('⚙️  Executing migrations...\n');
@@ -77,13 +110,18 @@ async function runMigrations() {
         }
       } catch (error) {
         // Check if error is because table/index already exists
-        const errorMessage = (error as Error).message;
+        const errorMessage = (error as Error).message || String(error);
+        const errorStr = JSON.stringify(error, null, 2);
+
         if (errorMessage.includes('already exists')) {
           console.log(`  ⚠️  Skipped (already exists): ${preview}`);
         } else {
           errorCount++;
-          console.error(`  ❌ Error executing: ${preview}`);
-          console.error(`     ${errorMessage}`);
+          console.error(`  ❌ Error executing statement ${i + 1}:`);
+          console.error(`     SQL: ${statement.substring(0, 200)}...`);
+          console.error(`     Error message: ${errorMessage}`);
+          console.error(`     Full error: ${errorStr}`);
+          console.error('');
         }
       }
     }
