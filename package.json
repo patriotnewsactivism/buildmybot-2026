@@ -12,7 +12,10 @@
     "preview": "vite preview",
     "lint": "biome check .",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "migrate:schema": "tsx scripts/runMigrations.ts",
+    "migrate:data": "tsx scripts/runDataMigration.ts",
+    "migrate:all": "npm run migrate:schema && npm run migrate:data"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.1.18",
