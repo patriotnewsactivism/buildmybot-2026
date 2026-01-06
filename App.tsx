@@ -38,9 +38,6 @@ const INITIAL_RESELLER_STATS: ResellerStats = {
   pendingPayout: 0,
 };
 
-const MASTER_EMAILS = ['admin@buildmybot.app', 'master@buildmybot.app', 'ceo@buildmybot.app', 'mreardon@wtpnews.org', 'ben@texasplanninglaw.com'];
-const ADMIN_EMAILS = ['jadj19@gmail.com'];
-
 function App() {
   const { user: authUser, isLoading: authLoading, isAuthenticated: replitAuthenticated, logout: replitLogout } = useAuth();
   
@@ -62,26 +59,23 @@ function App() {
 
   useEffect(() => {
     if (!authLoading && replitAuthenticated && authUser) {
-      const isMaster = MASTER_EMAILS.includes(authUser.email?.toLowerCase() || '');
-      const isAdmin = ADMIN_EMAILS.includes(authUser.email?.toLowerCase() || '');
-      
       const mappedUser: User = {
         id: authUser.id,
         name: authUser.name,
         email: authUser.email,
-        role: (isMaster || isAdmin) ? UserRole.ADMIN : (authUser.role as UserRole) || UserRole.OWNER,
-        plan: (isMaster || isAdmin) ? PlanType.ENTERPRISE : (authUser.plan as PlanType) || PlanType.FREE,
+        role: (authUser.role as UserRole) || UserRole.OWNER,
+        plan: (authUser.plan as PlanType) || PlanType.FREE,
         companyName: authUser.companyName || '',
         avatarUrl: authUser.avatarUrl ?? undefined,
         resellerCode: authUser.resellerCode ?? undefined,
         status: (authUser.status as 'Active' | 'Suspended' | 'Pending' | undefined) ?? undefined,
         createdAt: authUser.createdAt?.toString() || new Date().toISOString(),
       };
-      
+
       setUser(mappedUser);
       setIsLoggedIn(true);
-      
-      if (isMaster || isAdmin) {
+
+      if (mappedUser.role === UserRole.ADMIN) {
         setCurrentView('admin');
       }
     }
@@ -147,7 +141,7 @@ function App() {
   const avgResponseTime = "0.8s";
 
   const handleAdminLogin = () => {
-      handleManualAuth('admin@buildmybot.app', 'Master Admin', 'BuildMyBot HQ');
+      openAuth('login');
   };
 
   const handleLogout = () => {
@@ -162,27 +156,20 @@ function App() {
   };
 
   const handleManualAuth = (email: string, name?: string, companyName?: string) => {
-      const isMaster = MASTER_EMAILS.includes(email.toLowerCase());
-      const isAdmin = ADMIN_EMAILS.includes(email.toLowerCase());
-      
       const newUser: User = {
-          id: isMaster ? 'master-admin' : isAdmin ? 'admin-' + Date.now() : 'demo-user-' + Date.now(),
+          id: 'demo-user-' + Date.now(),
           name: name || email.split('@')[0],
           email: email,
-          role: (isMaster || isAdmin) ? UserRole.ADMIN : UserRole.OWNER,
-          plan: (isMaster || isAdmin) ? PlanType.ENTERPRISE : PlanType.FREE,
-          companyName: companyName || (isMaster ? 'BuildMyBot HQ' : isAdmin ? 'BuildMyBot Admin' : 'Demo Company'),
+          role: UserRole.OWNER,
+          plan: PlanType.FREE,
+          companyName: companyName || 'Demo Company',
           createdAt: new Date().toISOString()
       };
 
       setUser(newUser);
       setIsLoggedIn(true);
       setAuthModalOpen(false);
-      
-      if (isMaster || isAdmin) {
-          setCurrentView('admin');
-      }
-      
+
       setNotification("Logged in successfully");
       setTimeout(() => setNotification(null), 3000);
   };
