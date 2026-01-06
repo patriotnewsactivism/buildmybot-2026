@@ -14,6 +14,8 @@ import { stripeService } from './stripeService';
 import { PLANS, RESELLER_TIERS, WHITELABEL_FEE } from '../constants';
 import multer from 'multer';
 import { setupAuth, registerAuthRoutes } from './replit_integrations/auth';
+import { securityHeaders, apiLimiter } from './middleware';
+import { auditRouter, analyticsRouter, organizationsRouter } from './routes';
 
 const uploadsDir = path.join(process.cwd(), 'uploads');
 if (!fs.existsSync(uploadsDir)) {
@@ -136,6 +138,12 @@ app.post(
 );
 
 app.use(express.json());
+
+// Phase 1: Apply security headers
+app.use(securityHeaders);
+
+// Phase 1: Apply rate limiting to API routes
+app.use('/api', apiLimiter);
 
 async function initAuth() {
   if (!process.env.REPL_ID || !process.env.SESSION_SECRET) {
@@ -729,6 +737,19 @@ app.delete('/api/documents/:docId', async (req, res) => {
     res.status(500).json({ error: 'Failed to delete document' });
   }
 });
+
+// ========================================
+// PHASE 1: MULTI-TENANT ARCHITECTURE ROUTES
+// ========================================
+
+// Organization management
+app.use('/api/organizations', organizationsRouter);
+
+// Audit logging
+app.use('/api/audit', auditRouter);
+
+// Analytics and insights
+app.use('/api/analytics', analyticsRouter);
 
 // Serve static files in production
 if (isProduction) {
