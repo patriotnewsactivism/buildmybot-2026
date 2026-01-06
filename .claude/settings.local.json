@@ -19,7 +19,8 @@
       "Bash(powershell \"docker ps -a --filter name=supabase --format ''{{.ID}}'' | ForEach-Object { docker rm -f $_}\")",
       "Bash(xargs:*)",
       "Bash(powershell \"netsh interface ipv4 show excludedportrange protocol=tcp\")",
-      "Bash(dir \"C:\\\\buildmybot\\\\shared\\\\models\")"
+      "Bash(dir \"C:\\\\buildmybot\\\\shared\\\\models\")",
+      "*"
     ]
   }
 }

@@ -3,6 +3,116 @@ import { relations } from 'drizzle-orm';
 
 export * from './models/auth';
 
+// ========================================
+// ORGANIZATIONS & MULTI-TENANCY
+// ========================================
+
+export const organizations = pgTable('organizations', {
+  id: text('id').primaryKey(),
+  name: varchar('name', { length: 255 }).notNull(),
+  slug: varchar('slug', { length: 100 }).notNull().unique(),
+  ownerId: text('owner_id'),
+  plan: varchar('plan', { length: 50 }).default('FREE'),
+  subscriptionStatus: varchar('subscription_status', { length: 50 }).default('active'),
+  settings: json('settings').default({}),
+  deletedAt: timestamp('deleted_at'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const organizationMembers = pgTable('organization_members', {
+  id: text('id').primaryKey(),
+  organizationId: text('organization_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  role: varchar('role', { length: 50 }).default('member'),
+  permissions: json('permissions').default([]),
+  invitedBy: text('invited_by').references(() => users.id),
+  joinedAt: timestamp('joined_at').defaultNow(),
+});
+
+export const roles = pgTable('roles', {
+  id: text('id').primaryKey(),
+  organizationId: text('organization_id').references(() => organizations.id),
+  name: varchar('name', { length: 100 }).notNull(),
+  description: text('description'),
+  permissions: json('permissions').default([]),
+  isSystemRole: boolean('is_system_role').default(false),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+// ========================================
+// AUDIT & SECURITY
+// ========================================
+
+export const auditLogs = pgTable('audit_logs', {
+  id: text('id').primaryKey(),
+  organizationId: text('organization_id').references(() => organizations.id),
+  userId: text('user_id').references(() => users.id),
+  action: varchar('action', { length: 100 }).notNull(),
+  resourceType: varchar('resource_type', { length: 50 }),
+  resourceId: text('resource_id'),
+  oldValues: json('old_values'),
+  newValues: json('new_values'),
+  ipAddress: varchar('ip_address', { length: 50 }),
+  userAgent: text('user_agent'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+// ========================================
+// PARTNER & CLIENT RELATIONSHIPS
+// ========================================
+
+export const partnerClients = pgTable('partner_clients', {
+  id: text('id').primaryKey(),
+  partnerId: text('partner_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  clientId: text('client_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  organizationId: text('organization_id').references(() => organizations.id, { onDelete: 'cascade' }),
+  accessLevel: varchar('access_level', { length: 50 }).default('view'),
+  commissionRate: real('commission_rate').default(0.0),
+  canImpersonate: boolean('can_impersonate').default(false),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+// ========================================
+// ANALYTICS
+// ========================================
+
+export const analyticsEvents = pgTable('analytics_events', {
+  id: text('id').primaryKey(),
+  organizationId: text('organization_id').references(() => organizations.id),
+  botId: text('bot_id').references(() => bots.id),
+  userId: text('user_id'),
+  eventType: varchar('event_type', { length: 50 }).notNull(),
+  eventData: json('event_data'),
+  sessionId: text('session_id'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+// ========================================
+// BOT TEMPLATES
+// ========================================
+
+export const botTemplates = pgTable('bot_templates', {
+  id: text('id').primaryKey(),
+  name: varchar('name', { length: 255 }).notNull(),
+  description: text('description'),
+  category: varchar('category', { length: 100 }),
+  industry: varchar('industry', { length: 100 }),
+  systemPrompt: text('system_prompt'),
+  configuration: json('configuration'),
+  isPublic: boolean('is_public').default(false),
+  isPremium: boolean('is_premium').default(false),
+  priceCents: integer('price_cents').default(0),
+  createdBy: text('created_by').references(() => users.id),
+  installCount: integer('install_count').default(0),
+  rating: real('rating').default(0),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+// ========================================
+// USERS
+// ========================================
+
 export const users = pgTable('users', {
   id: text('id').primaryKey(),
   name: varchar('name', { length: 255 }).notNull(),
@@ -24,8 +134,17 @@ export const users = pgTable('users', {
   whitelabelSubscriptionId: text('whitelabel_subscription_id'),
   referralCredits: real('referral_credits').default(0),
   referralCreditsExpiry: timestamp('referral_credits_expiry'),
+  // Phase 1 additions
+  organizationId: text('organization_id').references(() => organizations.id),
+  lastLoginAt: timestamp('last_login_at'),
+  preferences: json('preferences').default({}),
+  deletedAt: timestamp('deleted_at'),
   createdAt: timestamp('created_at').defaultNow(),
 });
+
+// ========================================
+// BOTS
+// ========================================
 
 export const bots = pgTable('bots', {
   id: text('id').primaryKey(),
@@ -45,8 +164,16 @@ export const bots = pgTable('bots', {
   responseDelay: integer('response_delay').default(500),
   embedType: varchar('embed_type', { length: 50 }).default('hover'),
   userId: text('user_id').references(() => users.id),
+  // Phase 1 additions
+  organizationId: text('organization_id').references(() => organizations.id),
+  analytics: json('analytics').default({}),
+  deletedAt: timestamp('deleted_at'),
   createdAt: timestamp('created_at').defaultNow(),
 });
+
+// ========================================
+// LEADS
+// ========================================
 
 export const leads = pgTable('leads', {
   id: text('id').primaryKey(),
@@ -57,8 +184,14 @@ export const leads = pgTable('leads', {
   status: varchar('status', { length: 50 }).default('New'),
   sourceBotId: text('source_bot_id').references(() => bots.id),
   userId: text('user_id').references(() => users.id),
+  // Phase 1 addition
+  organizationId: text('organization_id').references(() => organizations.id),
   createdAt: timestamp('created_at').defaultNow(),
 });
+
+// ========================================
+// CONVERSATIONS
+// ========================================
 
 export const conversations = pgTable('conversations', {
   id: text('id').primaryKey(),
@@ -67,7 +200,13 @@ export const conversations = pgTable('conversations', {
   sentiment: varchar('sentiment', { length: 50 }).default('Neutral'),
   timestamp: timestamp('timestamp').defaultNow(),
   userId: text('user_id').references(() => users.id),
+  // Phase 1 addition
+  organizationId: text('organization_id').references(() => organizations.id),
 });
+
+// ========================================
+// BOT DOCUMENTS
+// ========================================
 
 export const botDocuments = pgTable('bot_documents', {
   id: text('id').primaryKey(),
@@ -79,10 +218,102 @@ export const botDocuments = pgTable('bot_documents', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
-export const usersRelations = relations(users, ({ many }) => ({
+// ========================================
+// RELATIONS
+// ========================================
+
+export const organizationsRelations = relations(organizations, ({ one, many }) => ({
+  owner: one(users, {
+    fields: [organizations.ownerId],
+    references: [users.id],
+  }),
+  members: many(organizationMembers),
+  roles: many(roles),
   bots: many(bots),
   leads: many(leads),
   conversations: many(conversations),
+  analyticsEvents: many(analyticsEvents),
+  partnerRelationships: many(partnerClients),
+}));
+
+export const organizationMembersRelations = relations(organizationMembers, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [organizationMembers.organizationId],
+    references: [organizations.id],
+  }),
+  user: one(users, {
+    fields: [organizationMembers.userId],
+    references: [users.id],
+  }),
+  inviter: one(users, {
+    fields: [organizationMembers.invitedBy],
+    references: [users.id],
+  }),
+}));
+
+export const rolesRelations = relations(roles, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [roles.organizationId],
+    references: [organizations.id],
+  }),
+}));
+
+export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [auditLogs.organizationId],
+    references: [organizations.id],
+  }),
+  user: one(users, {
+    fields: [auditLogs.userId],
+    references: [users.id],
+  }),
+}));
+
+export const partnerClientsRelations = relations(partnerClients, ({ one }) => ({
+  partner: one(users, {
+    fields: [partnerClients.partnerId],
+    references: [users.id],
+  }),
+  client: one(users, {
+    fields: [partnerClients.clientId],
+    references: [users.id],
+  }),
+  organization: one(organizations, {
+    fields: [partnerClients.organizationId],
+    references: [organizations.id],
+  }),
+}));
+
+export const analyticsEventsRelations = relations(analyticsEvents, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [analyticsEvents.organizationId],
+    references: [organizations.id],
+  }),
+  bot: one(bots, {
+    fields: [analyticsEvents.botId],
+    references: [bots.id],
+  }),
+}));
+
+export const botTemplatesRelations = relations(botTemplates, ({ one }) => ({
+  creator: one(users, {
+    fields: [botTemplates.createdBy],
+    references: [users.id],
+  }),
+}));
+
+export const usersRelations = relations(users, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [users.organizationId],
+    references: [organizations.id],
+  }),
+  bots: many(bots),
+  leads: many(leads),
+  conversations: many(conversations),
+  organizationMemberships: many(organizationMembers),
+  partneredClients: many(partnerClients, { relationName: 'partner' }),
+  partnerRelationships: many(partnerClients, { relationName: 'client' }),
+  createdTemplates: many(botTemplates),
 }));
 
 export const botsRelations = relations(bots, ({ one, many }) => ({
@@ -90,9 +321,14 @@ export const botsRelations = relations(bots, ({ one, many }) => ({
     fields: [bots.userId],
     references: [users.id],
   }),
+  organization: one(organizations, {
+    fields: [bots.organizationId],
+    references: [organizations.id],
+  }),
   leads: many(leads),
   conversations: many(conversations),
   documents: many(botDocuments),
+  analyticsEvents: many(analyticsEvents),
 }));
 
 export const botDocumentsRelations = relations(botDocuments, ({ one }) => ({
@@ -107,6 +343,10 @@ export const leadsRelations = relations(leads, ({ one }) => ({
     fields: [leads.userId],
     references: [users.id],
   }),
+  organization: one(organizations, {
+    fields: [leads.organizationId],
+    references: [organizations.id],
+  }),
   sourceBot: one(bots, {
     fields: [leads.sourceBotId],
     references: [bots.id],
@@ -118,11 +358,34 @@ export const conversationsRelations = relations(conversations, ({ one }) => ({
     fields: [conversations.userId],
     references: [users.id],
   }),
+  organization: one(organizations, {
+    fields: [conversations.organizationId],
+    references: [organizations.id],
+  }),
   bot: one(bots, {
     fields: [conversations.botId],
     references: [bots.id],
   }),
 }));
+
+// ========================================
+// TYPE EXPORTS
+// ========================================
+
+export type Organization = typeof organizations.$inferSelect;
+export type InsertOrganization = typeof organizations.$inferInsert;
+export type OrganizationMember = typeof organizationMembers.$inferSelect;
+export type InsertOrganizationMember = typeof organizationMembers.$inferInsert;
+export type Role = typeof roles.$inferSelect;
+export type InsertRole = typeof roles.$inferInsert;
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type InsertAuditLog = typeof auditLogs.$inferInsert;
+export type PartnerClient = typeof partnerClients.$inferSelect;
+export type InsertPartnerClient = typeof partnerClients.$inferInsert;
+export type AnalyticsEvent = typeof analyticsEvents.$inferSelect;
+export type InsertAnalyticsEvent = typeof analyticsEvents.$inferInsert;
+export type BotTemplate = typeof botTemplates.$inferSelect;
+export type InsertBotTemplate = typeof botTemplates.$inferInsert;
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
