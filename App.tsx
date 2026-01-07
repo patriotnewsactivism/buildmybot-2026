@@ -59,6 +59,8 @@ function App() {
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [notification, setNotification] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [impersonation, setImpersonation] = useState<{ token: string; targetUserId: string; expiresAt: string } | null>(null);
+  const [impersonatedUser, setImpersonatedUser] = useState<User | null>(null);
 
   useEffect(() => {
     if (!authLoading && replitAuthenticated && authUser) {
@@ -77,12 +79,44 @@ function App() {
 
       setUser(mappedUser);
       setIsLoggedIn(true);
+      dbService.setAuthContext({ userId: mappedUser.id });
 
       if (mappedUser.role === UserRole.ADMIN) {
         setCurrentView('admin');
+      } else if (mappedUser.role === UserRole.RESELLER) {
+        setCurrentView('reseller');
       }
     }
   }, [authLoading, replitAuthenticated, authUser]);
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    dbService.getActiveImpersonations()
+      .then((sessions) => {
+        if (sessions?.length) {
+          const session = sessions[0];
+          setImpersonation({
+            token: session.id,
+            targetUserId: session.targetUserId,
+            expiresAt: session.expiresAt,
+          });
+          dbService.setAuthContext({ impersonationToken: session.id });
+          return dbService.getUserProfile(session.targetUserId);
+        }
+        return null;
+      })
+      .then((target) => {
+        if (target) {
+          setImpersonatedUser(target);
+        }
+      })
+      .catch((error) => {
+        console.error('Failed to load impersonation session:', error);
+      });
+  }, [user]);
 
   const currentPath = window.location.pathname;
   if (currentPath.startsWith('/chat/')) {
