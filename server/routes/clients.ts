@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { and, eq, desc, SQL } from 'drizzle-orm';
+import { and, eq, desc, sql, SQL } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import { db } from '../db';
 import { bots, leads, conversations, analyticsEvents, users } from '../../shared/schema';

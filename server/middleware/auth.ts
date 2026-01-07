@@ -33,7 +33,7 @@ export async function authenticate(
     // Get user from Replit Auth session
     const headerUserId = req.headers['x-user-id'];
     const sessionUserId = (req as any).user?.claims?.sub;
-    const userId = sessionUserId || req.session?.userId || headerUserId;
+    const userId = sessionUserId || (req.session as any)?.userId || headerUserId;
 
     if (!userId) {
       return res.status(401).json({ error: 'Authentication required' });
