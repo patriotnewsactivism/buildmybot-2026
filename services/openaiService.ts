@@ -6,7 +6,7 @@ export const generateBotResponse = async (
   systemPrompt: string,
   history: { role: 'user' | 'model'; text: string }[],
   lastMessage: string,
-  modelName: string = 'gpt-4o-mini',
+  modelName: string = 'gpt-5o-mini',
   context?: string
 ): Promise<string> => {
   const apiKey = getApiKey();
@@ -99,7 +99,7 @@ export const scrapeWebsiteContent = async (url: string): Promise<string> => {
             'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-            model: 'gpt-4o-mini',
+            model: 'gpt-5o-mini',
             messages: [
                 { role: 'system', content: 'You are a precise Data Extractor. Extract business facts.' },
                 { role: 'user', content: `Analyze this content and extract key business details:\n1. Business Name & Description\n2. Key Services/Products\n3. Contact Info (Email, Phone, Address)\n4. Pricing/Hours (if available)\n\nCONTENT:\n${truncatedText}` }
@@ -129,7 +129,7 @@ export const generateMarketingContent = async (type: string, topic: string, tone
                 'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify({
-                model: 'gpt-4o-mini',
+                model: 'gpt-5o-mini',
                 messages: [
                     { role: 'system', content: `You are an expert Copywriter. Tone: ${tone}.` },
                     { role: 'user', content: `Write a ${type} about ${topic}. Return ONLY the content, no filler. Keep it engaging and high-converting.` }
@@ -155,7 +155,7 @@ export const generateWebsiteStructure = async (businessName: string, description
                 'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify({
-                model: 'gpt-4o-mini',
+                model: 'gpt-5o-mini',
                 response_format: { type: "json_object" },
                 messages: [
                     { role: 'system', content: 'You are a Website Builder AI. Output JSON only with keys: headline, subheadline, features (array of strings), ctaText.' },

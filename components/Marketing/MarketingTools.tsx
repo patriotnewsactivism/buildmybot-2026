@@ -42,7 +42,7 @@ export const MarketingTools: React.FC = () => {
     <div className="max-w-4xl mx-auto space-y-6">
        <div className="text-center mb-8">
          <h2 className="text-2xl font-bold text-slate-800">AI Marketing Suite</h2>
-         <p className="text-slate-500">Generate high-converting copy in seconds using GPT-4o.</p>
+         <p className="text-slate-500">Generate high-converting copy in seconds using GPT-5o Mini.</p>
        </div>
 
        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">

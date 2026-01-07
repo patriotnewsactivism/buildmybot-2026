@@ -90,7 +90,7 @@ export const SimplifiedBotWizard: React.FC<SimplifiedBotWizardProps> = ({ onComp
     name: '',
     themeColor: '#1e3a8a',
     systemPrompt: '',
-    model: 'gpt-4o-mini' as const,
+    model: 'gpt-5o-mini' as const,
     temperature: 0.7,
     responseDelay: 2000,
     randomizeIdentity: true

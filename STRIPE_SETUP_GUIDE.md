@@ -20,7 +20,7 @@
 1. Go to **Products** → **+ Add product**
 2. Fill in:
    - Name: `BuildMyBot - Starter`
-   - Description: `1 bot, 750 conversations/month, GPT-4o Mini`
+   - Description: `1 bot, 750 conversations/month, GPT-5o Mini`
    - Pricing: `Recurring`
    - Price: `$29.00 USD`
    - Billing period: `Monthly`

@@ -14,13 +14,13 @@ const PLANS = [
     id: 'starter',
     name: 'Starter', 
     amount: 2900, // in cents ($29.00)
-    description: 'Website embeds, 750 conversations, 500MB storage, GPT-4o Mini, Lead capture alerts, Basic analytics.',
+    description: 'Website embeds, 750 conversations, 500MB storage, GPT-5o Mini, Lead capture alerts, Basic analytics.',
     features: [
       'Website + landing page embeds',
       'Multi-page training (URLs, PDFs)',
       '750 conversations/month',
       '500MB knowledge base storage',
-      'GPT-4o Mini model',
+      'GPT-5o Mini model',
       'Lead capture via email & SMS alerts',
       'Office-hours & scheduling rules',
       'Basic analytics dashboard',
