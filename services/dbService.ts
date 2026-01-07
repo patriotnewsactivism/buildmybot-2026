@@ -394,6 +394,48 @@ export const dbService = {
     return response.json();
   },
 
+  getAdminFinancialOverview: async () => {
+    const response = await request('/admin/financial/overview', { method: 'GET' }, false);
+    if (!response.ok) throw new Error('Failed to load financial overview');
+    return response.json();
+  },
+
+  getAdminStripeHealth: async () => {
+    const response = await request('/admin/financial/stripe-health', { method: 'GET' }, false);
+    if (!response.ok) throw new Error('Failed to load Stripe health');
+    return response.json();
+  },
+
+  getAdminInvoices: async () => {
+    const response = await request('/admin/financial/invoices', { method: 'GET' }, false);
+    if (!response.ok) throw new Error('Failed to load invoices');
+    return response.json();
+  },
+
+  getAdminRefunds: async () => {
+    const response = await request('/admin/financial/refunds', { method: 'GET' }, false);
+    if (!response.ok) throw new Error('Failed to load refunds');
+    return response.json();
+  },
+
+  getAdminPayouts: async () => {
+    const response = await request('/admin/payouts', { method: 'GET' }, false);
+    if (!response.ok) throw new Error('Failed to load payouts');
+    return response.json();
+  },
+
+  getAdminPartners: async () => {
+    const response = await request('/admin/partners', { method: 'GET' }, false);
+    if (!response.ok) throw new Error('Failed to load partners');
+    return response.json();
+  },
+
+  getAdminPartnerLeaderboard: async () => {
+    const response = await request('/admin/partners/leaderboard', { method: 'GET' }, false);
+    if (!response.ok) throw new Error('Failed to load partner leaderboard');
+    return response.json();
+  },
+
   bulkUpdateUsers: async (payload: { userIds: string[]; action: string }) => {
     const response = await request('/admin/users/bulk', {
       method: 'POST',

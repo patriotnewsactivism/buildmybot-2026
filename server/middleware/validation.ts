@@ -48,7 +48,7 @@ export function validateRequest(schema: z.ZodSchema) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({
           error: 'Validation failed',
-          details: error.errors,
+          details: error.issues,
         });
       }
       next(error);
@@ -65,7 +65,7 @@ export function validateQuery(schema: z.ZodSchema) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({
           error: 'Query validation failed',
-          details: error.errors,
+          details: error.issues,
         });
       }
       next(error);

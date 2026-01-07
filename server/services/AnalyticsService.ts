@@ -131,7 +131,7 @@ export class AnalyticsService {
 
     for (const bot of allBots) {
       const conversationConditions: SQL[] = [eq(conversations.botId, bot.id)];
-      const leadConditions: SQL[] = [eq(leads.botId, bot.id)];
+      const leadConditions: SQL[] = [eq(leads.sourceBotId, bot.id)];
 
       if (startDate) {
         conversationConditions.push(gte(conversations.timestamp, startDate));
@@ -218,5 +218,30 @@ export class AnalyticsService {
     }
 
     return timeSeries;
+  }
+
+  async getEventsByType(
+    organizationId: string,
+    eventType: string,
+    limit: number = 100
+  ): Promise<AnalyticsEvent[]> {
+    return db
+      .select()
+      .from(analyticsEvents)
+      .where(and(eq(analyticsEvents.organizationId, organizationId), eq(analyticsEvents.eventType, eventType)))
+      .orderBy(desc(analyticsEvents.createdAt))
+      .limit(limit);
+  }
+
+  async getEventsByBot(
+    botId: string,
+    limit: number = 100
+  ): Promise<AnalyticsEvent[]> {
+    return db
+      .select()
+      .from(analyticsEvents)
+      .where(eq(analyticsEvents.botId, botId))
+      .orderBy(desc(analyticsEvents.createdAt))
+      .limit(limit);
   }
 }

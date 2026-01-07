@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { eq, and, isNull, desc, sql, inArray, gte } from 'drizzle-orm';
+import { eq, and, isNull, desc, sql, inArray, gte, SQL } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import { db } from '../db';
 import {
@@ -57,29 +57,27 @@ router.get('/metrics', async (_req, res) => {
 router.get('/users', async (req, res) => {
   try {
     const { search, status, role, limit = '50', offset = '0' } = req.query;
-    const query = db
-      .select()
-      .from(users)
-      .where(isNull(users.deletedAt))
-      .orderBy(desc(users.createdAt))
-      .limit(Number(limit))
-      .offset(Number(offset));
-
-    let filteredQuery = query;
+    const conditions: SQL[] = [isNull(users.deletedAt)];
     if (status) {
-      filteredQuery = filteredQuery.where(eq(users.status, status as string));
+      conditions.push(eq(users.status, status as string));
     }
     if (role) {
-      filteredQuery = filteredQuery.where(eq(users.role, role as string));
+      conditions.push(eq(users.role, role as string));
     }
     if (search) {
       const searchPattern = `%${search}%`;
-      filteredQuery = filteredQuery.where(
+      conditions.push(
         sql`${users.name} ILIKE ${searchPattern} OR ${users.email} ILIKE ${searchPattern} OR ${users.companyName} ILIKE ${searchPattern}`
       );
     }
 
-    const result = await filteredQuery;
+    const result = await db
+      .select()
+      .from(users)
+      .where(and(...conditions))
+      .orderBy(desc(users.createdAt))
+      .limit(Number(limit))
+      .offset(Number(offset));
     res.json(result);
   } catch (error) {
     console.error('Admin users error:', error);
@@ -478,7 +476,7 @@ router.post('/system/api-keys/rotate', auditSensitiveAction('system.api_keys.rot
         .returning();
       settings = created;
     }
-    const apiKeys = { ...(settings?.apiKeys || {}) };
+    const apiKeys: Record<string, string> = { ...((settings?.apiKeys || {}) as Record<string, string>) };
     apiKeys[name] = uuidv4().replace(/-/g, '');
 
     const [updated] = await db

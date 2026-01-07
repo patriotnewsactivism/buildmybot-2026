@@ -89,15 +89,17 @@ router.get('/leads', async (req, res) => {
 
     const organizationId = user.organizationId;
     const status = req.query.status as string | undefined;
-    let query = db
+    const conditions = [
+      organizationId ? eq(leads.organizationId, organizationId) : eq(leads.userId, user.id),
+    ];
+    if (status) {
+      conditions.push(eq(leads.status, status));
+    }
+    const list = await db
       .select()
       .from(leads)
-      .where(organizationId ? eq(leads.organizationId, organizationId) : eq(leads.userId, user.id));
-
-    if (status) {
-      query = query.where(eq(leads.status, status));
-    }
-    const list = await query.orderBy(desc(leads.createdAt));
+      .where(and(...conditions))
+      .orderBy(desc(leads.createdAt));
     res.json(list);
   } catch (error) {
     console.error('Client leads error:', error);
