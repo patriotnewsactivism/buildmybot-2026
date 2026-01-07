@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { desc, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, sql, SQL } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import { db } from '../db';
 import { botTemplates, bots } from '../../shared/schema';
@@ -9,28 +9,31 @@ const router = Router();
 router.get('/', async (req, res) => {
   try {
     const { category, industry, search, featured } = req.query;
-    let query = db.select().from(botTemplates);
+    const conditions: SQL[] = [];
 
     if (category) {
-      query = query.where(eq(botTemplates.category, category as string));
+      conditions.push(eq(botTemplates.category, category as string));
     }
 
     if (industry) {
-      query = query.where(eq(botTemplates.industry, industry as string));
+      conditions.push(eq(botTemplates.industry, industry as string));
     }
 
     if (search) {
       const term = `%${search}%`;
-      query = query.where(
+      conditions.push(
         sql`${botTemplates.name} ILIKE ${term} OR ${botTemplates.description} ILIKE ${term}`
       );
     }
 
     if (featured) {
-      query = query.where(eq(botTemplates.isPublic, true)).orderBy(desc(botTemplates.rating));
+      conditions.push(eq(botTemplates.isPublic, true));
     }
 
-    const templates = await query;
+    const baseQuery = conditions.length
+      ? db.select().from(botTemplates).where(and(...conditions))
+      : db.select().from(botTemplates);
+    const templates = await (featured ? baseQuery.orderBy(desc(botTemplates.rating)) : baseQuery);
     res.json(templates);
   } catch (error) {
     console.error('Template list error:', error);

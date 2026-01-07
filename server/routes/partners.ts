@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { and, eq, inArray, isNull, desc, count } from 'drizzle-orm';
+import { and, eq, inArray, desc, count, SQL } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import { db } from '../db';
 import {
@@ -193,11 +193,15 @@ router.get('/notes', async (req, res) => {
       return res.status(401).json({ error: 'Authentication required' });
     }
 
-    let query = db.select().from(partnerNotes).where(eq(partnerNotes.partnerId, partnerId));
+    const noteConditions: SQL[] = [eq(partnerNotes.partnerId, partnerId)];
     if (clientId) {
-      query = query.where(eq(partnerNotes.clientId, clientId as string));
+      noteConditions.push(eq(partnerNotes.clientId, clientId as string));
     }
-    const notes = await query.orderBy(desc(partnerNotes.updatedAt));
+    const notes = await db
+      .select()
+      .from(partnerNotes)
+      .where(and(...noteConditions))
+      .orderBy(desc(partnerNotes.updatedAt));
     res.json(notes);
   } catch (error) {
     console.error('Partner notes error:', error);
@@ -242,11 +246,15 @@ router.get('/tasks', async (req, res) => {
       return res.status(401).json({ error: 'Authentication required' });
     }
 
-    let query = db.select().from(partnerTasks).where(eq(partnerTasks.partnerId, partnerId));
+    const taskConditions: SQL[] = [eq(partnerTasks.partnerId, partnerId)];
     if (clientId) {
-      query = query.where(eq(partnerTasks.clientId, clientId as string));
+      taskConditions.push(eq(partnerTasks.clientId, clientId as string));
     }
-    const tasks = await query.orderBy(desc(partnerTasks.updatedAt));
+    const tasks = await db
+      .select()
+      .from(partnerTasks)
+      .where(and(...taskConditions))
+      .orderBy(desc(partnerTasks.updatedAt));
     res.json(tasks);
   } catch (error) {
     console.error('Partner tasks error:', error);

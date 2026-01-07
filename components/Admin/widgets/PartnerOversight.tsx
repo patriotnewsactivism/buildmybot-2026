@@ -27,6 +27,14 @@ interface LeaderboardEntry {
   tier: string;
 }
 
+interface PartnerMetricRow extends PartnerMetric {
+  id: string;
+}
+
+interface LeaderboardRow extends LeaderboardEntry {
+  rank: number;
+}
+
 export const PartnerOversight: React.FC = () => {
   const [partners, setPartners] = useState<PartnerMetric[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
@@ -73,7 +81,17 @@ export const PartnerOversight: React.FC = () => {
   const totalClients = partners.reduce((sum, p) => sum + p.clientCount, 0);
   const totalRevenue = partners.reduce((sum, p) => sum + p.totalRevenue, 0);
 
-  const partnerColumns: Column<PartnerMetric>[] = [
+  const partnerRows: PartnerMetricRow[] = partners.map((metric) => ({
+    ...metric,
+    id: metric.partner.id,
+  }));
+
+  const leaderboardRows: LeaderboardRow[] = leaderboard.map((entry, index) => ({
+    ...entry,
+    rank: index + 1,
+  }));
+
+  const partnerColumns: Column<PartnerMetricRow>[] = [
     {
       key: 'name',
       label: 'Partner',
@@ -175,12 +193,12 @@ export const PartnerOversight: React.FC = () => {
     },
   ];
 
-  const leaderboardColumns: Column<LeaderboardEntry>[] = [
+  const leaderboardColumns: Column<LeaderboardRow>[] = [
     {
       key: 'rank',
       label: 'Rank',
-      render: (_, index) => (
-        <span className="font-bold text-slate-900">#{index + 1}</span>
+      render: (entry) => (
+        <span className="font-bold text-slate-900">#{entry.rank}</span>
       ),
     },
     {
@@ -274,7 +292,7 @@ export const PartnerOversight: React.FC = () => {
         <h3 className="text-lg font-semibold text-slate-900 mb-4">All Partners</h3>
         <DataTable
           columns={partnerColumns}
-          data={partners}
+          data={partnerRows}
           loading={loading}
           searchable
           searchPlaceholder="Search partners..."
@@ -287,7 +305,7 @@ export const PartnerOversight: React.FC = () => {
         <h3 className="text-lg font-semibold text-slate-900 mb-4">Partner Leaderboard</h3>
         <DataTable
           columns={leaderboardColumns}
-          data={leaderboard}
+          data={leaderboardRows}
           loading={loading}
           emptyMessage="No leaderboard data available"
         />

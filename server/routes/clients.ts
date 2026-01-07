@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { and, eq, isNull, desc, gte, sql } from 'drizzle-orm';
+import { and, eq, desc, SQL } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import { db } from '../db';
 import { bots, leads, conversations, analyticsEvents, users } from '../../shared/schema';
@@ -89,15 +89,18 @@ router.get('/leads', async (req, res) => {
 
     const organizationId = user.organizationId;
     const status = req.query.status as string | undefined;
-    let query = db
-      .select()
-      .from(leads)
-      .where(organizationId ? eq(leads.organizationId, organizationId) : eq(leads.userId, user.id));
+    const conditions: SQL[] = [
+      organizationId ? eq(leads.organizationId, organizationId) : eq(leads.userId, user.id),
+    ];
 
     if (status) {
-      query = query.where(eq(leads.status, status));
+      conditions.push(eq(leads.status, status));
     }
-    const list = await query.orderBy(desc(leads.createdAt));
+    const list = await db
+      .select()
+      .from(leads)
+      .where(and(...conditions))
+      .orderBy(desc(leads.createdAt));
     res.json(list);
   } catch (error) {
     console.error('Client leads error:', error);
