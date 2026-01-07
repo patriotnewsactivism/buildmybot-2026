@@ -4,3 +4,4 @@ export { validateRequest, validateQuery, BotSchema, LeadSchema, UserSchema, Orga
 export { tenantIsolation, verifyResourceOwnership } from './tenant';
 export { auditLog, auditSensitiveAction } from './audit';
 export { apiLimiter, strictLimiter, authLimiter, securityHeaders } from './security';
+export { metricsMiddleware } from './metrics';

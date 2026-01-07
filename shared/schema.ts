@@ -74,6 +74,55 @@ export const partnerClients = pgTable('partner_clients', {
 });
 
 // ========================================
+// PARTNER COLLABORATION & PAYOUTS
+// ========================================
+
+export const partnerNotes = pgTable('partner_notes', {
+  id: text('id').primaryKey(),
+  partnerId: text('partner_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  clientId: text('client_id').references(() => users.id, { onDelete: 'cascade' }),
+  note: text('note').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const partnerTasks = pgTable('partner_tasks', {
+  id: text('id').primaryKey(),
+  partnerId: text('partner_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  clientId: text('client_id').references(() => users.id, { onDelete: 'cascade' }),
+  title: varchar('title', { length: 255 }).notNull(),
+  status: varchar('status', { length: 50 }).default('open'),
+  dueAt: timestamp('due_at'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const partnerPayouts = pgTable('partner_payouts', {
+  id: text('id').primaryKey(),
+  partnerId: text('partner_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  amountCents: integer('amount_cents').notNull(),
+  status: varchar('status', { length: 50 }).default('pending'),
+  periodStart: timestamp('period_start'),
+  periodEnd: timestamp('period_end'),
+  method: varchar('method', { length: 50 }).default('bank_transfer'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+// ========================================
+// IMPERSONATION SESSIONS
+// ========================================
+
+export const impersonationSessions = pgTable('impersonation_sessions', {
+  id: text('id').primaryKey(),
+  actorUserId: text('actor_user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  targetUserId: text('target_user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  reason: varchar('reason', { length: 255 }).notNull(),
+  expiresAt: timestamp('expires_at').notNull(),
+  revokedAt: timestamp('revoked_at'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+// ========================================
 // ANALYTICS
 // ========================================
 
@@ -107,6 +156,68 @@ export const botTemplates = pgTable('bot_templates', {
   installCount: integer('install_count').default(0),
   rating: real('rating').default(0),
   createdAt: timestamp('created_at').defaultNow(),
+});
+
+// ========================================
+// MARKETING MATERIALS & CONTENT
+// ========================================
+
+export const marketingMaterials = pgTable('marketing_materials', {
+  id: text('id').primaryKey(),
+  title: varchar('title', { length: 255 }).notNull(),
+  description: text('description'),
+  type: varchar('type', { length: 50 }).notNull(),
+  size: varchar('size', { length: 50 }),
+  downloadUrl: text('download_url').notNull(),
+  previewUrl: text('preview_url'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const emailTemplates = pgTable('email_templates', {
+  id: text('id').primaryKey(),
+  name: varchar('name', { length: 255 }).notNull(),
+  subject: varchar('subject', { length: 255 }).notNull(),
+  body: text('body').notNull(),
+  scope: varchar('scope', { length: 50 }).default('global'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+// ========================================
+// SYSTEM SETTINGS & FEATURE FLAGS
+// ========================================
+
+export const featureFlags = pgTable('feature_flags', {
+  id: text('id').primaryKey(),
+  key: varchar('key', { length: 100 }).notNull(),
+  description: text('description'),
+  enabled: boolean('enabled').default(false),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const systemSettings = pgTable('system_settings', {
+  id: text('id').primaryKey(),
+  maintenanceMode: boolean('maintenance_mode').default(false),
+  envOverrides: json('env_overrides').default({}),
+  apiKeys: json('api_keys').default({}),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+// ========================================
+// SUPPORT
+// ========================================
+
+export const supportTickets = pgTable('support_tickets', {
+  id: text('id').primaryKey(),
+  organizationId: text('organization_id').references(() => organizations.id, { onDelete: 'cascade' }),
+  userId: text('user_id').references(() => users.id, { onDelete: 'cascade' }),
+  subject: varchar('subject', { length: 255 }).notNull(),
+  status: varchar('status', { length: 50 }).default('open'),
+  priority: varchar('priority', { length: 50 }).default('normal'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
 });
 
 // ========================================
@@ -284,6 +395,46 @@ export const partnerClientsRelations = relations(partnerClients, ({ one }) => ({
   }),
 }));
 
+export const partnerNotesRelations = relations(partnerNotes, ({ one }) => ({
+  partner: one(users, {
+    fields: [partnerNotes.partnerId],
+    references: [users.id],
+  }),
+  client: one(users, {
+    fields: [partnerNotes.clientId],
+    references: [users.id],
+  }),
+}));
+
+export const partnerTasksRelations = relations(partnerTasks, ({ one }) => ({
+  partner: one(users, {
+    fields: [partnerTasks.partnerId],
+    references: [users.id],
+  }),
+  client: one(users, {
+    fields: [partnerTasks.clientId],
+    references: [users.id],
+  }),
+}));
+
+export const partnerPayoutsRelations = relations(partnerPayouts, ({ one }) => ({
+  partner: one(users, {
+    fields: [partnerPayouts.partnerId],
+    references: [users.id],
+  }),
+}));
+
+export const impersonationSessionsRelations = relations(impersonationSessions, ({ one }) => ({
+  actor: one(users, {
+    fields: [impersonationSessions.actorUserId],
+    references: [users.id],
+  }),
+  target: one(users, {
+    fields: [impersonationSessions.targetUserId],
+    references: [users.id],
+  }),
+}));
+
 export const analyticsEventsRelations = relations(analyticsEvents, ({ one }) => ({
   organization: one(organizations, {
     fields: [analyticsEvents.organizationId],
@@ -298,6 +449,25 @@ export const analyticsEventsRelations = relations(analyticsEvents, ({ one }) => 
 export const botTemplatesRelations = relations(botTemplates, ({ one }) => ({
   creator: one(users, {
     fields: [botTemplates.createdBy],
+    references: [users.id],
+  }),
+}));
+
+export const marketingMaterialsRelations = relations(marketingMaterials, ({}) => ({}));
+
+export const emailTemplatesRelations = relations(emailTemplates, ({}) => ({}));
+
+export const featureFlagsRelations = relations(featureFlags, ({}) => ({}));
+
+export const systemSettingsRelations = relations(systemSettings, ({}) => ({}));
+
+export const supportTicketsRelations = relations(supportTickets, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [supportTickets.organizationId],
+    references: [organizations.id],
+  }),
+  user: one(users, {
+    fields: [supportTickets.userId],
     references: [users.id],
   }),
 }));
@@ -382,10 +552,28 @@ export type AuditLog = typeof auditLogs.$inferSelect;
 export type InsertAuditLog = typeof auditLogs.$inferInsert;
 export type PartnerClient = typeof partnerClients.$inferSelect;
 export type InsertPartnerClient = typeof partnerClients.$inferInsert;
+export type PartnerNote = typeof partnerNotes.$inferSelect;
+export type InsertPartnerNote = typeof partnerNotes.$inferInsert;
+export type PartnerTask = typeof partnerTasks.$inferSelect;
+export type InsertPartnerTask = typeof partnerTasks.$inferInsert;
+export type PartnerPayout = typeof partnerPayouts.$inferSelect;
+export type InsertPartnerPayout = typeof partnerPayouts.$inferInsert;
+export type ImpersonationSession = typeof impersonationSessions.$inferSelect;
+export type InsertImpersonationSession = typeof impersonationSessions.$inferInsert;
 export type AnalyticsEvent = typeof analyticsEvents.$inferSelect;
 export type InsertAnalyticsEvent = typeof analyticsEvents.$inferInsert;
 export type BotTemplate = typeof botTemplates.$inferSelect;
 export type InsertBotTemplate = typeof botTemplates.$inferInsert;
+export type MarketingMaterial = typeof marketingMaterials.$inferSelect;
+export type InsertMarketingMaterial = typeof marketingMaterials.$inferInsert;
+export type EmailTemplate = typeof emailTemplates.$inferSelect;
+export type InsertEmailTemplate = typeof emailTemplates.$inferInsert;
+export type FeatureFlag = typeof featureFlags.$inferSelect;
+export type InsertFeatureFlag = typeof featureFlags.$inferInsert;
+export type SystemSetting = typeof systemSettings.$inferSelect;
+export type InsertSystemSetting = typeof systemSettings.$inferInsert;
+export type SupportTicket = typeof supportTickets.$inferSelect;
+export type InsertSupportTicket = typeof supportTickets.$inferInsert;
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;

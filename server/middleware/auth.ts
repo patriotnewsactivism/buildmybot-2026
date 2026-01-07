@@ -9,6 +9,12 @@ import { eq, and, isNull } from 'drizzle-orm';
 
 export interface AuthRequest extends Request {
   user?: any;
+  actor?: any;
+  impersonation?: {
+    sessionId: string;
+    targetUserId: string;
+    actorUserId: string;
+  };
   organization?: any;
   permissions?: string[];
   session?: any;
@@ -25,7 +31,9 @@ export async function authenticate(
 ) {
   try {
     // Get user from Replit Auth session
-    const userId = req.session?.userId || req.headers['x-user-id'];
+    const headerUserId = req.headers['x-user-id'];
+    const sessionUserId = (req as any).user?.claims?.sub;
+    const userId = sessionUserId || req.session?.userId || headerUserId;
 
     if (!userId) {
       return res.status(401).json({ error: 'Authentication required' });
@@ -50,6 +58,7 @@ export async function authenticate(
       .where(eq(users.id, user.id));
 
     req.user = user;
+    req.actor = user;
     next();
   } catch (error) {
     console.error('Authentication error:', error);
@@ -63,12 +72,13 @@ export async function authenticate(
 
 export function authorize(allowedRoles: string[]) {
   return async (req: AuthRequest, res: Response, next: NextFunction) => {
-    if (!req.user) {
+    const actor = req.actor || req.user;
+    if (!actor) {
       return res.status(401).json({ error: 'Authentication required' });
     }
 
     // Check if user has one of the allowed roles
-    if (allowedRoles.includes(req.user.role)) {
+    if (allowedRoles.includes(actor.role) || (req.user && allowedRoles.includes(req.user.role))) {
       return next();
     }
 
@@ -128,12 +138,13 @@ export async function loadOrganizationContext(
 
 export function requirePermission(permission: string) {
   return async (req: AuthRequest, res: Response, next: NextFunction) => {
-    if (!req.user) {
+    const actor = req.actor || req.user;
+    if (!actor) {
       return res.status(401).json({ error: 'Authentication required' });
     }
 
     // System admins bypass permission checks
-    if (req.user.role === 'MasterAdmin' || req.user.role === 'Admin') {
+    if (actor.role === 'MasterAdmin' || actor.role === 'Admin' || actor.role === 'ADMIN') {
       return next();
     }
 
