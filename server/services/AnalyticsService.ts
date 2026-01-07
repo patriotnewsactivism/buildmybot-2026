@@ -1,7 +1,7 @@
 import { db } from '../db';
 import { analyticsEvents, AnalyticsEvent, InsertAnalyticsEvent, conversations, leads, bots } from '../../shared/schema';
-import { eq, and, gte, lte, desc, count, sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
+import { and, gte, lte, sql } from 'drizzle-orm';
 
 export interface ConversionMetrics {
   totalConversations: number;
