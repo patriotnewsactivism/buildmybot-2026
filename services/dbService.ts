@@ -141,6 +141,12 @@ export const dbService = {
     }
   },
 
+  getUser: async (uid: string): Promise<User | null> => {
+    const response = await request(`/users/${uid}`, { method: 'GET' }, false);
+    if (!response.ok) return null;
+    return response.json();
+  },
+
   getUserProfile: async (uid: string): Promise<User | null> => {
     try {
       const response = await request(`/users/${uid}`, { method: 'GET' }, false);
