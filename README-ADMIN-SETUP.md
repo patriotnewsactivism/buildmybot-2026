@@ -8,26 +8,30 @@ The system supports multiple admin levels:
 - **MasterAdmin**: Highest level access with full system control
 - **ADMIN**: Standard admin access
 
-## Setting Admin Permissions
+## Current Admin Configuration
 
-A script has been created to set admin permissions: `scripts/setAdminPermissions.ts`
+The following users are configured as admins:
 
-### Current Admin Configuration
+1. **mreardon@wtpnews.org** - MasterAdmin role with ENTERPRISE plan
+2. **jadj19@gmail.com** - ADMIN role with ENTERPRISE plan
 
-The script is configured to set the following permissions:
+## Quick Setup (Recommended)
 
-1. **mreardon@wtpnews.org** - MasterAdmin role
-2. **jadj19@gmail.com** - ADMIN role
+**Run the SQL script directly in Supabase:**
+
+1. Open your Supabase Dashboard
+2. Go to the SQL Editor
+3. Copy and paste the contents of `MANUAL_ADMIN_SETUP.sql`
+4. Click "Run"
+5. **Log out and log back in** to refresh your session
+
+This is the fastest and most reliable method.
+
+## Alternative: Using the Node.js Script
 
 ### Running the Script
 
-To apply these admin permissions, run:
-
-```bash
-npx tsx scripts/setAdminPermissions.ts
-```
-
-Or use the npm script:
+To apply these admin permissions programmatically, run:
 
 ```bash
 npm run set-admin-permissions
@@ -38,26 +42,87 @@ npm run set-admin-permissions
 The script will:
 1. Connect to the database using the DATABASE_URL environment variable
 2. For each configured admin user:
-   - Check if the user exists in the database
-   - If the user doesn't exist, create them with the specified admin role
-   - If the user exists, update their role to the specified admin level
+   - Create/update user with admin role and ENTERPRISE plan
+   - Create/update organization with ENTERPRISE plan
+   - Link user to organization
+   - Create/update organization membership with owner role and `["*"]` permissions
 3. Verify and display the final admin configuration
 
 ### Requirements
 
 - DATABASE_URL must be set in your `.env` or `.env.local` file
 - Database must be accessible and properly migrated
+- Network connectivity to your database
 
-### Modifying Admin Users
+## IMPORTANT: After Running Either Method
 
-To add or modify admin users, edit the `adminUsers` array in `scripts/setAdminPermissions.ts`:
+**You MUST log out and log back in** to refresh your session. The admin permissions are stored in your session, so you need to reload the user data.
 
-```typescript
-const adminUsers = [
-  { email: 'user@example.com', role: 'MasterAdmin', description: 'Master Admin' },
-  { email: 'admin@example.com', role: 'ADMIN', description: 'Admin' }
-];
+Steps:
+1. Run the SQL script OR the Node.js script
+2. **Log out of the application**
+3. **Log back in**
+4. Your admin permissions should now be active
+
+If you're still seeing "Organization Required" after logging back in, check the verification query output to ensure all fields are set correctly.
+
+## What Gets Configured
+
+For each admin user, the setup ensures:
+
+### 1. User Record
+- `role`: MasterAdmin or ADMIN
+- `plan`: ENTERPRISE
+- `status`: Active
+- `organization_id`: Linked to their organization
+
+### 2. Organization Record
+- `name`: Descriptive organization name
+- `plan`: ENTERPRISE
+- `subscription_status`: active
+- `owner_id`: User's ID
+
+### 3. Organization Membership
+- `role`: owner
+- `permissions`: `["*"]` (wildcard for all permissions)
+
+## Troubleshooting
+
+### "Organization Required" Message Still Appears
+
+1. Verify the SQL script ran successfully (check the verification query output)
+2. **Log out and log back in** (this is critical!)
+3. Clear browser cache if the issue persists
+4. Check browser console for errors
+
+### Verification Query
+
+Run this in Supabase SQL Editor to check the current state:
+
+```sql
+SELECT
+  u.email,
+  u.role AS system_role,
+  u.plan AS user_plan,
+  u.organization_id,
+  o.name AS org_name,
+  o.plan AS org_plan,
+  om.role AS org_role,
+  om.permissions
+FROM users u
+LEFT JOIN organizations o ON u.organization_id = o.id
+LEFT JOIN organization_members om ON u.id = om.user_id AND o.id = om.organization_id
+WHERE u.email IN ('mreardon@wtpnews.org', 'jadj19@gmail.com');
 ```
+
+Expected results:
+- `system_role`: MasterAdmin or ADMIN ✓
+- `user_plan`: ENTERPRISE ✓
+- `organization_id`: Should have a UUID ✓
+- `org_name`: Should have a name ✓
+- `org_plan`: ENTERPRISE ✓
+- `org_role`: owner ✓
+- `permissions`: ["*"] ✓
 
 ## Admin Permissions in the System
 
