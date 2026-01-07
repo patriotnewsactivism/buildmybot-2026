@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Users, UserCheck, UserX, RefreshCw, Download, Search, Filter } from 'lucide-react';
+import { Users, UserCheck, UserX, RefreshCw, Download, Search, User } from 'lucide-react';
 import { DataTable, Column } from '../../UI/DataTable';
+import { dbService } from '../../../services/dbService';
 
 interface User {
   id: string;
@@ -21,7 +22,11 @@ interface UserUsage {
   lastLoginAt: string | null;
 }
 
-export const UserManagement: React.FC = () => {
+interface UserManagementProps {
+  onImpersonate: (userId: string, reason: string) => void;
+}
+
+export const UserManagement: React.FC<UserManagementProps> = ({ onImpersonate }) => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -35,16 +40,12 @@ export const UserManagement: React.FC = () => {
 
   const fetchUsers = async () => {
     try {
-      const params = new URLSearchParams();
-      if (filterRole) params.append('role', filterRole);
-      if (filterStatus) params.append('status', filterStatus);
-      if (searchTerm) params.append('search', searchTerm);
+      const params: Record<string, string> = {};
+      if (filterRole) params.role = filterRole;
+      if (filterStatus) params.status = filterStatus;
+      if (searchTerm) params.search = searchTerm;
 
-      const response = await fetch(`/api/admin/users?${params.toString()}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch users');
-      }
-      const data = await response.json();
+      const data = await dbService.getAdminUsers(params);
       setUsers(data);
       setLoading(false);
       setError(null);

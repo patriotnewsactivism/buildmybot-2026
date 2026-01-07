@@ -8,9 +8,13 @@ import { SystemAnalytics } from './widgets/SystemAnalytics';
 import { SupportQueue } from './widgets/SupportQueue';
 import { SystemSettings } from './widgets/SystemSettings';
 
-type AdminTab = 'metrics' | 'users' | 'partners' | 'financial';
+type AdminTab = 'metrics' | 'users' | 'partners' | 'financial' | 'analytics' | 'support' | 'system';
 
-export const AdminDashboardV2: React.FC = () => {
+interface AdminDashboardV2Props {
+  onImpersonate: (userId: string, reason: string) => void;
+}
+
+export const AdminDashboardV2: React.FC<AdminDashboardV2Props> = ({ onImpersonate }) => {
   const [activeTab, setActiveTab] = useState<AdminTab>('metrics');
 
   const tabs = [
@@ -18,6 +22,9 @@ export const AdminDashboardV2: React.FC = () => {
     { id: 'users' as AdminTab, label: 'User Management', icon: Users },
     { id: 'partners' as AdminTab, label: 'Partner Oversight', icon: Briefcase },
     { id: 'financial' as AdminTab, label: 'Financial', icon: DollarSign },
+    { id: 'analytics' as AdminTab, label: 'Analytics', icon: BarChart3 },
+    { id: 'support' as AdminTab, label: 'Support', icon: Headphones },
+    { id: 'system' as AdminTab, label: 'System', icon: Settings },
   ];
 
   return (
@@ -48,9 +55,12 @@ export const AdminDashboardV2: React.FC = () => {
       {/* Tab Content */}
       <div className="animate-fade-in">
         {activeTab === 'metrics' && <LiveMetrics />}
-        {activeTab === 'users' && <UserManagement />}
+        {activeTab === 'users' && <UserManagement onImpersonate={onImpersonate} />}
         {activeTab === 'partners' && <PartnerOversight />}
         {activeTab === 'financial' && <FinancialDashboard />}
+        {activeTab === 'analytics' && <SystemAnalytics />}
+        {activeTab === 'support' && <SupportQueue />}
+        {activeTab === 'system' && <SystemSettings />}
       </div>
     </div>
   );
