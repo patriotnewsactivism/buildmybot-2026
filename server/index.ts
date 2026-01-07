@@ -28,7 +28,7 @@ import { PLANS, RESELLER_TIERS, WHITELABEL_FEE } from '../constants';
 import multer from 'multer';
 import { setupAuth, registerAuthRoutes } from './replit_integrations/auth';
 import { securityHeaders, apiLimiter, metricsMiddleware, authenticate, loadOrganizationContext, tenantIsolation, applyImpersonation, authorize } from './middleware';
-import { auditRouter, analyticsRouter, organizationsRouter, adminRouter, partnersRouter, clientsRouter, impersonationRouter, templatesRouter } from './routes';
+import { auditRouter, analyticsRouter, organizationsRouter, adminRouter, partnersRouter, clientsRouter, impersonationRouter, templatesRouter, webhooksRouter } from './routes';
 
 const uploadsDir = path.join(process.cwd(), 'uploads');
 if (!fs.existsSync(uploadsDir)) {
@@ -776,6 +776,9 @@ app.use('/api/impersonation', authenticate, impersonationRouter);
 
 // Bot template marketplace
 app.use('/api/templates', authenticate, applyImpersonation, loadOrganizationContext, tenantIsolation, templatesRouter);
+
+// Webhooks
+app.use('/api/webhooks', authenticate, applyImpersonation, loadOrganizationContext, tenantIsolation, webhooksRouter);
 
 // Serve static files in production
 if (isProduction) {

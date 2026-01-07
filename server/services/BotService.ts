@@ -2,6 +2,7 @@ import { db } from '../db';
 import { bots, Bot, InsertBot } from '../../shared/schema';
 import { eq, and, isNull } from 'drizzle-orm';
 import { AuditService } from './AuditService';
+import { webhookService } from './WebhookService';
 import { v4 as uuidv4 } from 'uuid';
 
 export class BotService {
@@ -35,6 +36,14 @@ export class BotService {
       resourceId: newBot[0].id,
       newValues: newBot[0],
     });
+
+    // Trigger webhook event
+    if (organizationId) {
+      webhookService.triggerEvent(organizationId, 'bot.created', {
+        bot: newBot[0],
+        userId,
+      }).catch(err => console.error('Webhook trigger error:', err));
+    }
 
     return newBot[0];
   }
@@ -103,6 +112,15 @@ export class BotService {
       newValues: updatedBot,
     });
 
+    // Trigger webhook event
+    if (organizationId) {
+      webhookService.triggerEvent(organizationId, 'bot.updated', {
+        bot: updatedBot,
+        previousValues: oldBot,
+        userId,
+      }).catch(err => console.error('Webhook trigger error:', err));
+    }
+
     return updatedBot;
   }
 
@@ -111,10 +129,23 @@ export class BotService {
     userId: string,
     organizationId?: string
   ): Promise<void> {
+    const [bot] = await db
+      .select()
+      .from(bots)
+      .where(eq(bots.id, botId));
+
     await db
       .update(bots)
       .set({ deletedAt: new Date() })
       .where(eq(bots.id, botId));
+
+    // Trigger webhook event
+    if (organizationId && bot) {
+      webhookService.triggerEvent(organizationId, 'bot.deleted', {
+        bot,
+        userId,
+      }).catch(err => console.error('Webhook trigger error:', err));
+    }
 
     await this.auditService.log({
       userId,

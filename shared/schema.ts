@@ -221,6 +221,41 @@ export const supportTickets = pgTable('support_tickets', {
 });
 
 // ========================================
+// WEBHOOKS
+// ========================================
+
+export const webhooks = pgTable('webhooks', {
+  id: text('id').primaryKey(),
+  organizationId: text('organization_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
+  name: varchar('name', { length: 255 }).notNull(),
+  url: text('url').notNull(),
+  secret: text('secret').notNull(),
+  events: json('events').notNull().default([]), // Array of event types to listen to
+  enabled: boolean('enabled').default(true),
+  description: text('description'),
+  headers: json('headers').default({}), // Custom headers to send
+  retryEnabled: boolean('retry_enabled').default(true),
+  maxRetries: integer('max_retries').default(3),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const webhookDeliveries = pgTable('webhook_deliveries', {
+  id: text('id').primaryKey(),
+  webhookId: text('webhook_id').notNull().references(() => webhooks.id, { onDelete: 'cascade' }),
+  eventType: varchar('event_type', { length: 100 }).notNull(),
+  payload: json('payload').notNull(),
+  status: varchar('status', { length: 50 }).notNull().default('pending'), // pending, success, failed
+  statusCode: integer('status_code'),
+  responseBody: text('response_body'),
+  errorMessage: text('error_message'),
+  attempts: integer('attempts').default(0),
+  nextRetryAt: timestamp('next_retry_at'),
+  deliveredAt: timestamp('delivered_at'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+// ========================================
 // USERS
 // ========================================
 
@@ -345,6 +380,7 @@ export const organizationsRelations = relations(organizations, ({ one, many }) =
   conversations: many(conversations),
   analyticsEvents: many(analyticsEvents),
   partnerRelationships: many(partnerClients),
+  webhooks: many(webhooks),
 }));
 
 export const organizationMembersRelations = relations(organizationMembers, ({ one }) => ({
@@ -472,6 +508,21 @@ export const supportTicketsRelations = relations(supportTickets, ({ one }) => ({
   }),
 }));
 
+export const webhooksRelations = relations(webhooks, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [webhooks.organizationId],
+    references: [organizations.id],
+  }),
+  deliveries: many(webhookDeliveries),
+}));
+
+export const webhookDeliveriesRelations = relations(webhookDeliveries, ({ one }) => ({
+  webhook: one(webhooks, {
+    fields: [webhookDeliveries.webhookId],
+    references: [webhooks.id],
+  }),
+}));
+
 export const usersRelations = relations(users, ({ one, many }) => ({
   organization: one(organizations, {
     fields: [users.organizationId],
@@ -574,6 +625,10 @@ export type SystemSetting = typeof systemSettings.$inferSelect;
 export type InsertSystemSetting = typeof systemSettings.$inferInsert;
 export type SupportTicket = typeof supportTickets.$inferSelect;
 export type InsertSupportTicket = typeof supportTickets.$inferInsert;
+export type Webhook = typeof webhooks.$inferSelect;
+export type InsertWebhook = typeof webhooks.$inferInsert;
+export type WebhookDelivery = typeof webhookDeliveries.$inferSelect;
+export type InsertWebhookDelivery = typeof webhookDeliveries.$inferInsert;
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;

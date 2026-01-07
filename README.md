@@ -194,6 +194,16 @@ buildmybot-2026/
 - Twitter Card integration
 - Canonical URLs
 
+### ✅ Webhook Integration System (NEW)
+- Real-time event notifications via HTTP POST
+- Zapier and Make.com integration support
+- HMAC-SHA256 signature verification
+- Automatic retry with exponential backoff
+- 10+ event types (leads, conversations, bots)
+- Comprehensive webhook management UI
+- Delivery history and debugging tools
+- See [WEBHOOKS.md](./WEBHOOKS.md) for full documentation
+
 ## Live Demos
 - **City Services:** City Services Assistant demo with utility payment logic.
 - **Instant Training:** Drag-and-drop PDF training.

@@ -2,6 +2,7 @@ import { db } from '../db';
 import { leads, Lead, InsertLead } from '../../shared/schema';
 import { eq, and, isNull, desc } from 'drizzle-orm';
 import { AuditService } from './AuditService';
+import { webhookService } from './WebhookService';
 import { v4 as uuidv4 } from 'uuid';
 
 export class LeadService {
@@ -35,6 +36,14 @@ export class LeadService {
       resourceId: newLead[0].id,
       newValues: newLead[0],
     });
+
+    // Trigger webhook event
+    if (organizationId) {
+      webhookService.triggerEvent(organizationId, 'lead.created', {
+        lead: newLead[0],
+        userId,
+      }).catch(err => console.error('Webhook trigger error:', err));
+    }
 
     return newLead[0];
   }
@@ -89,6 +98,25 @@ export class LeadService {
       oldValues: oldLead,
       newValues: updatedLead,
     });
+
+    // Trigger webhook events
+    if (organizationId) {
+      webhookService.triggerEvent(organizationId, 'lead.updated', {
+        lead: updatedLead,
+        previousValues: oldLead,
+        userId,
+      }).catch(err => console.error('Webhook trigger error:', err));
+
+      // If status changed, trigger a specific event
+      if (oldLead && oldLead.status !== updatedLead.status) {
+        webhookService.triggerEvent(organizationId, 'lead.status_changed', {
+          lead: updatedLead,
+          previousStatus: oldLead.status,
+          newStatus: updatedLead.status,
+          userId,
+        }).catch(err => console.error('Webhook trigger error:', err));
+      }
+    }
 
     return updatedLead;
   }

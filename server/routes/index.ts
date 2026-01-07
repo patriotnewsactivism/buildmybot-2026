@@ -11,6 +11,7 @@ import partnersRouter from './partners';
 import clientsRouter from './clients';
 import impersonationRouter from './impersonation';
 import templatesRouter from './templates';
+import webhooksRouter from './webhooks';
 
 export {
   organizationsRouter,
@@ -21,4 +22,5 @@ export {
   clientsRouter,
   impersonationRouter,
   templatesRouter,
+  webhooksRouter,
 };
