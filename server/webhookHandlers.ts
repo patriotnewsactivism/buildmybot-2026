@@ -1,6 +1,6 @@
 import Stripe from 'stripe';
 import { eq } from 'drizzle-orm';
-import { getStripeSecretKey, getStripeSync } from './stripeClient';
+import { getStripeSecretKey } from './stripeClient';
 import { db } from './db';
 import { users } from '../shared/schema';
 
@@ -15,11 +15,9 @@ export class WebhookHandlers {
       );
     }
 
-    const sync = await getStripeSync();
-    await sync.processWebhook(payload, signature);
-
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
     if (!webhookSecret) {
+      console.log('STRIPE_WEBHOOK_SECRET not set, skipping webhook processing');
       return;
     }
 
@@ -31,13 +29,13 @@ export class WebhookHandlers {
       event = stripe.webhooks.constructEvent(payload, signature, webhookSecret);
     } catch (error) {
       console.error('Stripe webhook signature verification failed:', error);
-      return;
+      throw error;
     }
 
-    await WebhookHandlers.processWhitelabelEvent(event);
+    await WebhookHandlers.processStripeEvent(event);
   }
 
-  private static async processWhitelabelEvent(event: Stripe.Event): Promise<void> {
+  private static async processStripeEvent(event: Stripe.Event): Promise<void> {
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object as Stripe.Checkout.Session;
       if (session.metadata?.purpose !== 'whitelabel_fee') {

@@ -16,17 +16,15 @@ if (fs.existsSync(envLocalPath)) {
 import express from 'express';
 import cors from 'cors';
 import { fileURLToPath } from 'url';
-import { runMigrations } from 'stripe-replit-sync';
 import { db } from './db';
 import { users, bots, leads, conversations, botDocuments } from '../shared/schema';
 import { eq, desc } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
-import { getStripeSync, getStripePublishableKey } from './stripeClient';
+import { getStripePublishableKey } from './stripeClient';
 import { WebhookHandlers } from './webhookHandlers';
 import { stripeService } from './stripeService';
 import { PLANS, RESELLER_TIERS, WHITELABEL_FEE } from '../constants';
 import multer from 'multer';
-import { setupAuth, registerAuthRoutes } from './replit_integrations/auth';
 import { securityHeaders, apiLimiter, metricsMiddleware, authenticate, loadOrganizationContext, tenantIsolation, applyImpersonation, authorize } from './middleware';
 import { auditRouter, analyticsRouter, organizationsRouter, adminRouter, partnersRouter, clientsRouter, impersonationRouter, templatesRouter } from './routes';
 
@@ -77,53 +75,11 @@ function getBaseUrl() {
     return appBaseUrl.replace(/\/+$/, '');
   }
 
-  const replitDomain = process.env.REPLIT_DOMAINS?.split(',')[0];
-  if (replitDomain) {
-    return `https://${replitDomain}`;
-  }
-
   return null;
 }
 
-async function initStripe() {
-  const databaseUrl = process.env.DATABASE_URL;
-  if (!databaseUrl) {
-    console.log('DATABASE_URL not found, skipping Stripe init');
-    return;
-  }
-
-  try {
-    const baseUrl = getBaseUrl();
-    if (!baseUrl) {
-      throw new Error('APP_BASE_URL must be set for Stripe webhooks and redirects');
-    }
-
-    console.log('Initializing Stripe schema...');
-    await runMigrations({ databaseUrl });
-    console.log('Stripe schema ready');
-
-    const stripeSync = await getStripeSync();
-
-    console.log('Setting up managed webhook...');
-    try {
-      const result = await stripeSync.findOrCreateManagedWebhook(
-        `${baseUrl}/api/stripe/webhook`
-      );
-      console.log('Webhook configured:', result?.webhook?.url || 'setup complete');
-    } catch (webhookError) {
-      console.log('Webhook setup skipped (may already exist):', webhookError);
-    }
-
-    console.log('Syncing Stripe data...');
-    stripeSync.syncBackfill()
-      .then(() => console.log('Stripe data synced'))
-      .catch((err: any) => console.error('Error syncing Stripe data:', err));
-  } catch (error) {
-    console.error('Failed to initialize Stripe:', error);
-  }
-}
-
-initStripe();
+// Stripe is configured via environment variables
+// Webhook endpoint is available at /api/stripe/webhook
 
 app.use(cors());
 
@@ -160,23 +116,6 @@ app.use('/api', apiLimiter);
 
 // Metrics collection
 app.use(metricsMiddleware);
-
-async function initAuth() {
-  if (!process.env.REPL_ID || !process.env.SESSION_SECRET) {
-    console.log('Replit Auth disabled (missing REPL_ID or SESSION_SECRET)');
-    return;
-  }
-
-  try {
-    await setupAuth(app);
-    registerAuthRoutes(app);
-    console.log('Replit Auth initialized');
-  } catch (error) {
-    console.error('Failed to initialize auth:', error);
-  }
-}
-
-initAuth();
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });

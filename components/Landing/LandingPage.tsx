@@ -69,7 +69,7 @@ export const LandingPage: React.FC<LandingProps> = ({ onLogin, onNavigateToPartn
     const cartesiaKey = import.meta.env.VITE_CARTESIA_API_KEY;
     
     if (!cartesiaKey) {
-      alert("Cartesia API Key is missing. Please configure it in Replit Secrets.");
+      alert("Cartesia API Key is missing. Please configure it in your environment variables.");
       setIsVoiceActive(false);
       return;
     }
