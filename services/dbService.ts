@@ -406,6 +406,18 @@ export const dbService = {
     return response.json();
   },
 
+  getAdminPartners: async () => {
+    const response = await request('/admin/partners', { method: 'GET' }, false);
+    if (!response.ok) throw new Error('Failed to load partners');
+    return response.json();
+  },
+
+  getAdminPartnerLeaderboard: async () => {
+    const response = await request('/admin/partners/leaderboard', { method: 'GET' }, false);
+    if (!response.ok) throw new Error('Failed to load partner leaderboard');
+    return response.json();
+  },
+
   getAdminFinancialOverview: async () => {
     const response = await request('/admin/financial/overview', { method: 'GET' }, false);
     if (!response.ok) throw new Error('Failed to load financial overview');
@@ -463,6 +475,90 @@ export const dbService = {
       body: JSON.stringify({ sourceUserId, targetUserId }),
     });
     if (!response.ok) throw new Error('Failed to merge users');
+    return response.json();
+  },
+
+  getAdminFinancialOverview: async () => {
+    const response = await request('/admin/financial/overview', { method: 'GET' }, false);
+    if (!response.ok) throw new Error('Failed to load financial overview');
+    return response.json();
+  },
+
+  getAdminInvoices: async () => {
+    const response = await request('/admin/financial/invoices', { method: 'GET' }, false);
+    if (!response.ok) throw new Error('Failed to load invoices');
+    return response.json();
+  },
+
+  getAdminRefunds: async () => {
+    const response = await request('/admin/financial/refunds', { method: 'GET' }, false);
+    if (!response.ok) throw new Error('Failed to load refunds');
+    return response.json();
+  },
+
+  getAdminPayouts: async () => {
+    const response = await request('/admin/payouts', { method: 'GET' }, false);
+    if (!response.ok) throw new Error('Failed to load payouts');
+    return response.json();
+  },
+
+  getAdminStripeHealth: async () => {
+    const response = await request('/admin/financial/stripe-health', { method: 'GET' }, false);
+    if (!response.ok) throw new Error('Failed to load Stripe health');
+    return response.json();
+  },
+
+  getAdminAnalyticsSummary: async () => {
+    const response = await request('/admin/analytics/summary', { method: 'GET' }, false);
+    if (!response.ok) throw new Error('Failed to load analytics summary');
+    return response.json();
+  },
+
+  getSystemSettings: async () => {
+    const response = await request('/admin/system/settings', { method: 'GET' }, false);
+    if (!response.ok) throw new Error('Failed to load system settings');
+    return response.json();
+  },
+
+  updateSystemSettings: async (payload: { maintenanceMode: boolean; envOverrides: Record<string, unknown> }) => {
+    const response = await request('/admin/system/settings', {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) throw new Error('Failed to update system settings');
+    return response.json();
+  },
+
+  updateFeatureFlag: async (payload: { key: string; description?: string; enabled: boolean }) => {
+    const response = await request('/admin/system/feature-flags', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) throw new Error('Failed to update feature flag');
+    return response.json();
+  },
+
+  rotateApiKey: async (name: string) => {
+    const response = await request('/admin/system/api-keys/rotate', {
+      method: 'POST',
+      body: JSON.stringify({ name }),
+    });
+    if (!response.ok) throw new Error('Failed to rotate API key');
+    return response.json();
+  },
+
+  getSupportTickets: async () => {
+    const response = await request('/admin/support', { method: 'GET' }, false);
+    if (!response.ok) throw new Error('Failed to load support tickets');
+    return response.json();
+  },
+
+  updateSupportTicket: async (id: string, payload: { status?: string; priority?: string }) => {
+    const response = await request(`/admin/support/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) throw new Error('Failed to update support ticket');
     return response.json();
   },
 
