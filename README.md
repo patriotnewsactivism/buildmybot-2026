@@ -38,7 +38,7 @@ BuildMyBot is an all-in-one AI Operating System that empowers businesses to auto
 - **Frontend:** React, TypeScript, Vite, Tailwind CSS
 - **Backend:** Express.js API server
 - **Database:** Postgres (Neon or Supabase) with Drizzle ORM
-- **AI Models:** OpenAI GPT-4o / GPT-4o Mini
+- **AI Models:** OpenAI GPT-5o Mini (default) / GPT-4o / GPT-4o Mini
 - **Voice:** Cartesia (ultra-realistic voice synthesis)
 - **Icons:** Lucide React
 

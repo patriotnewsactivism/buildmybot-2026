@@ -42,7 +42,7 @@ export const BotBuilder: React.FC<BotBuilderProps> = ({ bots, onSave, customDoma
     name: 'New Assistant',
     type: 'Customer Support',
     systemPrompt: 'You are a helpful customer support assistant.',
-    model: 'gpt-4o-mini',
+    model: 'gpt-5o-mini',
     temperature: 0.9,
     knowledgeBase: [],
     active: true,

@@ -67,7 +67,7 @@ router.post('/:id/install', async (req, res) => {
         name: `${template.name} (Copy)`,
         type: template.category || 'custom',
         systemPrompt: template.systemPrompt || '',
-        model: 'gpt-4o-mini',
+        model: 'gpt-5o-mini',
         temperature: 0.7,
         knowledgeBase: [],
         active: true,

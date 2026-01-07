@@ -55,7 +55,7 @@ export const FullPageChat: React.FC<FullPageChatProps> = ({ botId }) => {
             bot.systemPrompt, 
             messages, 
             userMsg.text, 
-            bot.model || 'gpt-4o-mini',
+            bot.model || 'gpt-5o-mini',
             bot.knowledgeBase ? bot.knowledgeBase.join('\n') : ''
         );
         

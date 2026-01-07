@@ -25,7 +25,7 @@ BuildMyBot is a React + TypeScript web application for building and managing AI 
 - **Styling**: Tailwind CSS v4 (PostCSS)
 - **Icons**: Lucide React
 - **Charts**: Recharts
-- **AI**: OpenAI GPT-4o-mini
+- **AI**: OpenAI GPT-5o Mini (default, 33% cost reduction vs GPT-4o-mini)
 - **Voice**: Cartesia (ultra-realistic voice synthesis)
 
 ## Development
