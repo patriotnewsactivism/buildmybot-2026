@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Bot, MessageSquare, TrendingUp, Star, Plus, RefreshCw, BookOpen, MessageCircle } from 'lucide-react';
 import { MetricCard } from '../UI/MetricCard';
 import { DataTable, Column } from '../UI/DataTable';
+import { dbService } from '../../services/dbService';
+import { User } from '../../types';
 
 interface ClientStats {
   botCount: number;
