@@ -5,3 +5,4 @@ export { tenantIsolation, verifyResourceOwnership } from './tenant';
 export { auditLog, auditSensitiveAction } from './audit';
 export { apiLimiter, strictLimiter, authLimiter, securityHeaders } from './security';
 export { metricsMiddleware } from './metrics';
+export { applyImpersonation } from './impersonation';

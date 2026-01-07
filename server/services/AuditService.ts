@@ -1,3 +1,4 @@
+import { eq, desc, and } from 'drizzle-orm';
 import { db } from '../db';
 import { auditLogs, InsertAuditLog } from '../../shared/schema';
 import { v4 as uuidv4 } from 'uuid';

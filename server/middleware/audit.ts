@@ -19,13 +19,18 @@ export function auditLog(action?: string) {
 
       res.send = function (body: any): Response {
         auditService.log({
-          userId: req.user.id,
+          userId: req.actor?.id || req.user.id,
           organizationId: req.organization?.id,
           action: auditAction,
           resourceType: req.params.id ? req.path.split('/')[2] : undefined,
           resourceId: req.params.id || req.params.botId || req.params.leadId,
           oldValues: req.method === 'PUT' || req.method === 'DELETE' ? req.body : undefined,
-          newValues: req.method === 'POST' || req.method === 'PUT' ? body : undefined,
+          newValues: req.method === 'POST' || req.method === 'PUT'
+            ? {
+                data: body,
+                impersonatedUserId: req.impersonation?.targetUserId,
+              }
+            : undefined,
           ipAddress,
           userAgent,
         }).catch(err => console.error('Audit log error:', err));
