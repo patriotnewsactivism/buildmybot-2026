@@ -5,11 +5,14 @@ import { ResellerDashboard } from './components/Reseller/ResellerDashboard';
 import { MarketingTools } from './components/Marketing/MarketingTools';
 import { LeadsCRM } from './components/CRM/LeadsCRM';
 import { WebsiteBuilder } from './components/WebsiteBuilder/WebsiteBuilder';
-import { Marketplace } from './components/Marketplace/Marketplace';
+import { EnhancedMarketplace } from './components/Marketplace/EnhancedMarketplace';
 import { PhoneAgent } from './components/PhoneAgent/PhoneAgent';
 import { ChatLogs } from './components/Chat/ChatLogs';
 import { Billing } from './components/Billing/Billing';
 import { AdminDashboard } from './components/Admin/AdminDashboard';
+import { AdminDashboardV2 } from './components/Admin/AdminDashboardV2';
+import { PartnerDashboardV2 } from './components/Partner/PartnerDashboardV2';
+import { ClientOverview } from './components/Client/ClientOverview';
 import { Settings } from './components/Settings/Settings';
 import { LandingPage } from './components/Landing/LandingPage';
 import { PartnerProgramPage } from './components/Landing/PartnerProgramPage';
@@ -345,83 +348,7 @@ function App() {
               </div>
           )}
 
-          {currentView === 'dashboard' && (
-            <div className="max-w-6xl mx-auto space-y-8 animate-fade-in pb-10">
-               <div className="flex justify-between items-center">
-                  <div>
-                    <h2 className="text-2xl font-bold text-slate-800">Dashboard</h2>
-                    <p className="text-slate-500">Welcome back, {user.name.split(' ')[0]}.</p>
-                  </div>
-                  <button onClick={() => setCurrentView('bots')} className="bg-blue-900 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-blue-950 transition">
-                    + Create New Bot
-                  </button>
-               </div>
-               
-               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                   <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><MessageSquare size={18}/></div>
-                        <span className="text-sm font-medium text-slate-500">Total Chats</span>
-                      </div>
-                      <p className="text-2xl font-bold text-slate-800">{totalConversations}</p>
-                   </div>
-                   <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg"><Users size={18}/></div>
-                        <span className="text-sm font-medium text-slate-500">Leads Captured</span>
-                      </div>
-                      <p className="text-2xl font-bold text-slate-800">{totalLeads}</p>
-                   </div>
-                   <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2 bg-green-50 text-green-600 rounded-lg"><DollarSign size={18}/></div>
-                        <span className="text-sm font-medium text-slate-500">Est. Savings</span>
-                      </div>
-                      <p className="text-2xl font-bold text-slate-800">${estSavings}</p>
-                   </div>
-                   <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2 bg-orange-50 text-orange-600 rounded-lg"><TrendingUp size={18}/></div>
-                        <span className="text-sm font-medium text-slate-500">Avg. Response</span>
-                      </div>
-                      <p className="text-2xl font-bold text-slate-800">{avgResponseTime}</p>
-                   </div>
-               </div>
-               
-               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <div className="lg:col-span-2 bg-white p-6 rounded-xl border border-slate-200 shadow-sm h-80">
-                     <h3 className="font-bold text-slate-800 mb-4">Conversation Volume</h3>
-                     <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={MOCK_ANALYTICS_DATA}>
-                          <defs>
-                            <linearGradient id="colorConvos" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#1e3a8a" stopOpacity={0.1}/>
-                              <stop offset="95%" stopColor="#1e3a8a" stopOpacity={0}/>
-                            </linearGradient>
-                          </defs>
-                          <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dy={10} />
-                          <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
-                          <Tooltip />
-                          <Area type="monotone" dataKey="conversations" stroke="#1e3a8a" strokeWidth={3} fillOpacity={1} fill="url(#colorConvos)" />
-                        </AreaChart>
-                     </ResponsiveContainer>
-                  </div>
-                  
-                  <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm h-80 flex flex-col">
-                      <h3 className="font-bold text-slate-800 mb-4">Lead Sources</h3>
-                      <div className="flex-1 flex items-center justify-center">
-                         <div className="text-center space-y-2">
-                            <div className="text-4xl font-bold text-blue-900">82%</div>
-                            <p className="text-sm text-slate-500">from Sales Bot</p>
-                            <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden mt-2">
-                               <div className="bg-blue-900 h-full w-[82%]"></div>
-                            </div>
-                         </div>
-                      </div>
-                  </div>
-               </div>
-            </div>
-          )}
+          {currentView === 'dashboard' && <ClientOverview />}
 
           {currentView === 'bots' && <BotBuilder 
               bots={bots} 
@@ -430,24 +357,24 @@ function App() {
               onLeadDetected={handleLeadDetected} 
           />}
           
-          {currentView === 'reseller' && <ResellerDashboard user={user} stats={INITIAL_RESELLER_STATS} />}
-          
+          {currentView === 'reseller' && <PartnerDashboardV2 user={user} />}
+
           {currentView === 'marketing' && <MarketingTools />}
-          
+
           {currentView === 'leads' && <LeadsCRM leads={leads} onUpdateLead={handleUpdateLead} />}
-          
+
           {currentView === 'website' && <WebsiteBuilder />}
-          
-          {currentView === 'marketplace' && <Marketplace onInstall={handleInstallTemplate} />}
-          
+
+          {currentView === 'marketplace' && <EnhancedMarketplace onInstall={handleInstallTemplate} />}
+
           {currentView === 'phone' && <PhoneAgent user={user} onUpdate={(u) => { setUser(u); dbService.saveUserProfile(u); }} />}
-          
+
           {currentView === 'chat-logs' && <ChatLogs conversations={chatLogs} />}
-          
+
           {currentView === 'billing' && <Billing user={user} />}
-          
-          {currentView === 'admin' && <AdminDashboard />}
-          
+
+          {currentView === 'admin' && <AdminDashboardV2 />}
+
           {currentView === 'settings' && <Settings user={user} onUpdateUser={(u) => { setUser(u); dbService.saveUserProfile(u); }} />}
           
         </div>

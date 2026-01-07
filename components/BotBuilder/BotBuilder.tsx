@@ -4,6 +4,7 @@ import { Bot as BotType, BotDocument } from '../../types';
 import { generateBotResponse, scrapeWebsiteContent } from '../../services/openaiService';
 import { AVAILABLE_MODELS } from '../../constants';
 import { dbService } from '../../services/dbService';
+import { SimplifiedBotWizard } from './SimplifiedBotWizard';
 
 interface BotBuilderProps {
   bots: BotType[];
@@ -33,6 +34,7 @@ const PERSONAS = [
 ];
 
 export const BotBuilder: React.FC<BotBuilderProps> = ({ bots, onSave, customDomain, onLeadDetected }) => {
+  const [showWizard, setShowWizard] = useState(false);
   const [selectedBotId, setSelectedBotId] = useState<string>(bots[0]?.id || 'new');
   // Initialize with the selected bot or a default new one
   const [activeBot, setActiveBot] = useState<BotType>(bots[0] || {
@@ -311,29 +313,12 @@ export const BotBuilder: React.FC<BotBuilderProps> = ({ bots, onSave, customDoma
       <div className="w-64 bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden hidden md:flex relative z-10">
          <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
            <h3 className="font-semibold text-slate-800">My Bots</h3>
-           <button 
-             onClick={() => {
-                const newBot = {
-                    id: 'new',
-                    name: 'New Bot',
-                    type: 'Custom',
-                    systemPrompt: 'You are a helpful assistant.',
-                    model: 'gpt-4o-mini',
-                    temperature: 0.7,
-                    knowledgeBase: [],
-                    active: true,
-                    conversationsCount: 0,
-                    themeColor: '#1e3a8a',
-                    maxMessages: 20,
-                    randomizeIdentity: true,
-                    responseDelay: 1500
-                } as BotType;
-                setActiveBot(newBot);
-                setSelectedBotId('new');
-             }}
-             className="p-1.5 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition"
+           <button
+             onClick={() => setShowWizard(true)}
+             className="p-1.5 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition flex items-center gap-1"
+             title="Quick Start Wizard"
            >
-             <Plus size={18} />
+             <Sparkles size={18} />
            </button>
          </div>
          <div className="overflow-y-auto flex-1 p-2 space-y-2">
@@ -930,6 +915,17 @@ export const BotBuilder: React.FC<BotBuilderProps> = ({ bots, onSave, customDoma
             )}
          </div>
       </div>
+
+      {/* Simplified Bot Wizard */}
+      {showWizard && (
+        <SimplifiedBotWizard
+          onComplete={(bot) => {
+            setShowWizard(false);
+            onSave(bot);
+          }}
+          onCancel={() => setShowWizard(false)}
+        />
+      )}
     </div>
   );
 };

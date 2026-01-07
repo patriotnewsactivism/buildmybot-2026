@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Phone, Mic, Settings, PlayCircle, Save, Voicemail, Loader, Volume2, Key, ExternalLink, CheckCircle, AlertCircle, HelpCircle } from 'lucide-react';
+import { Phone, Mic, Settings, PlayCircle, Save, Voicemail, Loader, Volume2, Key, ExternalLink, CheckCircle, AlertCircle, HelpCircle, Sparkles } from 'lucide-react';
 import { User } from '../../types';
+import { VoiceSetupWizard } from './VoiceSetupWizard';
 
 const cartesiaVoices = [
   { id: 'a0e99841-438c-4a64-b679-ae501e7d6091', name: 'Katie', description: 'Professional female' },
@@ -17,13 +18,14 @@ interface PhoneAgentProps {
 }
 
 export const PhoneAgent: React.FC<PhoneAgentProps> = ({ user, onUpdate }) => {
+  const [showWizard, setShowWizard] = useState(false);
   const [enabled, setEnabled] = useState(user?.phoneConfig?.enabled || false);
   const [voice, setVoice] = useState(user?.phoneConfig?.voiceId || 'a0e99841-438c-4a64-b679-ae501e7d6091');
   const [introMessage, setIntroMessage] = useState(user?.phoneConfig?.introMessage || "Hi! Thanks for calling. This is your AI assistant. How can I help you today?");
   const [cartesiaApiKey, setCartesiaApiKey] = useState(user?.phoneConfig?.cartesiaApiKey || '');
   const [delegationLink, setDelegationLink] = useState(user?.phoneConfig?.delegationLink || '');
   const [showApiKey, setShowApiKey] = useState(false);
-  
+
   const [isSimulating, setIsSimulating] = useState(false);
   const [simulationStatus, setSimulationStatus] = useState('Ready to test');
   const [isSaving, setIsSaving] = useState(false);
@@ -151,16 +153,25 @@ export const PhoneAgent: React.FC<PhoneAgentProps> = ({ user, onUpdate }) => {
 
   return (
     <div className="max-w-4xl mx-auto animate-fade-in space-y-6">
-       <div className="flex justify-between items-center">
+       <div className="flex justify-between items-start gap-4">
          <div>
            <h2 className="text-2xl font-bold text-slate-800">AI Voice Agent</h2>
            <p className="text-slate-500">Deploy an AI receptionist with ultra-realistic voice.</p>
          </div>
          <div className="flex items-center gap-3">
+            {!hasApiKey && (
+              <button
+                onClick={() => setShowWizard(true)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium flex items-center gap-2 shadow-sm"
+              >
+                <Sparkles size={16} />
+                Quick Setup Wizard
+              </button>
+            )}
             <span className={`text-sm font-medium ${enabled ? 'text-emerald-600' : 'text-slate-500'}`}>
               {enabled ? 'Agent Active' : 'Agent Disabled'}
             </span>
-            <button 
+            <button
               onClick={() => setEnabled(!enabled)}
               className={`w-12 h-6 rounded-full transition-colors relative ${enabled ? 'bg-emerald-500' : 'bg-slate-300'}`}
             >
@@ -411,15 +422,46 @@ export const PhoneAgent: React.FC<PhoneAgentProps> = ({ user, onUpdate }) => {
        )}
 
        <div className="flex justify-end pt-4 border-t border-slate-200">
-         <button 
+         <button
            onClick={handleSave}
            disabled={isSaving}
            className="px-6 py-2.5 bg-blue-900 text-white rounded-lg font-medium hover:bg-blue-950 shadow-sm transition flex items-center gap-2 disabled:opacity-70"
          >
-           {isSaving ? <Loader className="animate-spin" size={18} /> : <Save size={18} />} 
+           {isSaving ? <Loader className="animate-spin" size={18} /> : <Save size={18} />}
            Save Configuration
          </button>
        </div>
+
+       {/* Voice Setup Wizard */}
+       {showWizard && user && (
+         <VoiceSetupWizard
+           user={user}
+           onComplete={(config) => {
+             setShowWizard(false);
+             setCartesiaApiKey(config.cartesiaApiKey);
+             setVoice(config.voiceId);
+             setIntroMessage(config.introMessage);
+             setDelegationLink(config.delegationLink || '');
+             setEnabled(config.enabled);
+             setActiveTab('config');
+
+             if (onUpdate) {
+               onUpdate({
+                 ...user,
+                 phoneConfig: {
+                   enabled: config.enabled,
+                   voiceId: config.voiceId,
+                   introMessage: config.introMessage,
+                   cartesiaApiKey: config.cartesiaApiKey,
+                   delegationLink: config.delegationLink,
+                   phoneNumber: config.phoneNumber
+                 }
+               });
+             }
+           }}
+           onCancel={() => setShowWizard(false)}
+         />
+       )}
     </div>
   );
 };

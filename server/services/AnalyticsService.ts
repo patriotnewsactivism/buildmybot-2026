@@ -92,4 +92,131 @@ export class AnalyticsService {
       .from(conversations)
       .where(and(...conversationConditions));
 
-    const [leadResult]
+    const [leadResult] = await db
+      .select({ count: count() })
+      .from(leads)
+      .where(and(...leadConditions));
+
+    const totalConversations = Number(conversationResult?.count || 0);
+    const totalLeads = Number(leadResult?.count || 0);
+
+    // Calculate average lead score
+    const avgScoreResult = await db
+      .select({ avg: sql<number>`AVG(${leads.score})` })
+      .from(leads)
+      .where(and(...leadConditions));
+
+    const averageScore = Number(avgScoreResult[0]?.avg || 0);
+    const conversionRate = totalConversations > 0 ? totalLeads / totalConversations : 0;
+
+    return {
+      totalConversations,
+      totalLeads,
+      conversionRate,
+      averageScore,
+    };
+  }
+
+  async getBotPerformance(
+    organizationId: string,
+    startDate?: Date,
+    endDate?: Date
+  ): Promise<BotPerformance[]> {
+    const allBots = await db
+      .select()
+      .from(bots)
+      .where(eq(bots.organizationId, organizationId));
+
+    const performance: BotPerformance[] = [];
+
+    for (const bot of allBots) {
+      const conversationConditions: SQL[] = [eq(conversations.botId, bot.id)];
+      const leadConditions: SQL[] = [eq(leads.botId, bot.id)];
+
+      if (startDate) {
+        conversationConditions.push(gte(conversations.timestamp, startDate));
+        leadConditions.push(gte(leads.createdAt, startDate));
+      }
+
+      if (endDate) {
+        conversationConditions.push(lte(conversations.timestamp, endDate));
+        leadConditions.push(lte(leads.createdAt, endDate));
+      }
+
+      const [conversationResult] = await db
+        .select({ count: count() })
+        .from(conversations)
+        .where(and(...conversationConditions));
+
+      const [leadResult] = await db
+        .select({ count: count() })
+        .from(leads)
+        .where(and(...leadConditions));
+
+      const conversationCount = Number(conversationResult?.count || 0);
+      const leadCount = Number(leadResult?.count || 0);
+
+      performance.push({
+        botId: bot.id,
+        botName: bot.name,
+        conversationCount,
+        leadCount,
+        conversionRate: conversationCount > 0 ? leadCount / conversationCount : 0,
+      });
+    }
+
+    return performance;
+  }
+
+  async getTimeSeriesData(
+    organizationId: string,
+    days: number = 30
+  ): Promise<TimeSeriesData[]> {
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    const timeSeries: TimeSeriesData[] = [];
+
+    for (let i = 0; i < days; i++) {
+      const date = new Date(startDate);
+      date.setDate(date.getDate() + i);
+      const nextDate = new Date(date);
+      nextDate.setDate(nextDate.getDate() + 1);
+
+      const conversationConditions: SQL[] = [
+        eq(conversations.organizationId, organizationId),
+        gte(conversations.timestamp, date),
+        lte(conversations.timestamp, nextDate),
+      ];
+
+      const leadConditions: SQL[] = [
+        eq(leads.organizationId, organizationId),
+        gte(leads.createdAt, date),
+        lte(leads.createdAt, nextDate),
+      ];
+
+      const [conversationResult] = await db
+        .select({ count: count() })
+        .from(conversations)
+        .where(and(...conversationConditions));
+
+      const [leadResult] = await db
+        .select({ count: count() })
+        .from(leads)
+        .where(and(...leadConditions));
+
+      const conversationCount = Number(conversationResult?.count || 0);
+      const leadCount = Number(leadResult?.count || 0);
+
+      timeSeries.push({
+        date: date.toISOString().split('T')[0],
+        conversations: conversationCount,
+        leads: leadCount,
+        conversionRate: conversationCount > 0 ? leadCount / conversationCount : 0,
+      });
+    }
+
+    return timeSeries;
+  }
+}
