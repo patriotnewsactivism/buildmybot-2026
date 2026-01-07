@@ -21,7 +21,7 @@ interface ClientStats {
 interface BotData {
   id: string;
   name: string;
-  status: string;
+  active: boolean;
   voiceId: string | null;
   createdAt: string;
 }
@@ -68,7 +68,11 @@ export const ClientOverview: React.FC<ClientOverviewProps> = ({ user, onCreateBo
   }, []);
 
   const handleCreateBot = () => {
-    window.location.pathname = '/bots/new';
+    if (onCreateBot) {
+      onCreateBot();
+      return;
+    }
+    window.location.pathname = '/bots';
   };
 
   const botColumns: Column<BotData>[] = [
@@ -87,15 +91,18 @@ export const ClientOverview: React.FC<ClientOverviewProps> = ({ user, onCreateBo
       key: 'status',
       label: 'Status',
       sortable: true,
-      render: (bot) => (
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-          bot.status === 'active' ? 'bg-green-100 text-green-800' :
-          bot.status === 'paused' ? 'bg-yellow-100 text-yellow-800' :
-          'bg-slate-100 text-slate-800'
-        }`}>
-          {bot.status}
-        </span>
-      ),
+      render: (bot) => {
+        const statusLabel = bot.active ? 'active' : 'paused';
+        return (
+          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+            statusLabel === 'active' ? 'bg-green-100 text-green-800' :
+            statusLabel === 'paused' ? 'bg-yellow-100 text-yellow-800' :
+            'bg-slate-100 text-slate-800'
+          }`}>
+            {statusLabel}
+          </span>
+        );
+      },
     },
     {
       key: 'createdAt',
@@ -128,7 +135,7 @@ export const ClientOverview: React.FC<ClientOverviewProps> = ({ user, onCreateBo
       sortable: true,
       render: (lead) => {
         if (!lead.score) return '-';
-        const scorePercent = Math.round(lead.score * 100);
+        const scorePercent = Math.round(lead.score);
         return (
           <div className="flex items-center space-x-2">
             <div className="w-16 bg-slate-200 rounded-full h-2">
@@ -152,10 +159,10 @@ export const ClientOverview: React.FC<ClientOverviewProps> = ({ user, onCreateBo
       sortable: true,
       render: (lead) => (
         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-          lead.status === 'new' ? 'bg-blue-100 text-blue-800' :
-          lead.status === 'contacted' ? 'bg-yellow-100 text-yellow-800' :
-          lead.status === 'qualified' ? 'bg-green-100 text-green-800' :
-          lead.status === 'converted' ? 'bg-purple-100 text-purple-800' :
+          lead.status === 'New' ? 'bg-blue-100 text-blue-800' :
+          lead.status === 'Contacted' ? 'bg-yellow-100 text-yellow-800' :
+          lead.status === 'Qualified' ? 'bg-green-100 text-green-800' :
+          lead.status === 'Closed' ? 'bg-purple-100 text-purple-800' :
           'bg-slate-100 text-slate-800'
         }`}>
           {lead.status}
@@ -182,6 +189,75 @@ export const ClientOverview: React.FC<ClientOverviewProps> = ({ user, onCreateBo
           Retry
         </button>
       </div>
+
+      {showOnboarding && (
+        <div className="mb-8 bg-white border border-slate-200 rounded-xl p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-slate-900">Quick Start Wizard</h3>
+            <span className="text-xs text-slate-500">Step {onboardingStep} of 3</span>
+          </div>
+          {onboardingStep === 1 && (
+            <div className="space-y-4">
+              <label className="block text-sm font-medium text-slate-700">
+                Choose your industry
+              </label>
+              <input
+                value={onboardingData.industry || ''}
+                onChange={(event) => setOnboardingData({ ...onboardingData, industry: event.target.value })}
+                placeholder="e.g. Real Estate, Dental, HVAC"
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              />
+            </div>
+          )}
+          {onboardingStep === 2 && (
+            <div className="space-y-4">
+              <label className="block text-sm font-medium text-slate-700">
+                Primary goal for your bot
+              </label>
+              <input
+                value={onboardingData.goal || ''}
+                onChange={(event) => setOnboardingData({ ...onboardingData, goal: event.target.value })}
+                placeholder="e.g. Capture leads, answer FAQs, schedule calls"
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              />
+            </div>
+          )}
+          {onboardingStep === 3 && (
+            <div className="space-y-3 text-sm text-slate-600">
+              <p>Industry: <span className="font-semibold text-slate-900">{onboardingData.industry || 'Not set'}</span></p>
+              <p>Goal: <span className="font-semibold text-slate-900">{onboardingData.goal || 'Not set'}</span></p>
+              <p className="text-slate-500">We will tailor templates and guidance based on this info.</p>
+            </div>
+          )}
+          <div className="flex justify-between mt-6">
+            <button
+              onClick={() => setOnboardingStep((prev) => Math.max(1, prev - 1))}
+              className="px-4 py-2 text-sm font-medium text-slate-600"
+              disabled={onboardingStep === 1}
+            >
+              Back
+            </button>
+            {onboardingStep < 3 ? (
+              <button
+                onClick={() => setOnboardingStep((prev) => Math.min(3, prev + 1))}
+                className="px-4 py-2 bg-orange-600 text-white rounded-lg text-sm font-semibold hover:bg-orange-700"
+              >
+                Next
+              </button>
+            ) : (
+              <button
+                onClick={async () => {
+                  await dbService.completeOnboarding();
+                  setShowOnboarding(false);
+                }}
+                className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-semibold hover:bg-emerald-700"
+              >
+                Finish Setup
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     );
   }
 
@@ -230,14 +306,14 @@ export const ClientOverview: React.FC<ClientOverviewProps> = ({ user, onCreateBo
           <MetricCard
             icon={TrendingUp}
             label="Conversion Rate"
-            value={`${(stats.conversionRate * 100).toFixed(1)}%`}
-            status={stats.conversionRate > 0.5 ? 'healthy' : stats.conversionRate > 0.3 ? 'warning' : 'critical'}
+            value={`${stats.conversionRate.toFixed(1)}%`}
+            status={stats.conversionRate > 20 ? 'healthy' : stats.conversionRate > 10 ? 'warning' : 'critical'}
             loading={loading}
           />
           <MetricCard
             icon={Star}
             label="Avg Lead Score"
-            value={`${(stats.averageLeadScore * 100).toFixed(0)}%`}
+            value={`${stats.averageLeadScore.toFixed(0)}%`}
             loading={loading}
           />
         </div>
@@ -288,9 +364,12 @@ export const ClientOverview: React.FC<ClientOverviewProps> = ({ user, onCreateBo
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-slate-900">Recent Bots</h3>
           {recentBots.length > 0 && (
-            <a href="/bots" className="text-sm text-orange-600 hover:text-orange-700">
-              View All →
-            </a>
+            <button
+              onClick={handleCreateBot}
+              className="text-sm text-orange-600 hover:text-orange-700"
+            >
+              View all ->
+            </button>
           )}
         </div>
         <DataTable
@@ -306,9 +385,12 @@ export const ClientOverview: React.FC<ClientOverviewProps> = ({ user, onCreateBo
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-slate-900">Recent Leads</h3>
           {recentLeads.length > 0 && (
-            <a href="/leads" className="text-sm text-orange-600 hover:text-orange-700">
-              View All →
-            </a>
+            <button
+              onClick={() => onOpenLeads?.()}
+              className="text-sm text-orange-600 hover:text-orange-700"
+            >
+              View all ->
+            </button>
           )}
         </div>
         <DataTable
@@ -317,6 +399,36 @@ export const ClientOverview: React.FC<ClientOverviewProps> = ({ user, onCreateBo
           loading={loading}
           emptyMessage="No leads captured yet. Create and deploy a bot to start collecting leads!"
         />
+      </div>
+
+      <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+          <div className="flex items-center gap-2 text-slate-700">
+            <BookOpen size={18} />
+            <span className="font-medium">Knowledge Base</span>
+          </div>
+          <p className="text-xs text-slate-600 mt-2">
+            Add FAQs, docs, and scripts so your bot answers accurately.
+          </p>
+        </div>
+        <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+          <div className="flex items-center gap-2 text-slate-700">
+            <MessageCircle size={18} />
+            <span className="font-medium">Support</span>
+          </div>
+          <p className="text-xs text-slate-600 mt-2">
+            Need help? Reach our team for setup, optimization, and billing.
+          </p>
+        </div>
+        <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+          <div className="flex items-center gap-2 text-slate-700">
+            <TrendingUp size={18} />
+            <span className="font-medium">Weekly Insights</span>
+          </div>
+          <p className="text-xs text-slate-600 mt-2">
+            Monitor conversions and leads in a simple weekly summary.
+          </p>
+        </div>
       </div>
     </div>
   );

@@ -437,7 +437,13 @@ function App() {
               </div>
           )}
 
-          {currentView === 'dashboard' && <ClientOverview />}
+          {currentView === 'dashboard' && (
+            <ClientOverview
+              user={activeUser}
+              onCreateBot={() => setCurrentView('bots')}
+              onOpenLeads={() => setCurrentView('leads')}
+            />
+          )}
 
           {currentView === 'bots' && (
             <BotBuilder

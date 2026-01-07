@@ -386,6 +386,30 @@ router.post('/financial/refunds', auditSensitiveAction('financial.refund'), asyn
   }
 });
 
+router.get('/analytics/summary', async (_req, res) => {
+  try {
+    const [conversationCount] = await db
+      .select({ count: sql<number>`COUNT(*)` })
+      .from(conversations);
+    const [leadCount] = await db
+      .select({ count: sql<number>`COUNT(*)` })
+      .from(leads);
+
+    const totalConversations = conversationCount?.count || 0;
+    const totalLeads = leadCount?.count || 0;
+    const conversionRate = totalConversations > 0 ? (totalLeads / totalConversations) * 100 : 0;
+
+    res.json({
+      totalConversations,
+      totalLeads,
+      conversionRate,
+    });
+  } catch (error) {
+    console.error('Analytics summary error:', error);
+    res.status(500).json({ error: 'Failed to load analytics summary' });
+  }
+});
+
 router.get('/system/settings', async (_req, res) => {
   try {
     let [settings] = await db.select().from(systemSettings);
@@ -530,6 +554,26 @@ router.post('/support', async (req, res) => {
   } catch (error) {
     console.error('Support ticket create error:', error);
     res.status(500).json({ error: 'Failed to create support ticket' });
+  }
+});
+
+router.put('/support/:id', async (req, res) => {
+  try {
+    const { status, priority } = req.body;
+    const [updated] = await db
+      .update(supportTickets)
+      .set({
+        status: status || undefined,
+        priority: priority || undefined,
+        updatedAt: new Date(),
+      })
+      .where(eq(supportTickets.id, req.params.id))
+      .returning();
+
+    res.json(updated);
+  } catch (error) {
+    console.error('Support ticket update error:', error);
+    res.status(500).json({ error: 'Failed to update support ticket' });
   }
 });
 
