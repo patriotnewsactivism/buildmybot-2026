@@ -54,12 +54,16 @@ export function auditSensitiveAction(actionName: string) {
       }
 
       await auditService.log({
-        userId: req.user.id,
+        userId: req.actor?.id || req.user.id,
         organizationId: req.organization?.id,
         action: 'sensitive.' + actionName,
         resourceType: 'system',
         oldValues: { path: req.path, method: req.method },
-        newValues: { query: req.query, params: req.params },
+        newValues: {
+          query: req.query,
+          params: req.params,
+          impersonatedUserId: req.impersonation?.targetUserId,
+        },
         ipAddress: req.ip || req.connection.remoteAddress || '',
         userAgent: req.headers['user-agent'] || '',
       });
