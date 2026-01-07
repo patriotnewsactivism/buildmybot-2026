@@ -46,8 +46,8 @@ const INITIAL_RESELLER_STATS: ResellerStats = {
 };
 
 function App() {
-  const { user: authUser, isLoading: authLoading, isAuthenticated: replitAuthenticated, logout: replitLogout } = useAuth();
-  
+  const { user: authUser, isLoading: authLoading, isAuthenticated, logout } = useAuth();
+
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isBooting, setIsBooting] = useState(true);
   const [currentView, setCurrentView] = useState('dashboard');
@@ -67,7 +67,7 @@ function App() {
   const [impersonatedUser, setImpersonatedUser] = useState<User | null>(null);
 
   useEffect(() => {
-    if (!authLoading && replitAuthenticated && authUser) {
+    if (!authLoading && isAuthenticated && authUser) {
       const mappedUser: User = {
         id: authUser.id,
         name: authUser.name,
@@ -91,7 +91,7 @@ function App() {
         setCurrentView('reseller');
       }
     }
-  }, [authLoading, replitAuthenticated, authUser]);
+  }, [authLoading, isAuthenticated, authUser]);
 
   useEffect(() => {
     if (!user) {

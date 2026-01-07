@@ -1,7 +1,6 @@
 import { index, jsonb, pgTable, timestamp, varchar } from "drizzle-orm/pg-core";
 
-// Session storage table.
-// (IMPORTANT) This table is mandatory for Replit Auth, don't drop it.
+// Session storage table for user authentication
 export const sessions = pgTable(
   "sessions",
   {

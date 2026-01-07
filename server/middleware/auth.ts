@@ -30,7 +30,7 @@ export async function authenticate(
   next: NextFunction
 ) {
   try {
-    // Get user from Replit Auth session
+    // Get user from session or headers
     const headerUserId = req.headers['x-user-id'];
     const sessionUserId = (req as any).user?.claims?.sub;
     const userId = sessionUserId || (req.session as any)?.userId || headerUserId;
