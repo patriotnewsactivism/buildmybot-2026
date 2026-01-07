@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
-import { Activity, Users, Briefcase, DollarSign } from 'lucide-react';
+import { Activity, Users, Briefcase, DollarSign, BarChart3, Headphones, Settings } from 'lucide-react';
 import { LiveMetrics } from './widgets/LiveMetrics';
 import { UserManagement } from './widgets/UserManagement';
 import { PartnerOversight } from './widgets/PartnerOversight';
 import { FinancialDashboard } from './widgets/FinancialDashboard';
+import { SystemAnalytics } from './widgets/SystemAnalytics';
+import { SupportQueue } from './widgets/SupportQueue';
+import { SystemSettings } from './widgets/SystemSettings';
 
 type AdminTab = 'metrics' | 'users' | 'partners' | 'financial';
 
