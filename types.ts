@@ -3,6 +3,7 @@ export enum UserRole {
   OWNER = 'OWNER',
   ADMIN = 'ADMIN',
   RESELLER = 'RESELLER',
+  CLIENT = 'CLIENT',
 }
 
 export enum PlanType {
@@ -40,6 +41,9 @@ export interface User {
   whitelabelEnabled?: boolean;
   whitelabelPaidThrough?: string;
   whitelabelSubscriptionId?: string;
+  organizationId?: string;
+  lastLoginAt?: string;
+  preferences?: Record<string, unknown>;
 }
 
 export interface Bot {
@@ -60,6 +64,7 @@ export interface Bot {
   responseDelay?: number; // Simulated typing delay in ms
   embedType?: 'hover' | 'fixed'; // Chatbot display type: floating bubble or fixed embed
   userId?: string; // Optional during creation, required in DB
+  organizationId?: string;
 }
 
 export interface Lead {
@@ -72,6 +77,7 @@ export interface Lead {
   sourceBotId: string;
   createdAt: string;
   userId?: string; // Optional during capture, required in DB
+  organizationId?: string;
 }
 
 export interface Conversation {
@@ -80,6 +86,7 @@ export interface Conversation {
   messages: { role: 'user' | 'model'; text: string; timestamp: number }[];
   sentiment: 'Positive' | 'Neutral' | 'Negative';
   timestamp: number;
+  organizationId?: string;
 }
 
 export interface AnalyticsData {
@@ -107,4 +114,92 @@ export interface BotDocument {
   fileSize: number;
   content?: string;
   createdAt?: string;
+}
+
+export interface MarketingMaterial {
+  id: string;
+  title: string;
+  description?: string;
+  type: string;
+  size?: string;
+  downloadUrl: string;
+  previewUrl?: string;
+  createdAt?: string;
+}
+
+export interface PartnerNote {
+  id: string;
+  partnerId: string;
+  clientId?: string;
+  note: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface PartnerTask {
+  id: string;
+  partnerId: string;
+  clientId?: string;
+  title: string;
+  status: string;
+  dueAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface PartnerPayout {
+  id: string;
+  partnerId: string;
+  amountCents: number;
+  status: string;
+  periodStart?: string;
+  periodEnd?: string;
+  method?: string;
+  createdAt?: string;
+}
+
+export interface AdminFinancialOverview {
+  mrrCents: number;
+  arrCents: number;
+  churnRate: number;
+  activeCustomers: number;
+  churnedCustomers: number;
+}
+
+export interface SystemSettingsPayload {
+  maintenanceMode: boolean;
+  envOverrides: Record<string, unknown>;
+  apiKeys: Record<string, string>;
+}
+
+export interface AdminMetrics {
+  activeUsers: number;
+  apiCallsPerMin: number;
+  dbConnections: number;
+  dbIdleConnections: number;
+  dbWaitingConnections: number;
+  errorRate: number;
+  avgLatencyMs: number;
+  totalUsers: number;
+  mrrCents: number;
+}
+
+export interface PartnerClientSummary extends User {
+  mrrCents: number;
+  botCount: number;
+  leadCount: number;
+  lastActiveAt: string;
+  accessLevel: string;
+  canImpersonate: boolean;
+}
+
+export interface ClientOverview {
+  stats: {
+    botCount: number;
+    leadCount: number;
+    conversionRate: number;
+    averageLeadScore: number;
+  };
+  recentBots: Bot[];
+  recentLeads: Lead[];
 }

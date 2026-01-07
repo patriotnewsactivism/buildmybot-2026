@@ -1,12 +1,66 @@
-import { Bot, Lead, User, PlanType, Conversation, BotDocument, ResellerStats } from '../types';
+import {
+  Bot,
+  Lead,
+  User,
+  PlanType,
+  Conversation,
+  BotDocument,
+  ResellerStats,
+} from '../types';
 
 const API_BASE = '/api';
 
+type AuthContext = {
+  userId?: string;
+  impersonationToken?: string;
+};
+
+let authContext: AuthContext = {};
+
+const buildHeaders = (includeJson: boolean) => {
+  const headers: Record<string, string> = {};
+  if (includeJson) {
+    headers['Content-Type'] = 'application/json';
+  }
+  if (authContext.userId) {
+    headers['x-user-id'] = authContext.userId;
+  }
+  if (authContext.impersonationToken) {
+    headers['x-impersonation-token'] = authContext.impersonationToken;
+  }
+  return headers;
+};
+
+const request = async (
+  path: string,
+  options: RequestInit = {},
+  includeJson: boolean = true
+) => {
+  const headers = {
+    ...buildHeaders(includeJson),
+    ...(options.headers as Record<string, string> | undefined),
+  };
+
+  return fetch(`${API_BASE}${path}`, {
+    credentials: 'include',
+    ...options,
+    headers,
+  });
+};
+
 export const dbService = {
+  setAuthContext: (context: AuthContext) => {
+    authContext = { ...authContext, ...context };
+  },
+
+  clearImpersonation: () => {
+    authContext = { ...authContext, impersonationToken: undefined };
+  },
+
   subscribeToBots: (onUpdate: (bots: Bot[]) => void) => {
     const fetchBots = async () => {
       try {
-        const response = await fetch(`${API_BASE}/bots`);
+        const response = await request('/clients/bots', { method: 'GET' }, false);
         if (response.ok) {
           const data = await response.json();
           onUpdate(data as Bot[]);
@@ -22,30 +76,22 @@ export const dbService = {
 
   saveBot: async (bot: Bot): Promise<Bot> => {
     try {
-      // Check if this is a new bot - only 'new' or empty/undefined ids are new
-      // UUIDs can start with any letter, so we can't check prefixes
       const isNewBot = !bot.id || bot.id === 'new';
-      
       if (isNewBot) {
-        // Always use POST for new bots - let server generate the ID
         const { id, ...botWithoutId } = bot;
-        const response = await fetch(`${API_BASE}/bots`, {
+        const response = await request('/bots', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(botWithoutId),
         });
         if (!response.ok) throw new Error('Failed to create bot');
         return await response.json();
-      } else {
-        // Use PUT for existing bots (has a real UUID)
-        const response = await fetch(`${API_BASE}/bots/${bot.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(bot),
-        });
-        if (!response.ok) throw new Error('Failed to update bot');
-        return await response.json();
       }
+      const response = await request(`/bots/${bot.id}`, {
+        method: 'PUT',
+        body: JSON.stringify(bot),
+      });
+      if (!response.ok) throw new Error('Failed to update bot');
+      return await response.json();
     } catch (error) {
       console.error('Error saving bot:', error);
       throw error;
@@ -54,7 +100,7 @@ export const dbService = {
 
   getBotById: async (id: string): Promise<Bot | undefined> => {
     try {
-      const response = await fetch(`${API_BASE}/bots/${id}`);
+      const response = await request(`/bots/${id}`, { method: 'GET' }, false);
       if (!response.ok) return undefined;
       return await response.json();
     } catch (error) {
@@ -66,7 +112,7 @@ export const dbService = {
   subscribeToLeads: (onUpdate: (leads: Lead[]) => void) => {
     const fetchLeads = async () => {
       try {
-        const response = await fetch(`${API_BASE}/leads`);
+        const response = await request('/clients/leads', { method: 'GET' }, false);
         if (response.ok) {
           const data = await response.json();
           onUpdate(data as Lead[]);
@@ -82,12 +128,11 @@ export const dbService = {
 
   saveLead: async (lead: Lead): Promise<Lead> => {
     try {
-      const response = await fetch(`${API_BASE}/leads`, {
+      const response = await request('/leads', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(lead),
       });
-      
+
       if (!response.ok) throw new Error('Failed to save lead');
       return await response.json();
     } catch (error) {
@@ -98,7 +143,7 @@ export const dbService = {
 
   getUserProfile: async (uid: string): Promise<User | null> => {
     try {
-      const response = await fetch(`${API_BASE}/users/${uid}`);
+      const response = await request(`/users/${uid}`, { method: 'GET' }, false);
       if (!response.ok) return null;
       return await response.json();
     } catch (error) {
@@ -109,15 +154,14 @@ export const dbService = {
 
   createUser: async (userData: Omit<User, 'id'>): Promise<User | null> => {
     try {
-      const response = await fetch(`${API_BASE}/users`, {
+      const response = await request('/users', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...userData,
           status: userData.status || 'Active',
         }),
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         console.error('Failed to create user:', response.status, errorData);
@@ -132,15 +176,14 @@ export const dbService = {
 
   saveUserProfile: async (user: User): Promise<User | null> => {
     try {
-      const response = await fetch(`${API_BASE}/users/${user.id}`, {
+      const response = await request(`/users/${user.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...user,
           status: user.status || 'Active',
         }),
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to update user');
       }
@@ -153,9 +196,8 @@ export const dbService = {
 
   updateUserPlan: async (uid: string, plan: PlanType): Promise<void> => {
     try {
-      await fetch(`${API_BASE}/users/${uid}`, {
+      await request(`/users/${uid}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ plan }),
       });
     } catch (error) {
@@ -166,7 +208,7 @@ export const dbService = {
   subscribeToReferrals: (resellerCode: string, onUpdate: (users: User[]) => void) => {
     const fetchReferrals = async () => {
       try {
-        const response = await fetch(`${API_BASE}/users/referrals/${resellerCode}`);
+        const response = await request(`/users/referrals/${resellerCode}`, { method: 'GET' }, false);
         if (response.ok) {
           const data = await response.json();
           onUpdate(data as User[]);
@@ -186,11 +228,10 @@ export const dbService = {
   ) => {
     const fetchSummary = async () => {
       try {
-        const response = await fetch(`${API_BASE}/resellers/${resellerCode}/summary`);
+        const response = await request(`/resellers/${resellerCode}/summary`, { method: 'GET' }, false);
         if (response.ok) {
           const data = await response.json();
           onUpdate((data.users || []) as User[], data.stats as ResellerStats);
-          return;
         }
       } catch (error) {
         console.error('Error fetching reseller summary:', error);
@@ -203,7 +244,7 @@ export const dbService = {
 
   getAllUsers: async (): Promise<User[]> => {
     try {
-      const response = await fetch(`${API_BASE}/users`);
+      const response = await request('/users', { method: 'GET' }, false);
       if (!response.ok) return [];
       return await response.json();
     } catch (error) {
@@ -214,9 +255,8 @@ export const dbService = {
 
   updateUserStatus: async (uid: string, status: 'Active' | 'Suspended'): Promise<void> => {
     try {
-      await fetch(`${API_BASE}/users/${uid}`, {
+      await request(`/users/${uid}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status }),
       });
     } catch (error) {
@@ -226,10 +266,8 @@ export const dbService = {
 
   approvePartner: async (uid: string): Promise<void> => {
     try {
-      await fetch(`${API_BASE}/users/${uid}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'Active' }),
+      await request(`/admin/partners/${uid}/approve`, {
+        method: 'POST',
       });
     } catch (error) {
       console.error('Error approving partner:', error);
@@ -239,8 +277,8 @@ export const dbService = {
   subscribeToConversations: (onUpdate: (conversations: Conversation[]) => void, userId?: string) => {
     const fetchConversations = async () => {
       try {
-        const url = userId ? `${API_BASE}/conversations?userId=${userId}` : `${API_BASE}/conversations`;
-        const response = await fetch(url);
+        const url = userId ? `/conversations?userId=${userId}` : '/conversations';
+        const response = await request(url, { method: 'GET' }, false);
         if (response.ok) {
           const data = await response.json();
           onUpdate(data as Conversation[]);
@@ -257,14 +295,13 @@ export const dbService = {
   saveConversation: async (conversation: Conversation): Promise<Conversation> => {
     try {
       const method = conversation.id ? 'PUT' : 'POST';
-      const url = conversation.id ? `${API_BASE}/conversations/${conversation.id}` : `${API_BASE}/conversations`;
-      
-      const response = await fetch(url, {
+      const url = conversation.id ? `/conversations/${conversation.id}` : '/conversations';
+
+      const response = await request(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(conversation),
       });
-      
+
       if (!response.ok) throw new Error('Failed to save conversation');
       return await response.json();
     } catch (error) {
@@ -275,7 +312,7 @@ export const dbService = {
 
   getConversationById: async (id: string): Promise<Conversation | undefined> => {
     try {
-      const response = await fetch(`${API_BASE}/conversations/${id}`);
+      const response = await request(`/conversations/${id}`, { method: 'GET' }, false);
       if (!response.ok) return undefined;
       return await response.json();
     } catch (error) {
@@ -286,7 +323,7 @@ export const dbService = {
 
   getBotDocuments: async (botId: string): Promise<BotDocument[]> => {
     try {
-      const response = await fetch(`${API_BASE}/bots/${botId}/documents`);
+      const response = await request(`/bots/${botId}/documents`, { method: 'GET' }, false);
       if (!response.ok) return [];
       return await response.json();
     } catch (error) {
@@ -301,11 +338,10 @@ export const dbService = {
       formData.append('file', file);
 
       const xhr = new XMLHttpRequest();
-      
       return new Promise((resolve, reject) => {
-        xhr.upload.addEventListener('progress', (e) => {
-          if (e.lengthComputable && onProgress) {
-            onProgress(Math.round((e.loaded / e.total) * 100));
+        xhr.upload.addEventListener('progress', (event) => {
+          if (event.lengthComputable && onProgress) {
+            onProgress(Math.round((event.loaded / event.total) * 100));
           }
         });
 
@@ -318,8 +354,15 @@ export const dbService = {
         });
 
         xhr.addEventListener('error', () => reject(new Error('Upload failed')));
-        
+
         xhr.open('POST', `${API_BASE}/bots/${botId}/documents`);
+        if (authContext.userId) {
+          xhr.setRequestHeader('x-user-id', authContext.userId);
+        }
+        if (authContext.impersonationToken) {
+          xhr.setRequestHeader('x-impersonation-token', authContext.impersonationToken);
+        }
+        xhr.withCredentials = true;
         xhr.send(formData);
       });
     } catch (error) {
@@ -330,13 +373,208 @@ export const dbService = {
 
   deleteBotDocument: async (docId: string): Promise<boolean> => {
     try {
-      const response = await fetch(`${API_BASE}/documents/${docId}`, {
-        method: 'DELETE',
-      });
+      const response = await request(`/documents/${docId}`, { method: 'DELETE' }, false);
       return response.ok;
     } catch (error) {
       console.error('Error deleting document:', error);
       return false;
     }
-  }
+  },
+
+  getAdminMetrics: async () => {
+    const response = await request('/admin/metrics', { method: 'GET' }, false);
+    if (!response.ok) throw new Error('Failed to load metrics');
+    return response.json();
+  },
+
+  getAdminUsers: async (params?: Record<string, string>) => {
+    const searchParams = params ? `?${new URLSearchParams(params)}` : '';
+    const response = await request(`/admin/users${searchParams}`, { method: 'GET' }, false);
+    if (!response.ok) throw new Error('Failed to load users');
+    return response.json();
+  },
+
+  bulkUpdateUsers: async (payload: { userIds: string[]; action: string }) => {
+    const response = await request('/admin/users/bulk', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) throw new Error('Failed to update users');
+    return response.json();
+  },
+
+  getUserUsage: async (userId: string) => {
+    const response = await request(`/admin/users/${userId}/usage`, { method: 'GET' }, false);
+    if (!response.ok) throw new Error('Failed to load usage');
+    return response.json();
+  },
+
+  exportUserData: async (userId: string) => {
+    const response = await request(`/admin/users/${userId}/export`, { method: 'GET' }, false);
+    if (!response.ok) throw new Error('Failed to export user data');
+    return response.json();
+  },
+
+  mergeUsers: async (sourceUserId: string, targetUserId: string) => {
+    const response = await request('/admin/users/merge', {
+      method: 'POST',
+      body: JSON.stringify({ sourceUserId, targetUserId }),
+    });
+    if (!response.ok) throw new Error('Failed to merge users');
+    return response.json();
+  },
+
+  startImpersonation: async (targetUserId: string, reason: string, durationMinutes?: number) => {
+    const response = await request('/impersonation/start', {
+      method: 'POST',
+      body: JSON.stringify({ targetUserId, reason, durationMinutes }),
+    });
+    if (!response.ok) throw new Error('Failed to start impersonation');
+    const data = await response.json();
+    authContext = { ...authContext, impersonationToken: data.token };
+    return data;
+  },
+
+  endImpersonation: async (token: string) => {
+    const response = await request('/impersonation/end', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    });
+    if (!response.ok) throw new Error('Failed to end impersonation');
+    authContext = { ...authContext, impersonationToken: undefined };
+    return response.json();
+  },
+
+  getActiveImpersonations: async () => {
+    const response = await request('/impersonation/active', { method: 'GET' }, false);
+    if (!response.ok) throw new Error('Failed to load impersonations');
+    return response.json();
+  },
+
+  getPartnerClients: async () => {
+    const response = await request('/partners/clients', { method: 'GET' }, false);
+    if (!response.ok) throw new Error('Failed to load clients');
+    return response.json();
+  },
+
+  getPartnerCommissions: async () => {
+    const response = await request('/partners/commissions', { method: 'GET' }, false);
+    if (!response.ok) throw new Error('Failed to load commissions');
+    return response.json();
+  },
+
+  getPartnerMarketingMaterials: async () => {
+    const response = await request('/partners/marketing-materials', { method: 'GET' }, false);
+    if (!response.ok) throw new Error('Failed to load materials');
+    return response.json();
+  },
+
+  getPartnerAnalytics: async () => {
+    const response = await request('/partners/analytics', { method: 'GET' }, false);
+    if (!response.ok) throw new Error('Failed to load analytics');
+    return response.json();
+  },
+
+  getPartnerNotes: async (clientId?: string) => {
+    const query = clientId ? `?clientId=${clientId}` : '';
+    const response = await request(`/partners/notes${query}`, { method: 'GET' }, false);
+    if (!response.ok) throw new Error('Failed to load notes');
+    return response.json();
+  },
+
+  createPartnerNote: async (payload: { clientId?: string; note: string }) => {
+    const response = await request('/partners/notes', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) throw new Error('Failed to create note');
+    return response.json();
+  },
+
+  getPartnerTasks: async (clientId?: string) => {
+    const query = clientId ? `?clientId=${clientId}` : '';
+    const response = await request(`/partners/tasks${query}`, { method: 'GET' }, false);
+    if (!response.ok) throw new Error('Failed to load tasks');
+    return response.json();
+  },
+
+  createPartnerTask: async (payload: { clientId?: string; title: string; status?: string; dueAt?: string }) => {
+    const response = await request('/partners/tasks', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) throw new Error('Failed to create task');
+    return response.json();
+  },
+
+  updatePartnerTask: async (taskId: string, payload: { title?: string; status?: string; dueAt?: string }) => {
+    const response = await request(`/partners/tasks/${taskId}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) throw new Error('Failed to update task');
+    return response.json();
+  },
+
+  logPartnerEmail: async (payload: { clientId: string; subject: string; body: string }) => {
+    const response = await request('/partners/communications/email', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) throw new Error('Failed to log email');
+    return response.json();
+  },
+
+  getClientOverview: async () => {
+    const response = await request('/clients/overview', { method: 'GET' }, false);
+    if (!response.ok) throw new Error('Failed to load overview');
+    return response.json();
+  },
+
+  getClientBots: async () => {
+    const response = await request('/clients/bots', { method: 'GET' }, false);
+    if (!response.ok) throw new Error('Failed to load bots');
+    return response.json();
+  },
+
+  getClientLeads: async (status?: string) => {
+    const query = status ? `?status=${status}` : '';
+    const response = await request(`/clients/leads${query}`, { method: 'GET' }, false);
+    if (!response.ok) throw new Error('Failed to load leads');
+    return response.json();
+  },
+
+  getClientAnalytics: async (days: number = 30) => {
+    const response = await request(`/clients/analytics?days=${days}`, { method: 'GET' }, false);
+    if (!response.ok) throw new Error('Failed to load analytics');
+    return response.json();
+  },
+
+  completeOnboarding: async () => {
+    const response = await request('/clients/onboarding/complete', { method: 'POST' });
+    if (!response.ok) throw new Error('Failed to complete onboarding');
+    return response.json();
+  },
+
+  trackClientEvent: async (payload: { eventType: string; eventData?: any; botId?: string }) => {
+    const response = await request('/clients/events', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) throw new Error('Failed to track event');
+    return response.json();
+  },
+
+  getTemplates: async (params?: Record<string, string>) => {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const response = await request(`/templates${query}`, { method: 'GET' }, false);
+    if (!response.ok) throw new Error('Failed to load templates');
+    return response.json();
+  },
+
+  installTemplate: async (templateId: string) => {
+    const response = await request(`/templates/${templateId}/install`, { method: 'POST' });
+    if (!response.ok) throw new Error('Failed to install template');
+    return response.json();
+  },
 };
