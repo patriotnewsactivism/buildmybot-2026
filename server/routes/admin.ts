@@ -478,6 +478,39 @@ router.post('/system/feature-flags', auditSensitiveAction('system.feature_flags.
   }
 });
 
+router.post('/system/email-templates', auditSensitiveAction('system.email_templates.update'), async (req, res) => {
+  try {
+    const { id, name, subject, body, scope } = req.body;
+    if (!name || !subject || !body) {
+      return res.status(400).json({ error: 'name, subject, and body required' });
+    }
+
+    const [template] = id
+      ? await db
+          .update(emailTemplates)
+          .set({ name, subject, body, scope, updatedAt: new Date() })
+          .where(eq(emailTemplates.id, id))
+          .returning()
+      : await db
+          .insert(emailTemplates)
+          .values({
+            id: uuidv4(),
+            name,
+            subject,
+            body,
+            scope: scope || 'global',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          })
+          .returning();
+
+    res.json(template);
+  } catch (error) {
+    console.error('Email template error:', error);
+    res.status(500).json({ error: 'Failed to update email template' });
+  }
+});
+
 router.post('/system/api-keys/rotate', auditSensitiveAction('system.api_keys.rotate'), async (req, res) => {
   try {
     const { name } = req.body as { name: string };
