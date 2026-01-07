@@ -104,21 +104,25 @@ export const SimplifiedBotWizard: React.FC<SimplifiedBotWizardProps> = ({ onComp
 
   const handleTemplateSelect = (template: TemplateOption | BotTemplate) => {
     setSelectedTemplate(template);
-    if ('systemPrompt' in template) {
+    if ('systemPrompt' in template && 'id' in template) {
       // BotTemplate from marketplace
+      const botTemplate = template as BotTemplate;
       setBotConfig({
         ...botConfig,
-        name: template.name,
-        systemPrompt: template.systemPrompt || '',
-        themeColor: (template.configuration as any)?.themeColor || '#1e3a8a'
+        name: botTemplate.name || '',
+        systemPrompt: botTemplate.systemPrompt || '',
+        themeColor: (botTemplate.configuration && typeof botTemplate.configuration === 'object' && 'themeColor' in botTemplate.configuration) 
+          ? (botTemplate.configuration as any).themeColor 
+          : '#1e3a8a'
       });
     } else {
       // Quick template
+      const quickTemplate = template as TemplateOption;
       setBotConfig({
         ...botConfig,
-        name: template.name,
-        themeColor: template.suggestedColor,
-        systemPrompt: template.systemPrompt
+        name: quickTemplate.name,
+        themeColor: quickTemplate.suggestedColor,
+        systemPrompt: quickTemplate.systemPrompt
       });
     }
   };

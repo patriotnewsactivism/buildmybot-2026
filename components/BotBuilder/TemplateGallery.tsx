@@ -156,9 +156,6 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({
                         Premium
                       </span>
                     )}
-                    {template.trending && (
-                      <TrendingUp className="text-orange-500" size={16} />
-                    )}
                   </h4>
                   <p className="text-xs text-slate-500">
                     {template.category} {template.industry && `• ${template.industry}`}

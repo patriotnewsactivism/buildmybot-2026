@@ -48,7 +48,7 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
   const roleMap: Record<'admin' | 'partner' | 'client', UserRole[]> = {
     admin: [UserRole.ADMIN],
     partner: [UserRole.RESELLER],
-    client: [UserRole.OWNER, UserRole.USER],
+    client: [UserRole.OWNER, UserRole.CLIENT],
   };
 
   const allowedRoles = roleMap[role];
