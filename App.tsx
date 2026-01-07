@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Sidebar } from './components/Layout/Sidebar';
 import { BotBuilder } from './components/BotBuilder/BotBuilder';
 import { ResellerDashboard } from './components/Reseller/ResellerDashboard';
@@ -452,6 +453,7 @@ function App() {
           
         </div>
       </main>
+      <SpeedInsights />
     </div>
   );
 }
