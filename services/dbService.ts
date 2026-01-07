@@ -141,6 +141,12 @@ export const dbService = {
     }
   },
 
+  getUser: async (uid: string): Promise<User | null> => {
+    const response = await request(`/users/${uid}`, { method: 'GET' }, false);
+    if (!response.ok) return null;
+    return response.json();
+  },
+
   getUserProfile: async (uid: string): Promise<User | null> => {
     try {
       const response = await request(`/users/${uid}`, { method: 'GET' }, false);
@@ -535,6 +541,15 @@ export const dbService = {
       body: JSON.stringify(payload),
     });
     if (!response.ok) throw new Error('Failed to update feature flag');
+    return response.json();
+  },
+
+  updateEmailTemplate: async (payload: { id?: string; name: string; subject: string; body: string; scope?: string }) => {
+    const response = await request('/admin/system/email-templates', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) throw new Error('Failed to update email template');
     return response.json();
   },
 

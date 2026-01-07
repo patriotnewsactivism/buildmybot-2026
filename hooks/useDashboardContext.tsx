@@ -63,7 +63,11 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children, 
 
   const exitImpersonation = async () => {
     try {
-      await dbService.endImpersonation();
+      // Get active impersonation token
+      const sessions = await dbService.getActiveImpersonations();
+      if (sessions?.length) {
+        await dbService.endImpersonation(sessions[0].id);
+      }
       setIsImpersonating(false);
       setImpersonatedUser(null);
       if (user) {

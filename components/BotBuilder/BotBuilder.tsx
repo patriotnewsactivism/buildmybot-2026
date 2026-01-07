@@ -5,6 +5,7 @@ import { generateBotResponse, scrapeWebsiteContent } from '../../services/openai
 import { AVAILABLE_MODELS } from '../../constants';
 import { dbService } from '../../services/dbService';
 import { SimplifiedBotWizard } from './SimplifiedBotWizard';
+import { KnowledgeBaseManager } from './KnowledgeBaseManager';
 
 interface BotBuilderProps {
   bots: BotType[];
@@ -554,83 +555,20 @@ export const BotBuilder: React.FC<BotBuilderProps> = ({ bots, onSave, customDoma
 
             {activeTab === 'knowledge' && (
                 <div className="max-w-3xl mx-auto space-y-6 animate-fade-in">
+                   {/* Phase 3: Enhanced Knowledge Base Manager */}
                    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                       <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
                          <Upload size={18} className="text-blue-900" /> Upload Documents
                       </h3>
                       
-                      <input
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={(e) => handleFileUpload(e.target.files)}
-                        accept=".pdf,.docx,.txt"
-                        className="hidden"
+                      <KnowledgeBaseManager
+                        botId={activeBot.id}
+                        documents={documents}
+                        onDocumentsChange={(newDocs) => {
+                          setDocuments(newDocs);
+                          // Update bot's knowledge base references if needed
+                        }}
                       />
-                      
-                      <div
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                        onDrop={handleDrop}
-                        onClick={() => !isUploading && activeBot.id !== 'new' && fileInputRef.current?.click()}
-                        className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
-                          isDragging 
-                            ? 'border-blue-500 bg-blue-50' 
-                            : isUploading 
-                              ? 'border-slate-200 bg-slate-50 cursor-wait'
-                              : activeBot.id === 'new'
-                                ? 'border-slate-200 bg-slate-50 cursor-not-allowed'
-                                : 'border-slate-200 hover:border-blue-400 hover:bg-slate-50'
-                        }`}
-                      >
-                        {isUploading ? (
-                          <div className="space-y-3">
-                            <Loader2 size={32} className="mx-auto text-blue-600 animate-spin" />
-                            <p className="text-slate-600 font-medium">Uploading... {uploadProgress}%</p>
-                            <div className="w-full max-w-xs mx-auto bg-slate-200 rounded-full h-2">
-                              <div 
-                                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                                style={{ width: `${uploadProgress}%` }}
-                              />
-                            </div>
-                          </div>
-                        ) : (
-                          <>
-                            <Upload size={32} className={`mx-auto mb-3 ${activeBot.id === 'new' ? 'text-slate-300' : 'text-slate-400'}`} />
-                            <p className={`font-medium mb-1 ${activeBot.id === 'new' ? 'text-slate-400' : 'text-slate-700'}`}>
-                              {activeBot.id === 'new' ? 'Save bot first to upload documents' : 'Drag & drop files here'}
-                            </p>
-                            <p className="text-sm text-slate-500">
-                              {activeBot.id === 'new' ? '' : 'or click to browse'}
-                            </p>
-                            <p className="text-xs text-slate-400 mt-2">Supports PDF, DOCX, TXT (max 10MB)</p>
-                          </>
-                        )}
-                      </div>
-                      
-                      {documents.length > 0 && (
-                        <div className="mt-4 space-y-2">
-                          <h4 className="text-sm font-semibold text-slate-600 mb-3">Uploaded Documents ({documents.length})</h4>
-                          {documents.map((doc) => (
-                            <div key={doc.id} className="flex items-center justify-between bg-slate-50 p-3 rounded-lg border border-slate-100">
-                              <div className="flex items-center gap-3">
-                                {getFileIcon(doc.fileType)}
-                                <div>
-                                  <p className="text-sm font-medium text-slate-700 truncate max-w-[200px] sm:max-w-[300px]">{doc.fileName}</p>
-                                  <p className="text-xs text-slate-400">
-                                    {formatFileSize(doc.fileSize)} • {doc.createdAt ? new Date(doc.createdAt).toLocaleDateString() : 'Unknown date'}
-                                  </p>
-                                </div>
-                              </div>
-                              <button
-                                onClick={() => handleDeleteDocument(doc.id)}
-                                className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"
-                              >
-                                <Trash2 size={16} />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
                    </div>
 
                    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">

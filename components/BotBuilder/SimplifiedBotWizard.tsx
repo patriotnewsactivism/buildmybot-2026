@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Bot as BotType } from '../../types';
 import { ArrowRight, ArrowLeft, Check, Sparkles, Palette, MessageSquare, Play, Save, Zap } from 'lucide-react';
+import { TemplateGallery } from './TemplateGallery';
+import { BotTemplate } from '../../shared/schema';
 
 interface SimplifiedBotWizardProps {
   onComplete: (bot: BotType) => void;
@@ -85,7 +87,8 @@ const THEME_COLORS = [
 
 export const SimplifiedBotWizard: React.FC<SimplifiedBotWizardProps> = ({ onComplete, onCancel }) => {
   const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [selectedTemplate, setSelectedTemplate] = useState<TemplateOption | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateOption | BotTemplate | null>(null);
+  const [useMarketplace, setUseMarketplace] = useState(false);
   const [botConfig, setBotConfig] = useState({
     name: '',
     themeColor: '#1e3a8a',
@@ -99,14 +102,25 @@ export const SimplifiedBotWizard: React.FC<SimplifiedBotWizardProps> = ({ onComp
   const [testResponse, setTestResponse] = useState('');
   const [isTesting, setIsTesting] = useState(false);
 
-  const handleTemplateSelect = (template: TemplateOption) => {
+  const handleTemplateSelect = (template: TemplateOption | BotTemplate) => {
     setSelectedTemplate(template);
-    setBotConfig({
-      ...botConfig,
-      name: template.name,
-      themeColor: template.suggestedColor,
-      systemPrompt: template.systemPrompt
-    });
+    if ('systemPrompt' in template) {
+      // BotTemplate from marketplace
+      setBotConfig({
+        ...botConfig,
+        name: template.name,
+        systemPrompt: template.systemPrompt || '',
+        themeColor: (template.configuration as any)?.themeColor || '#1e3a8a'
+      });
+    } else {
+      // Quick template
+      setBotConfig({
+        ...botConfig,
+        name: template.name,
+        themeColor: template.suggestedColor,
+        systemPrompt: template.systemPrompt
+      });
+    }
   };
 
   const handleNext = () => {
@@ -204,34 +218,68 @@ export const SimplifiedBotWizard: React.FC<SimplifiedBotWizardProps> = ({ onComp
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {QUICK_TEMPLATES.map((template) => (
-                  <button
-                    key={template.id}
-                    onClick={() => handleTemplateSelect(template)}
-                    className={`text-left p-4 rounded-xl border-2 transition-all ${
-                      selectedTemplate?.id === template.id
-                        ? 'border-blue-600 bg-blue-50 ring-2 ring-blue-200'
-                        : 'border-slate-200 hover:border-blue-300 bg-white'
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="text-3xl">{template.icon}</div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-slate-900 flex items-center gap-2">
-                          {template.name}
-                          {selectedTemplate?.id === template.id && (
-                            <Check className="text-blue-600" size={16} />
-                          )}
-                        </div>
-                        <p className="text-xs text-slate-500 mt-1">
-                          {template.description}
-                        </p>
-                      </div>
-                    </div>
-                  </button>
-                ))}
+              {/* Template Source Toggle */}
+              <div className="flex gap-2 p-1 bg-slate-100 rounded-lg">
+                <button
+                  onClick={() => setUseMarketplace(false)}
+                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    !useMarketplace
+                      ? 'bg-white text-slate-900 shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Quick Templates
+                </button>
+                <button
+                  onClick={() => setUseMarketplace(true)}
+                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    useMarketplace
+                      ? 'bg-white text-slate-900 shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Marketplace
+                </button>
               </div>
+
+              {useMarketplace ? (
+                <TemplateGallery
+                  onSelect={(template) => {
+                    handleTemplateSelect(template);
+                    setStep(2);
+                  }}
+                  selectedTemplateId={selectedTemplate && 'id' in selectedTemplate ? selectedTemplate.id : undefined}
+                />
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {QUICK_TEMPLATES.map((template) => (
+                    <button
+                      key={template.id}
+                      onClick={() => handleTemplateSelect(template)}
+                      className={`text-left p-4 rounded-xl border-2 transition-all ${
+                        selectedTemplate && 'id' in selectedTemplate && selectedTemplate.id === template.id
+                          ? 'border-blue-600 bg-blue-50 ring-2 ring-blue-200'
+                          : 'border-slate-200 hover:border-blue-300 bg-white'
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="text-3xl">{template.icon}</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-slate-900 flex items-center gap-2">
+                            {template.name}
+                            {selectedTemplate && 'id' in selectedTemplate && selectedTemplate.id === template.id && (
+                              <Check className="text-blue-600" size={16} />
+                            )}
+                          </div>
+                          <p className="text-xs text-slate-500 mt-1">
+                            {template.description}
+                          </p>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 

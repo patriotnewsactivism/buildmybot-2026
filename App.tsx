@@ -26,6 +26,10 @@ import { CareersPage } from './components/Landing/pages/CareersPage';
 import { ContactPage } from './components/Landing/pages/ContactPage';
 import { PrivacyPage } from './components/Landing/pages/PrivacyPage';
 import { FeaturesPage } from './components/Landing/pages/FeaturesPage';
+// Phase 2: Dashboard Infrastructure
+import { DashboardProvider } from './hooks/useDashboardContext';
+import { DashboardShell } from './components/Dashboard/DashboardShell';
+import { RouteGuard } from './components/Dashboard/RouteGuard';
 import { User, UserRole, PlanType, Bot as BotType, ResellerStats, Lead, Conversation } from './types';
 import { PLANS, MOCK_ANALYTICS_DATA } from './constants';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
@@ -388,121 +392,137 @@ function App() {
     );
   }
 
+  // Phase 2: Wrap with DashboardProvider for context
   return (
-    <div className="flex h-screen bg-slate-50 font-sans text-slate-900 overflow-x-hidden">
-      <Sidebar 
-        currentView={currentView} 
-        setView={setCurrentView} 
-        role={user.role} 
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-        onLogout={handleLogout}
-        user={user}
-        usage={totalConversations}
-      />
-      
-      <main className="flex-1 overflow-hidden relative flex flex-col h-full md:ml-64">
-        <div className="md:hidden h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 shrink-0">
-           <div className="flex items-center gap-2 font-bold text-slate-800">
-              <div className="w-8 h-8 bg-blue-900 rounded-lg flex items-center justify-center border border-blue-800 shadow-lg shadow-blue-900/50 text-white">
-                <BotIcon size={20} />
-              </div>
-              BuildMyBot
-           </div>
-           <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-slate-600">
-              <Menu size={24} />
-           </button>
-        </div>
+    <DashboardProvider initialUser={user}>
+      <div className="flex h-screen bg-slate-50 font-sans text-slate-900 overflow-x-hidden">
+        {/* Legacy Sidebar - kept for non-dashboard views */}
+        <Sidebar 
+          currentView={currentView} 
+          setView={setCurrentView} 
+          role={user.role} 
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+          onLogout={handleLogout}
+          user={user}
+          usage={totalConversations}
+        />
+        
+        <main className="flex-1 overflow-hidden relative flex flex-col h-full md:ml-64">
+          <div className="md:hidden h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 shrink-0">
+             <div className="flex items-center gap-2 font-bold text-slate-800">
+                <div className="w-8 h-8 bg-blue-900 rounded-lg flex items-center justify-center border border-blue-800 shadow-lg shadow-blue-900/50 text-white">
+                  <BotIcon size={20} />
+                </div>
+                BuildMyBot
+             </div>
+             <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-slate-600">
+                <Menu size={24} />
+             </button>
+          </div>
 
-        <div className="flex-1 overflow-y-auto p-4 md:p-8">
-          {impersonation && impersonatedUser && (
-            <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-              <div>
-                <p className="text-sm font-semibold text-amber-900">Impersonation Active</p>
-                <p className="text-xs text-amber-700">
-                  Acting as {impersonatedUser.name} ({impersonatedUser.email}) until {new Date(impersonation.expiresAt).toLocaleTimeString()}
-                </p>
-              </div>
-              <button
-                onClick={handleEndImpersonation}
-                className="px-4 py-2 text-xs font-bold bg-amber-900 text-white rounded-lg hover:bg-amber-950"
-              >
-                Exit Impersonation
-              </button>
-            </div>
-          )}
-          {notification && (
-              <div className="fixed top-6 right-6 z-50 bg-slate-900 text-white px-6 py-3 rounded-lg shadow-xl animate-bounce-slow flex items-center gap-3">
-                 <Bell size={18} className="text-blue-400" /> {notification}
-              </div>
-          )}
+          <div className="flex-1 overflow-y-auto p-4 md:p-8">
+            {notification && (
+                <div className="fixed top-6 right-6 z-50 bg-slate-900 text-white px-6 py-3 rounded-lg shadow-xl animate-bounce-slow flex items-center gap-3">
+                   <Bell size={18} className="text-blue-400" /> {notification}
+                </div>
+            )}
 
-          {currentView === 'dashboard' && (
-            <ClientOverview
-              user={activeUser}
-              onCreateBot={() => setCurrentView('bots')}
-              onOpenLeads={() => setCurrentView('leads')}
-            />
-          )}
+            {/* Phase 2: Admin Dashboard with DashboardShell */}
+            {currentView === 'admin' && (
+              <RouteGuard role="admin">
+                <DashboardShell currentPath="/admin" onNavigate={(path) => {
+                  // Handle navigation - could integrate with router later
+                  console.log('Navigate to:', path);
+                }}>
+                  <AdminDashboardV2 onImpersonate={handleStartImpersonation} />
+                </DashboardShell>
+              </RouteGuard>
+            )}
 
-          {currentView === 'bots' && (
-            <BotBuilder
-              bots={bots}
-              onSave={handleSaveBot}
-              customDomain={activeUser?.customDomain}
-              onLeadDetected={handleLeadDetected}
-            />
-          )}
-          
-          {currentView === 'reseller' && (
-            <PartnerDashboardV2 user={user} onImpersonate={handleStartImpersonation} />
-          )}
+            {/* Phase 2: Partner Dashboard with DashboardShell */}
+            {currentView === 'reseller' && (
+              <RouteGuard role="partner">
+                <DashboardShell currentPath="/partner/clients" onNavigate={(path) => {
+                  console.log('Navigate to:', path);
+                }}>
+                  <PartnerDashboardV2 user={user} onImpersonate={handleStartImpersonation} />
+                </DashboardShell>
+              </RouteGuard>
+            )}
 
-          {currentView === 'marketing' && <MarketingTools />}
+            {/* Phase 2: Client Dashboard with DashboardShell */}
+            {currentView === 'dashboard' && (
+              <RouteGuard role="client">
+                <DashboardShell currentPath="/app" onNavigate={(path) => {
+                  // Map paths to currentView
+                  if (path === '/app/bots') setCurrentView('bots');
+                  else if (path === '/app/leads') setCurrentView('leads');
+                  else if (path === '/app') setCurrentView('dashboard');
+                }}>
+                  <ClientOverview
+                    user={activeUser}
+                    onCreateBot={() => setCurrentView('bots')}
+                    onOpenLeads={() => setCurrentView('leads')}
+                  />
+                </DashboardShell>
+              </RouteGuard>
+            )}
 
-          {currentView === 'leads' && <LeadsCRM leads={leads} onUpdateLead={handleUpdateLead} />}
+            {/* Legacy views - not using DashboardShell yet */}
+            {currentView === 'bots' && (
+              <BotBuilder
+                bots={bots}
+                onSave={handleSaveBot}
+                customDomain={activeUser?.customDomain}
+                onLeadDetected={handleLeadDetected}
+              />
+            )}
 
-          {currentView === 'website' && <WebsiteBuilder />}
+            {currentView === 'marketing' && <MarketingTools />}
 
-          {currentView === 'marketplace' && <EnhancedMarketplace onInstall={handleInstallTemplate} />}
+            {currentView === 'leads' && <LeadsCRM leads={leads} onUpdateLead={handleUpdateLead} />}
 
-          {currentView === 'phone' && activeUser && (
-            <PhoneAgent
-              user={activeUser}
-              onUpdate={(updated) => {
-                if (impersonatedUser) {
-                  setImpersonatedUser(updated);
-                } else {
-                  setUser(updated);
-                }
-                dbService.saveUserProfile(updated);
-              }}
-            />
-          )}
+            {currentView === 'website' && <WebsiteBuilder />}
 
-          {currentView === 'chat-logs' && <ChatLogs conversations={chatLogs} />}
+            {currentView === 'marketplace' && <EnhancedMarketplace onInstall={handleInstallTemplate} />}
 
-          {currentView === 'billing' && <Billing user={user} />}
+            {currentView === 'phone' && activeUser && (
+              <PhoneAgent
+                user={activeUser}
+                onUpdate={(updated) => {
+                  if (impersonatedUser) {
+                    setImpersonatedUser(updated);
+                  } else {
+                    setUser(updated);
+                  }
+                  dbService.saveUserProfile(updated);
+                }}
+              />
+            )}
 
-          {currentView === 'admin' && <AdminDashboardV2 onImpersonate={handleStartImpersonation} />}
+            {currentView === 'chat-logs' && <ChatLogs conversations={chatLogs} />}
 
-          {currentView === 'settings' && activeUser && (
-            <Settings
-              user={activeUser}
-              onUpdateUser={(updated) => {
-                if (impersonatedUser) {
-                  setImpersonatedUser(updated);
-                } else {
-                  setUser(updated);
-                }
-                dbService.saveUserProfile(updated);
-              }}
-            />
-          )}
-          
-        </div>
-      </main>
-    </div>
+            {currentView === 'billing' && <Billing user={user} />}
+
+            {currentView === 'settings' && activeUser && (
+              <Settings
+                user={activeUser}
+                onUpdateUser={(updated) => {
+                  if (impersonatedUser) {
+                    setImpersonatedUser(updated);
+                  } else {
+                    setUser(updated);
+                  }
+                  dbService.saveUserProfile(updated);
+                }}
+              />
+            )}
+            
+          </div>
+        </main>
+      </div>
+    </DashboardProvider>
   );
 }
 
