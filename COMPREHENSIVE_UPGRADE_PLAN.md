@@ -628,7 +628,7 @@ export const LiveMetrics: React.FC = () => {
    - Client impersonation (with audit logging)
    - Perform actions on behalf of clients (bot creation, lead management)
    - View client financial data (MRR, usage, plan details)
-   - Client lifecycle tracking (signup → active → churned)
+   - Client lifecycle tracking (signup -> active -> churned)
 
 2. **Commission & Earnings**
    - Real-time commission calculator
@@ -647,7 +647,7 @@ export const LiveMetrics: React.FC = () => {
    - Video demo library
 
 4. **Performance Analytics**
-   - Conversion funnel (clicks → signups → paid)
+   - Conversion funnel (clicks -> signups -> paid)
    - Top performing campaigns
    - Client retention metrics
    - Revenue forecasting
@@ -804,7 +804,7 @@ export const MarketingMaterialsTab: React.FC = () => {
    - Bot performance at-a-glance
 
 3. **Lead Dashboard**
-   - Visual pipeline (New → Contacted → Qualified → Closed)
+   - Visual pipeline (New -> Contacted -> Qualified -> Closed)
    - Lead score highlighting
    - One-click email/call from lead card
    - Quick note-taking
@@ -934,6 +934,148 @@ export const OnboardingWizard: React.FC<{ onComplete: () => void }> = ({ onCompl
   );
 };
 ```
+
+### 2.4 Shared Dashboard Infrastructure
+
+**Objective:** Standardize navigation, layout, and access control across all dashboards while keeping role-specific experiences.
+
+**Core Building Blocks:**
+- `DashboardShell` layout with shared header, nav, and context switcher
+- Role-based navigation configuration (Admin, Partner, Client)
+- Route guard with RBAC + tenant checks
+- Impersonation banner and safe-exit controls
+- Feature-flagged modules for phased rollout
+
+**Navigation Map:**
+
+```typescript
+// C:/buildmybot/components/Dashboard/dashboardNav.ts
+
+export const DASHBOARD_NAV = {
+  admin: [
+    { id: 'overview', label: 'Overview', href: '/admin' },
+    { id: 'users', label: 'Users', href: '/admin/users' },
+    { id: 'partners', label: 'Partners', href: '/admin/partners' },
+    { id: 'financial', label: 'Financial', href: '/admin/financial' },
+    { id: 'system', label: 'System', href: '/admin/system' },
+  ],
+  partner: [
+    { id: 'clients', label: 'Clients', href: '/partner/clients' },
+    { id: 'commissions', label: 'Earnings', href: '/partner/commissions' },
+    { id: 'marketing', label: 'Marketing', href: '/partner/marketing' },
+    { id: 'analytics', label: 'Analytics', href: '/partner/analytics' },
+  ],
+  client: [
+    { id: 'home', label: 'Dashboard', href: '/app' },
+    { id: 'bots', label: 'Bots', href: '/app/bots' },
+    { id: 'leads', label: 'Leads', href: '/app/leads' },
+    { id: 'help', label: 'Help', href: '/app/help' },
+  ],
+};
+```
+
+**Route Guard Pattern:**
+
+```typescript
+// C:/buildmybot/components/Dashboard/RouteGuard.tsx
+
+export const RouteGuard: React.FC<{
+  role: 'admin' | 'partner' | 'client';
+  children: React.ReactNode;
+}> = ({ role, children }) => {
+  const { user, organizationId } = useDashboardContext();
+
+  if (!user) return <Redirect to="/login" />;
+  if (!organizationId) return <Redirect to="/onboarding" />;
+  if (role !== user.role) return <Redirect to="/unauthorized" />;
+
+  return <>{children}</>;
+};
+```
+
+**Implementation Notes:**
+- Use `useDashboardContext` to centralize org, role, and impersonation state.
+- Show a persistent banner when impersonating with a one-click exit.
+- Keep shared shell and role-specific content in separate component folders.
+
+### 2.5 API & Data Contracts
+
+**Objective:** Define consistent API surfaces and typed responses for each dashboard.
+
+**Key Endpoints:**
+- `GET /api/admin/metrics` (system health, usage, error rates)
+- `GET /api/admin/users` (filters, pagination)
+- `POST /api/admin/users/:id/impersonate`
+- `GET /api/partners/clients` (with metrics)
+- `GET /api/partners/commissions`
+- `GET /api/clients/overview` (bots, leads, conversions)
+- `GET /api/clients/leads?status=...`
+- `GET /api/clients/bots`
+
+**Example Response Types:**
+
+```typescript
+// C:/buildmybot/types.ts
+
+export interface AdminMetrics {
+  activeUsers: number;
+  apiCallsPerMin: number;
+  dbConnections: number;
+  errorRate: number;
+  mrrCents: number;
+}
+
+export interface PartnerClientSummary {
+  id: string;
+  name: string;
+  mrrCents: number;
+  botCount: number;
+  leadCount: number;
+  lastActiveAt: string;
+  status: 'active' | 'trial' | 'churned';
+}
+```
+
+### 2.6 Impersonation & Audit Controls
+
+**Objective:** Make support workflows safe, traceable, and reversible.
+
+**Controls:**
+- Require a reason code for impersonation (support, billing, setup)
+- Start an impersonation session with a max duration (e.g., 30 minutes)
+- Log start/end events to `audit_logs`
+- Restrict destructive actions unless elevated permission is present
+- Show an always-visible banner indicating the acting user
+
+**Audit Event Schema:**
+
+```typescript
+// C:/buildmybot/shared/types.ts
+
+export interface ImpersonationAuditEvent {
+  action: 'impersonation.started' | 'impersonation.ended';
+  actorUserId: string;
+  targetUserId: string;
+  organizationId: string;
+  reason: string;
+  createdAt: string;
+}
+```
+
+### 2.7 Rollout Plan & Acceptance Criteria
+
+**Rollout Steps:**
+1. Build shared shell and role-based routing (feature-flagged)
+2. Ship Admin overview + users tab, then expand remaining tabs
+3. Ship Partner client management, then commissions + marketing hub
+4. Ship Client dashboard + onboarding wizard
+5. Cut over legacy routes after parity signoff
+
+**Acceptance Criteria:**
+- P95 dashboard load time under 2 seconds for each role
+- All dashboard API responses scoped by organization
+- Impersonation events logged with actor, target, and reason
+- No role can view another role's navigation or data
 
 ---
 
@@ -1841,10 +1983,10 @@ const VideoPlayer = lazy(() => import('./components/VideoPlayer'));
 - Authentication flows
 
 **E2E Tests (Critical Paths):**
-- User signup → bot creation → lead capture
-- Partner signup → client referral → commission calculation
-- Admin dashboard → user management → impersonation
-- Bot creation wizard → knowledge base upload → deployment
+- User signup -> bot creation -> lead capture
+- Partner signup -> client referral -> commission calculation
+- Admin dashboard -> user management -> impersonation
+- Bot creation wizard -> knowledge base upload -> deployment
 
 **Test Environment:**
 
@@ -2020,7 +2162,7 @@ if (FEATURES.ADVANCED_ANALYTICS) {
 - 30% increase in client retention
 - 50% reduction in support tickets
 - 40% increase in partner signups
-- 25% increase in conversion rate (visitor → paid user)
+- 25% increase in conversion rate (visitor -> paid user)
 
 **Technical Metrics:**
 - 80%+ code coverage

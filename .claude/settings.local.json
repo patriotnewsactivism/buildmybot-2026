@@ -28,7 +28,10 @@
       "Bash(tsx scripts/testDbConnection.ts:*)",
       "Bash(npx tsx:*)",
       "Bash(npm run db:push:*)",
-      "Bash(npm run migrate:data:*)"
+      "Bash(npm run migrate:data:*)",
+      "Bash(taskkill:*)",
+      "Bash(taskkill /PID 36256 /F)",
+      "Bash(powershell \"taskkill /PID 36292 /F; taskkill /PID 36220 /F; taskkill /PID 36256 /F; taskkill /PID 34948 /F; taskkill /PID 32932 /F\")"
     ]
   }
 }
