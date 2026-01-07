@@ -1,0 +1,145 @@
+import React, { useState } from 'react';
+import { ChevronDown, ChevronUp, Search } from 'lucide-react';
+
+export interface Column<T> {
+  key: keyof T | string;
+  label: string;
+  sortable?: boolean;
+  render?: (item: T) => React.ReactNode;
+}
+
+interface DataTableProps<T> {
+  columns: Column<T>[];
+  data: T[];
+  onRowClick?: (item: T) => void;
+  searchable?: boolean;
+  searchPlaceholder?: string;
+  emptyMessage?: string;
+  loading?: boolean;
+}
+
+export function DataTable<T extends { id: string }>({
+  columns,
+  data,
+  onRowClick,
+  searchable = false,
+  searchPlaceholder = 'Search...',
+  emptyMessage = 'No data available',
+  loading = false,
+}: DataTableProps<T>) {
+  const [sortKey, setSortKey] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const handleSort = (key: string) => {
+    if (sortKey === key) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortKey(key);
+      setSortDirection('asc');
+    }
+  };
+
+  const filteredData = searchable
+    ? data.filter((item) =>
+        Object.values(item).some((value) =>
+          String(value).toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      )
+    : data;
+
+  const sortedData = sortKey
+    ? [...filteredData].sort((a, b) => {
+        const aVal = (a as any)[sortKey];
+        const bVal = (b as any)[sortKey];
+        if (aVal === bVal) return 0;
+        const comparison = aVal > bVal ? 1 : -1;
+        return sortDirection === 'asc' ? comparison : -comparison;
+      })
+    : filteredData;
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-lg border border-slate-200 p-6">
+        <div className="animate-pulse space-y-4">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="h-12 bg-slate-200 rounded"></div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+      {searchable && (
+        <div className="p-4 border-b border-slate-200">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
+            <input
+              type="text"
+              placeholder={searchPlaceholder}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            />
+          </div>
+        </div>
+      )}
+
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead className="bg-slate-50">
+            <tr>
+              {columns.map((column) => (
+                <th
+                  key={String(column.key)}
+                  className={`px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase tracking-wider ${
+                    column.sortable ? 'cursor-pointer hover:bg-slate-100' : ''
+                  }`}
+                  onClick={() => column.sortable && handleSort(String(column.key))}
+                >
+                  <div className="flex items-center space-x-1">
+                    <span>{column.label}</span>
+                    {column.sortable && sortKey === column.key && (
+                      <span>
+                        {sortDirection === 'asc' ? (
+                          <ChevronUp size={16} />
+                        ) : (
+                          <ChevronDown size={16} />
+                        )}
+                      </span>
+                    )}
+                  </div>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-slate-200">
+            {sortedData.length === 0 ? (
+              <tr>
+                <td colSpan={columns.length} className="px-6 py-12 text-center text-slate-500">
+                  {emptyMessage}
+                </td>
+              </tr>
+            ) : (
+              sortedData.map((item) => (
+                <tr
+                  key={item.id}
+                  onClick={() => onRowClick?.(item)}
+                  className={`${onRowClick ? 'cursor-pointer hover:bg-slate-50' : ''}`}
+                >
+                  {columns.map((column) => (
+                    <td key={String(column.key)} className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
+                      {column.render ? column.render(item) : String((item as any)[column.key] || '-')}
+                    </td>
+                  ))}
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
