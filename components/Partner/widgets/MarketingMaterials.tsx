@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { FileText, Download, Image, Video, RefreshCw } from 'lucide-react';
 import { DataTable, Column } from '../../UI/DataTable';
+import { dbService } from '../../../services/dbService';
 
 interface MarketingMaterial {
   id: string;
@@ -20,11 +21,7 @@ export const MarketingMaterials: React.FC = () => {
 
   const fetchMaterials = async () => {
     try {
-      const response = await fetch('/api/partners/marketing-materials');
-      if (!response.ok) {
-        throw new Error('Failed to fetch marketing materials');
-      }
-      const data = await response.json();
+      const data = await dbService.getPartnerMarketingMaterials();
       setMaterials(data);
       setLoading(false);
       setError(null);

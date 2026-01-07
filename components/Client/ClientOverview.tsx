@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Bot, MessageSquare, TrendingUp, Star, Plus, RefreshCw } from 'lucide-react';
+import { Bot, MessageSquare, TrendingUp, Star, Plus, RefreshCw, BookOpen, MessageCircle } from 'lucide-react';
 import { MetricCard } from '../UI/MetricCard';
 import { DataTable, Column } from '../UI/DataTable';
 
