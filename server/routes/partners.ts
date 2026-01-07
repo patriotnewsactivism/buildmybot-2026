@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { and, eq, inArray, isNull, desc } from 'drizzle-orm';
+import { and, eq, inArray, isNull, desc, count } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import { db } from '../db';
 import {
@@ -48,11 +48,11 @@ router.get('/clients', async (req, res) => {
     const clients = await Promise.all(
       Array.from(clientsMap.values()).map(async (client) => {
         const [botCount] = await db
-          .select({ count: db.count() })
+          .select({ count: count() })
           .from(bots)
           .where(eq(bots.userId, client.id));
         const [leadCount] = await db
-          .select({ count: db.count() })
+          .select({ count: count() })
           .from(leads)
           .where(eq(leads.userId, client.id));
 

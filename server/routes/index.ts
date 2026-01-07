@@ -6,9 +6,19 @@
 import organizationsRouter from './organizations';
 import auditRouter from './audit';
 import analyticsRouter from './analytics';
+import adminRouter from './admin';
+import partnersRouter from './partners';
+import clientsRouter from './clients';
+import impersonationRouter from './impersonation';
+import templatesRouter from './templates';
 
 export {
   organizationsRouter,
   auditRouter,
   analyticsRouter,
+  adminRouter,
+  partnersRouter,
+  clientsRouter,
+  impersonationRouter,
+  templatesRouter,
 };

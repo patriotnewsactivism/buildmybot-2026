@@ -20,7 +20,7 @@ import {
 import { systemMetricsService } from '../services/SystemMetricsService';
 import { stripeService } from '../stripeService';
 import { getUncachableStripeClient } from '../stripeClient';
-import { PLANS, RESELLER_TIERS, WHITELABEL_FEE } from '../../constants';
+import { PLANS, RESELLER_TIERS } from '../../constants';
 import { auditSensitiveAction } from '../middleware';
 
 const router = Router();
@@ -463,7 +463,21 @@ router.post('/system/api-keys/rotate', auditSensitiveAction('system.api_keys.rot
       return res.status(400).json({ error: 'Key name required' });
     }
 
-    const [settings] = await db.select().from(systemSettings);
+    let [settings] = await db.select().from(systemSettings);
+    if (!settings) {
+      const [created] = await db
+        .insert(systemSettings)
+        .values({
+          id: uuidv4(),
+          maintenanceMode: false,
+          envOverrides: {},
+          apiKeys: {},
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .returning();
+      settings = created;
+    }
     const apiKeys = { ...(settings?.apiKeys || {}) };
     apiKeys[name] = uuidv4().replace(/-/g, '');
 

@@ -27,8 +27,8 @@ import { stripeService } from './stripeService';
 import { PLANS, RESELLER_TIERS, WHITELABEL_FEE } from '../constants';
 import multer from 'multer';
 import { setupAuth, registerAuthRoutes } from './replit_integrations/auth';
-import { securityHeaders, apiLimiter } from './middleware';
-import { auditRouter, analyticsRouter, organizationsRouter } from './routes';
+import { securityHeaders, apiLimiter, metricsMiddleware, authenticate, loadOrganizationContext, tenantIsolation, applyImpersonation, authorize } from './middleware';
+import { auditRouter, analyticsRouter, organizationsRouter, adminRouter, partnersRouter, clientsRouter, impersonationRouter, templatesRouter } from './routes';
 
 const uploadsDir = path.join(process.cwd(), 'uploads');
 if (!fs.existsSync(uploadsDir)) {
@@ -157,6 +157,9 @@ app.use(securityHeaders);
 
 // Phase 1: Apply rate limiting to API routes
 app.use('/api', apiLimiter);
+
+// Metrics collection
+app.use(metricsMiddleware);
 
 async function initAuth() {
   if (!process.env.REPL_ID || !process.env.SESSION_SECRET) {
@@ -336,7 +339,9 @@ app.post('/api/stripe/portal', async (req, res) => {
   }
 });
 
-app.get('/api/bots', async (req, res) => {
+const apiAuthStack = [authenticate, applyImpersonation, loadOrganizationContext, tenantIsolation];
+
+app.get('/api/bots', ...apiAuthStack, async (req, res) => {
   try {
     const userId = req.query.userId as string;
     let allBots;
@@ -352,7 +357,7 @@ app.get('/api/bots', async (req, res) => {
   }
 });
 
-app.get('/api/bots/:id', async (req, res) => {
+app.get('/api/bots/:id', ...apiAuthStack, async (req, res) => {
   try {
     const [bot] = await db.select().from(bots).where(eq(bots.id, req.params.id));
     if (!bot) {
@@ -365,7 +370,7 @@ app.get('/api/bots/:id', async (req, res) => {
   }
 });
 
-app.post('/api/bots', async (req, res) => {
+app.post('/api/bots', ...apiAuthStack, async (req, res) => {
   try {
     const botData = {
       ...req.body,
@@ -380,7 +385,7 @@ app.post('/api/bots', async (req, res) => {
   }
 });
 
-app.put('/api/bots/:id', async (req, res) => {
+app.put('/api/bots/:id', ...apiAuthStack, async (req, res) => {
   try {
     const [updatedBot] = await db
       .update(bots)
@@ -394,7 +399,7 @@ app.put('/api/bots/:id', async (req, res) => {
   }
 });
 
-app.get('/api/leads', async (req, res) => {
+app.get('/api/leads', ...apiAuthStack, async (req, res) => {
   try {
     const userId = req.query.userId as string;
     let allLeads;
@@ -410,7 +415,7 @@ app.get('/api/leads', async (req, res) => {
   }
 });
 
-app.post('/api/leads', async (req, res) => {
+app.post('/api/leads', ...apiAuthStack, async (req, res) => {
   try {
     const leadData = {
       ...req.body,
@@ -425,7 +430,7 @@ app.post('/api/leads', async (req, res) => {
   }
 });
 
-app.get('/api/users', async (req, res) => {
+app.get('/api/users', ...apiAuthStack, async (req, res) => {
   try {
     const allUsers = await db.select().from(users);
     res.json(allUsers);
@@ -435,7 +440,7 @@ app.get('/api/users', async (req, res) => {
   }
 });
 
-app.get('/api/users/:id', async (req, res) => {
+app.get('/api/users/:id', ...apiAuthStack, async (req, res) => {
   try {
     const [user] = await db.select().from(users).where(eq(users.id, req.params.id));
     if (!user) {
@@ -456,7 +461,7 @@ app.get('/api/users/:id', async (req, res) => {
   }
 });
 
-app.post('/api/users', async (req, res) => {
+app.post('/api/users', ...apiAuthStack, async (req, res) => {
   try {
     const userData = {
       ...req.body,
@@ -471,7 +476,7 @@ app.post('/api/users', async (req, res) => {
   }
 });
 
-app.put('/api/users/:id', async (req, res) => {
+app.put('/api/users/:id', ...apiAuthStack, async (req, res) => {
   try {
     const [updatedUser] = await db
       .update(users)
@@ -485,7 +490,7 @@ app.put('/api/users/:id', async (req, res) => {
   }
 });
 
-app.get('/api/users/referrals/:code', async (req, res) => {
+app.get('/api/users/referrals/:code', ...apiAuthStack, async (req, res) => {
   try {
     const referrals = await db
       .select()
@@ -498,7 +503,7 @@ app.get('/api/users/referrals/:code', async (req, res) => {
   }
 });
 
-app.get('/api/resellers/:code/summary', async (req, res) => {
+app.get('/api/resellers/:code/summary', ...apiAuthStack, async (req, res) => {
   try {
     const [reseller] = await db
       .select()
@@ -556,7 +561,7 @@ app.get('/api/resellers/:code/summary', async (req, res) => {
   }
 });
 
-app.get('/api/users/:id/credits', async (req, res) => {
+app.get('/api/users/:id/credits', ...apiAuthStack, async (req, res) => {
   try {
     const credits = await stripeService.getUserCredits(req.params.id);
     res.json(credits);
@@ -566,7 +571,7 @@ app.get('/api/users/:id/credits', async (req, res) => {
   }
 });
 
-app.post('/api/referral/credit', async (req, res) => {
+app.post('/api/referral/credit', ...apiAuthStack, async (req, res) => {
   try {
     const { referredUserId, plan } = req.body;
     if (!referredUserId || !plan) {
@@ -580,7 +585,7 @@ app.post('/api/referral/credit', async (req, res) => {
   }
 });
 
-app.post('/api/users/:id/apply-credits', async (req, res) => {
+app.post('/api/users/:id/apply-credits', ...apiAuthStack, async (req, res) => {
   try {
     const { amount } = req.body;
     if (!amount || amount <= 0) {
@@ -594,7 +599,7 @@ app.post('/api/users/:id/apply-credits', async (req, res) => {
   }
 });
 
-app.get('/api/conversations', async (req, res) => {
+app.get('/api/conversations', ...apiAuthStack, async (req, res) => {
   try {
     const userId = req.query.userId as string;
     let allConversations;
@@ -610,7 +615,7 @@ app.get('/api/conversations', async (req, res) => {
   }
 });
 
-app.get('/api/conversations/:id', async (req, res) => {
+app.get('/api/conversations/:id', ...apiAuthStack, async (req, res) => {
   try {
     const [conversation] = await db.select().from(conversations).where(eq(conversations.id, req.params.id));
     if (!conversation) {
@@ -623,7 +628,7 @@ app.get('/api/conversations/:id', async (req, res) => {
   }
 });
 
-app.post('/api/conversations', async (req, res) => {
+app.post('/api/conversations', ...apiAuthStack, async (req, res) => {
   try {
     const conversationData = {
       ...req.body,
@@ -638,7 +643,7 @@ app.post('/api/conversations', async (req, res) => {
   }
 });
 
-app.put('/api/conversations/:id', async (req, res) => {
+app.put('/api/conversations/:id', ...apiAuthStack, async (req, res) => {
   try {
     const [updatedConversation] = await db
       .update(conversations)
@@ -652,7 +657,7 @@ app.put('/api/conversations/:id', async (req, res) => {
   }
 });
 
-app.post('/api/bots/:botId/documents', upload.single('file'), async (req, res) => {
+app.post('/api/bots/:botId/documents', ...apiAuthStack, upload.single('file'), async (req, res) => {
   try {
     const userId = req.query.userId as string || req.body.userId;
     if (!userId) {
@@ -694,7 +699,7 @@ app.post('/api/bots/:botId/documents', upload.single('file'), async (req, res) =
   }
 });
 
-app.get('/api/bots/:botId/documents', async (req, res) => {
+app.get('/api/bots/:botId/documents', ...apiAuthStack, async (req, res) => {
   try {
     const userId = req.query.userId as string;
     if (!userId) {
@@ -720,7 +725,7 @@ app.get('/api/bots/:botId/documents', async (req, res) => {
   }
 });
 
-app.delete('/api/documents/:docId', async (req, res) => {
+app.delete('/api/documents/:docId', ...apiAuthStack, async (req, res) => {
   try {
     const userId = req.query.userId as string;
     if (!userId) {
@@ -763,6 +768,21 @@ app.use('/api/audit', auditRouter);
 
 // Analytics and insights
 app.use('/api/analytics', analyticsRouter);
+
+// Admin dashboard APIs
+app.use('/api/admin', authenticate, authorize(['ADMIN', 'Admin', 'MasterAdmin']), adminRouter);
+
+// Partner dashboard APIs
+app.use('/api/partners', authenticate, authorize(['RESELLER', 'Admin', 'ADMIN', 'MasterAdmin']), partnersRouter);
+
+// Client dashboard APIs (supports impersonation)
+app.use('/api/clients', authenticate, applyImpersonation, loadOrganizationContext, tenantIsolation, clientsRouter);
+
+// Impersonation sessions
+app.use('/api/impersonation', authenticate, impersonationRouter);
+
+// Bot template marketplace
+app.use('/api/templates', authenticate, applyImpersonation, loadOrganizationContext, tenantIsolation, templatesRouter);
 
 // Serve static files in production
 if (isProduction) {
