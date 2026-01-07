@@ -447,14 +447,7 @@ app.get('/api/users/:id', ...apiAuthStack, async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
     
-    const profile = { ...user };
-    if (profile.email === 'mreardon@wtpnews.org') {
-      (profile as any).role = 'MasterAdmin';
-    } else if (profile.email === 'jadj19@gmail.com') {
-      (profile as any).role = 'Admin';
-    }
-    
-    res.json(profile);
+    res.json(user);
   } catch (error) {
     console.error('Error fetching user:', error);
     res.status(500).json({ error: 'Failed to fetch user' });
