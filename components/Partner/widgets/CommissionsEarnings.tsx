@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { DollarSign, TrendingUp, Award, CreditCard, RefreshCw } from 'lucide-react';
 import { MetricCard } from '../../UI/MetricCard';
 import { DataTable, Column } from '../../UI/DataTable';
+import { dbService } from '../../../services/dbService';
 
 interface CommissionStats {
   totalClients: number;
@@ -39,11 +40,7 @@ export const CommissionsEarnings: React.FC = () => {
 
   const fetchCommissions = async () => {
     try {
-      const response = await fetch('/api/partners/commissions');
-      if (!response.ok) {
-        throw new Error('Failed to fetch commission data');
-      }
-      const data = await response.json();
+      const data = await dbService.getPartnerCommissions();
       setStats(data.stats);
       setTier(data.tier);
       setPayouts(data.payouts);
@@ -177,7 +174,7 @@ export const CommissionsEarnings: React.FC = () => {
                 You're earning <span className="font-bold text-orange-600">{(tier.commission * 100).toFixed(0)}%</span> commission on all client revenue
               </p>
               <p className="text-xs text-slate-600 mt-2">
-                Tier range: {tier.min}-{tier.max === 999999 ? '∞' : tier.max} clients
+                Tier range: {tier.min}-{tier.max === 999999 ? 'inf' : tier.max} clients
               </p>
             </div>
             <Award size={48} className="text-orange-600" />
@@ -192,7 +189,7 @@ export const CommissionsEarnings: React.FC = () => {
             <CreditCard className="text-yellow-600" size={20} />
             <div>
               <p className="text-sm font-medium text-yellow-900">
-                Whitelabel Fee Due: ${(stats.whitelabelFeeAmount / 100).toFixed(2)}
+                Whitelabel Fee Due: ${stats.whitelabelFeeAmount.toFixed(2)}
               </p>
               <p className="text-xs text-yellow-700">
                 This fee will be deducted from your next payout
@@ -233,7 +230,7 @@ export const CommissionsEarnings: React.FC = () => {
             {stats.whitelabelFeeDue && (
               <div className="flex justify-between items-center">
                 <span className="text-sm text-slate-600">Whitelabel Fee</span>
-                <span className="font-medium text-red-700">-${(stats.whitelabelFeeAmount / 100).toFixed(2)}</span>
+                <span className="font-medium text-red-700">-${stats.whitelabelFeeAmount.toFixed(2)}</span>
               </div>
             )}
             <div className="border-t border-slate-300 pt-3 flex justify-between items-center">

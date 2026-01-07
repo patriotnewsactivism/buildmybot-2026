@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Activity, Users, Database, AlertTriangle, TrendingUp, Server } from 'lucide-react';
 import { MetricCard } from '../../UI/MetricCard';
+import { dbService } from '../../../services/dbService';
 
 interface SystemMetrics {
   apiCallsPerMin: number;
@@ -32,11 +33,7 @@ export const LiveMetrics: React.FC = () => {
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
-        const response = await fetch('/api/admin/metrics');
-        if (!response.ok) {
-          throw new Error('Failed to fetch metrics');
-        }
-        const data = await response.json();
+        const data = await dbService.getAdminMetrics();
         setMetrics(data);
         setLoading(false);
         setError(null);

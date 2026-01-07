@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
-import { Users, DollarSign, FileText, AlertTriangle } from 'lucide-react';
+import { Users, DollarSign, FileText, AlertTriangle, BarChart3, ListChecks } from 'lucide-react';
 import { User } from '../../types';
 import { ClientManagement } from './widgets/ClientManagement';
 import { CommissionsEarnings } from './widgets/CommissionsEarnings';
 import { MarketingMaterials } from './widgets/MarketingMaterials';
+import { PartnerAnalytics } from './widgets/PartnerAnalytics';
+import { CollaborationHub } from './widgets/CollaborationHub';
 
-type PartnerTab = 'clients' | 'commissions' | 'marketing';
+type PartnerTab = 'clients' | 'commissions' | 'marketing' | 'analytics' | 'collaboration';
 
 interface PartnerDashboardV2Props {
   user: User;
+  onImpersonate: (userId: string, reason: string) => void;
 }
 
-export const PartnerDashboardV2: React.FC<PartnerDashboardV2Props> = ({ user }) => {
+export const PartnerDashboardV2: React.FC<PartnerDashboardV2Props> = ({ user, onImpersonate }) => {
   const [activeTab, setActiveTab] = useState<PartnerTab>('clients');
 
   // Show pending approval screen if status is Pending
@@ -40,6 +43,8 @@ export const PartnerDashboardV2: React.FC<PartnerDashboardV2Props> = ({ user }) 
     { id: 'clients' as PartnerTab, label: 'Client Management', icon: Users },
     { id: 'commissions' as PartnerTab, label: 'Commissions & Earnings', icon: DollarSign },
     { id: 'marketing' as PartnerTab, label: 'Marketing Materials', icon: FileText },
+    { id: 'analytics' as PartnerTab, label: 'Performance Analytics', icon: BarChart3 },
+    { id: 'collaboration' as PartnerTab, label: 'Collaboration', icon: ListChecks },
   ];
 
   return (
@@ -69,9 +74,11 @@ export const PartnerDashboardV2: React.FC<PartnerDashboardV2Props> = ({ user }) 
 
       {/* Tab Content */}
       <div className="animate-fade-in">
-        {activeTab === 'clients' && <ClientManagement />}
+        {activeTab === 'clients' && <ClientManagement onImpersonate={onImpersonate} />}
         {activeTab === 'commissions' && <CommissionsEarnings />}
         {activeTab === 'marketing' && <MarketingMaterials />}
+        {activeTab === 'analytics' && <PartnerAnalytics />}
+        {activeTab === 'collaboration' && <CollaborationHub />}
       </div>
     </div>
   );

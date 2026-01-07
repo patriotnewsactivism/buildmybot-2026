@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Users, TrendingUp, Award, DollarSign, RefreshCw } from 'lucide-react';
 import { DataTable, Column } from '../../UI/DataTable';
 import { MetricCard } from '../../UI/MetricCard';
+import { dbService } from '../../../services/dbService';
 
 interface PartnerMetric {
   partner: {
@@ -34,17 +35,10 @@ export const PartnerOversight: React.FC = () => {
 
   const fetchPartners = async () => {
     try {
-      const [partnersRes, leaderboardRes] = await Promise.all([
-        fetch('/api/admin/partners'),
-        fetch('/api/admin/partners/leaderboard'),
+      const [partnersData, leaderboardData] = await Promise.all([
+        dbService.getAdminPartners(),
+        dbService.getAdminPartnerLeaderboard(),
       ]);
-
-      if (!partnersRes.ok || !leaderboardRes.ok) {
-        throw new Error('Failed to fetch partner data');
-      }
-
-      const partnersData = await partnersRes.json();
-      const leaderboardData = await leaderboardRes.json();
 
       setPartners(partnersData);
       setLeaderboard(leaderboardData);
@@ -65,15 +59,7 @@ export const PartnerOversight: React.FC = () => {
     if (!confirm('Approve this partner?')) return;
 
     try {
-      const response = await fetch(`/api/admin/partners/${partnerId}/approve`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to approve partner');
-      }
-
+      await dbService.approvePartner(partnerId);
       alert('Partner approved successfully');
       fetchPartners();
     } catch (err) {

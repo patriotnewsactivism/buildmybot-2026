@@ -35,8 +35,11 @@ export const UserManagement: React.FC<UserManagementProps> = ({ onImpersonate })
   const [filterStatus, setFilterStatus] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [impersonateUserId, setImpersonateUserId] = useState<string | null>(null);
-  const [impersonationReason, setImpersonationReason] = useState<string>('');
-  const [showImpersonateModal, setShowImpersonateModal] = useState(false);
+  const [impersonationReason, setImpersonationReason] = useState<string>('');   
+  const [showImpersonateModal, setShowImpersonateModal] = useState(false);      
+  const [usageUser, setUsageUser] = useState<User | null>(null);
+  const [usageData, setUsageData] = useState<UserUsage | null>(null);
+  const [showUsageModal, setShowUsageModal] = useState(false);
 
   const fetchUsers = async () => {
     try {
@@ -116,6 +119,34 @@ export const UserManagement: React.FC<UserManagementProps> = ({ onImpersonate })
     } catch (err) {
       console.error('Error exporting user:', err);
       alert('Failed to export user data');
+    }
+  };
+
+  const handleViewUsage = async (userId: string) => {
+    try {
+      const usage = await dbService.getUserUsage(userId);
+      const userRecord = users.find((candidate) => candidate.id === userId) || null;
+      setUsageUser(userRecord);
+      setUsageData(usage);
+      setShowUsageModal(true);
+    } catch (err) {
+      console.error('Error fetching usage:', err);
+      alert('Failed to fetch user usage');
+    }
+  };
+
+  const handleMergeUser = async (sourceUserId: string) => {
+    const targetUserId = prompt('Enter target user ID to merge into:');
+    if (!targetUserId) {
+      return;
+    }
+    try {
+      await dbService.mergeUsers(sourceUserId, targetUserId);
+      alert('User merge completed');
+      fetchUsers();
+    } catch (err) {
+      console.error('Error merging users:', err);
+      alert('Failed to merge users');
     }
   };
 
@@ -223,11 +254,25 @@ export const UserManagement: React.FC<UserManagementProps> = ({ onImpersonate })
             <UserCheck size={16} />
           </button>
           <button
+            onClick={() => handleViewUsage(user.id)}
+            className="text-slate-600 hover:text-slate-800 text-xs"
+            title="View usage"
+          >
+            <User size={16} />
+          </button>
+          <button
             onClick={() => handleExportUser(user.id)}
             className="text-slate-600 hover:text-slate-800 text-xs"
             title="Export user data"
           >
             <Download size={16} />
+          </button>
+          <button
+            onClick={() => handleMergeUser(user.id)}
+            className="text-slate-600 hover:text-slate-800 text-xs"
+            title="Merge account"
+          >
+            <Users size={16} />
           </button>
         </div>
       ),
@@ -379,6 +424,48 @@ export const UserManagement: React.FC<UserManagementProps> = ({ onImpersonate })
                 className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
               >
                 Start Impersonation
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showUsageModal && usageData && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <h3 className="text-xl font-bold text-slate-900 mb-2">Usage Snapshot</h3>
+            <p className="text-sm text-slate-600 mb-4">
+              {usageUser?.name || 'User'} activity summary
+            </p>
+            <div className="space-y-2 text-sm text-slate-700">
+              <div className="flex justify-between">
+                <span>Bots</span>
+                <span className="font-semibold">{usageData.botCount}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Leads</span>
+                <span className="font-semibold">{usageData.leadCount}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Conversations</span>
+                <span className="font-semibold">{usageData.conversationCount}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Last Login</span>
+                <span className="font-semibold">
+                  {usageData.lastLoginAt ? new Date(usageData.lastLoginAt).toLocaleString() : 'N/A'}
+                </span>
+              </div>
+            </div>
+            <div className="flex justify-end mt-6">
+              <button
+                onClick={() => {
+                  setShowUsageModal(false);
+                  setUsageData(null);
+                  setUsageUser(null);
+                }}
+                className="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300"
+              >
+                Close
               </button>
             </div>
           </div>

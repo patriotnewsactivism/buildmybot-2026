@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { DollarSign, TrendingUp, Users, AlertTriangle, CreditCard, RefreshCw } from 'lucide-react';
 import { MetricCard } from '../../UI/MetricCard';
 import { DataTable, Column } from '../../UI/DataTable';
+import { dbService } from '../../../services/dbService';
 
 interface FinancialOverview {
   mrrCents: number;
@@ -51,24 +52,12 @@ export const FinancialDashboard: React.FC = () => {
 
   const fetchFinancialData = async () => {
     try {
-      const [overviewRes, invoicesRes, refundsRes, payoutsRes, stripeHealthRes] = await Promise.all([
-        fetch('/api/admin/financial/overview'),
-        fetch('/api/admin/financial/invoices'),
-        fetch('/api/admin/financial/refunds'),
-        fetch('/api/admin/payouts'),
-        fetch('/api/admin/financial/stripe-health'),
-      ]);
-
-      if (!overviewRes.ok || !invoicesRes.ok || !refundsRes.ok || !payoutsRes.ok || !stripeHealthRes.ok) {
-        throw new Error('Failed to fetch financial data');
-      }
-
       const [overviewData, invoicesData, refundsData, payoutsData, stripeHealthData] = await Promise.all([
-        overviewRes.json(),
-        invoicesRes.json(),
-        refundsRes.json(),
-        payoutsRes.json(),
-        stripeHealthRes.json(),
+        dbService.getAdminFinancialOverview(),
+        dbService.getAdminInvoices(),
+        dbService.getAdminRefunds(),
+        dbService.getAdminPayouts(),
+        dbService.getAdminStripeHealth(),
       ]);
 
       setOverview(overviewData);

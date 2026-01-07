@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Users, Bot, MessageSquare, RefreshCw, ExternalLink } from 'lucide-react';
 import { DataTable, Column } from '../../UI/DataTable';
 import { MetricCard } from '../../UI/MetricCard';
+import { dbService } from '../../../services/dbService';
 
 interface Client {
   id: string;
@@ -18,18 +19,18 @@ interface Client {
   canImpersonate: boolean;
 }
 
-export const ClientManagement: React.FC = () => {
+interface ClientManagementProps {
+  onImpersonate: (userId: string, reason: string) => void;
+}
+
+export const ClientManagement: React.FC<ClientManagementProps> = ({ onImpersonate }) => {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchClients = async () => {
     try {
-      const response = await fetch('/api/partners/clients');
-      if (!response.ok) {
-        throw new Error('Failed to fetch clients');
-      }
-      const data = await response.json();
+      const data = await dbService.getPartnerClients();
       setClients(data);
       setLoading(false);
       setError(null);
@@ -55,25 +56,7 @@ export const ClientManagement: React.FC = () => {
     if (!reason) return;
 
     try {
-      const response = await fetch(`/api/admin/users/${clientId}/impersonate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          reason,
-          durationMinutes: 30,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to start impersonation');
-      }
-
-      const { token, expiresAt } = await response.json();
-      sessionStorage.setItem('impersonation-token', token);
-      sessionStorage.setItem('impersonation-expires', expiresAt);
-
-      alert(`Impersonation started. Session expires at ${new Date(expiresAt).toLocaleString()}`);
-      window.location.reload();
+      await onImpersonate(clientId, reason);
     } catch (err) {
       console.error('Error starting impersonation:', err);
       alert('Failed to start impersonation session');
