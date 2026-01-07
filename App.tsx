@@ -176,6 +176,7 @@ function App() {
   const totalLeads = leads.length;
   const estSavings = totalConversations * 5; 
   const avgResponseTime = "0.8s";
+  const activeUser = impersonatedUser || user;
 
   const handleAdminLogin = () => {
       openAuth('login');
@@ -188,6 +189,9 @@ function App() {
     setBots([]);
     setLeads([]);
     setChatLogs([]);
+    setImpersonation(null);
+    setImpersonatedUser(null);
+    dbService.setAuthContext({ userId: undefined, impersonationToken: undefined });
     setNotification("Logged out successfully");
     setTimeout(() => setNotification(null), 3000);
   };
@@ -205,6 +209,7 @@ function App() {
 
       setUser(newUser);
       setIsLoggedIn(true);
+      dbService.setAuthContext({ userId: newUser.id });
       setAuthModalOpen(false);
 
       setNotification("Logged in successfully");
@@ -228,6 +233,7 @@ function App() {
     if (savedPartner) {
       setUser(savedPartner as any);
       setIsLoggedIn(true);
+      dbService.setAuthContext({ userId: (savedPartner as any).id });
       setShowPartnerSignup(false);
       setShowPartnerPage(false);
       setCurrentView('dashboard');
@@ -306,6 +312,39 @@ function App() {
     setAuthModalOpen(true);
   };
 
+  const handleStartImpersonation = async (targetUserId: string, reason: string) => {
+    try {
+      const session = await dbService.startImpersonation(targetUserId, reason);
+      setImpersonation({
+        token: session.token,
+        targetUserId,
+        expiresAt: session.expiresAt,
+      });
+      const target = await dbService.getUserProfile(targetUserId);
+      setImpersonatedUser(target);
+      setCurrentView('dashboard');
+    } catch (error) {
+      console.error('Failed to start impersonation:', error);
+      setNotification('Impersonation failed. Please try again.');
+      setTimeout(() => setNotification(null), 3000);
+    }
+  };
+
+  const handleEndImpersonation = async () => {
+    if (!impersonation?.token) {
+      return;
+    }
+    try {
+      await dbService.endImpersonation(impersonation.token);
+      setImpersonation(null);
+      setImpersonatedUser(null);
+    } catch (error) {
+      console.error('Failed to end impersonation:', error);
+      setNotification('Failed to end impersonation.');
+      setTimeout(() => setNotification(null), 3000);
+    }
+  };
+
   if (isBooting) {
       return (
         <div className="h-screen w-full bg-slate-900 flex items-center justify-center">
@@ -376,6 +415,22 @@ function App() {
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 md:p-8">
+          {impersonation && impersonatedUser && (
+            <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-amber-900">Impersonation Active</p>
+                <p className="text-xs text-amber-700">
+                  Acting as {impersonatedUser.name} ({impersonatedUser.email}) until {new Date(impersonation.expiresAt).toLocaleTimeString()}
+                </p>
+              </div>
+              <button
+                onClick={handleEndImpersonation}
+                className="px-4 py-2 text-xs font-bold bg-amber-900 text-white rounded-lg hover:bg-amber-950"
+              >
+                Exit Impersonation
+              </button>
+            </div>
+          )}
           {notification && (
               <div className="fixed top-6 right-6 z-50 bg-slate-900 text-white px-6 py-3 rounded-lg shadow-xl animate-bounce-slow flex items-center gap-3">
                  <Bell size={18} className="text-blue-400" /> {notification}
@@ -384,14 +439,18 @@ function App() {
 
           {currentView === 'dashboard' && <ClientOverview />}
 
-          {currentView === 'bots' && <BotBuilder 
-              bots={bots} 
-              onSave={handleSaveBot} 
-              customDomain={user.customDomain} 
-              onLeadDetected={handleLeadDetected} 
-          />}
+          {currentView === 'bots' && (
+            <BotBuilder
+              bots={bots}
+              onSave={handleSaveBot}
+              customDomain={activeUser?.customDomain}
+              onLeadDetected={handleLeadDetected}
+            />
+          )}
           
-          {currentView === 'reseller' && <PartnerDashboardV2 user={user} />}
+          {currentView === 'reseller' && (
+            <PartnerDashboardV2 user={user} onImpersonate={handleStartImpersonation} />
+          )}
 
           {currentView === 'marketing' && <MarketingTools />}
 
@@ -401,15 +460,39 @@ function App() {
 
           {currentView === 'marketplace' && <EnhancedMarketplace onInstall={handleInstallTemplate} />}
 
-          {currentView === 'phone' && <PhoneAgent user={user} onUpdate={(u) => { setUser(u); dbService.saveUserProfile(u); }} />}
+          {currentView === 'phone' && activeUser && (
+            <PhoneAgent
+              user={activeUser}
+              onUpdate={(updated) => {
+                if (impersonatedUser) {
+                  setImpersonatedUser(updated);
+                } else {
+                  setUser(updated);
+                }
+                dbService.saveUserProfile(updated);
+              }}
+            />
+          )}
 
           {currentView === 'chat-logs' && <ChatLogs conversations={chatLogs} />}
 
           {currentView === 'billing' && <Billing user={user} />}
 
-          {currentView === 'admin' && <AdminDashboardV2 />}
+          {currentView === 'admin' && <AdminDashboardV2 onImpersonate={handleStartImpersonation} />}
 
-          {currentView === 'settings' && <Settings user={user} onUpdateUser={(u) => { setUser(u); dbService.saveUserProfile(u); }} />}
+          {currentView === 'settings' && activeUser && (
+            <Settings
+              user={activeUser}
+              onUpdateUser={(updated) => {
+                if (impersonatedUser) {
+                  setImpersonatedUser(updated);
+                } else {
+                  setUser(updated);
+                }
+                dbService.saveUserProfile(updated);
+              }}
+            />
+          )}
           
         </div>
       </main>
