@@ -189,7 +189,11 @@ export const ClientOverview: React.FC<ClientOverviewProps> = ({ user, onCreateBo
           Retry
         </button>
       </div>
+    );
+  }
 
+  return (
+    <div>
       {showOnboarding && (
         <div className="mb-8 bg-white border border-slate-200 rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
@@ -258,11 +262,7 @@ export const ClientOverview: React.FC<ClientOverviewProps> = ({ user, onCreateBo
           </div>
         </div>
       )}
-    );
-  }
 
-  return (
-    <div>
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-2xl font-bold text-slate-900">Dashboard Overview</h2>
@@ -368,7 +368,7 @@ export const ClientOverview: React.FC<ClientOverviewProps> = ({ user, onCreateBo
               onClick={handleCreateBot}
               className="text-sm text-orange-600 hover:text-orange-700"
             >
-              View all ->
+              View all {'>'}
             </button>
           )}
         </div>
@@ -389,7 +389,7 @@ export const ClientOverview: React.FC<ClientOverviewProps> = ({ user, onCreateBo
               onClick={() => onOpenLeads?.()}
               className="text-sm text-orange-600 hover:text-orange-700"
             >
-              View all ->
+              View all {'>'}
             </button>
           )}
         </div>

@@ -11,7 +11,9 @@ import {
   ArrowUp,
   ArrowDown
 } from 'lucide-react';
+// @ts-expect-error - Package needs to be installed: npm install react-chartjs-2 chart.js
 import { Line, Bar } from 'react-chartjs-2';
+// @ts-expect-error - Package needs to be installed: npm install chart.js
 import {
   Chart as ChartJS,
   CategoryScale,

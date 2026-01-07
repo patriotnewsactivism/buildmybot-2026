@@ -51,8 +51,10 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children, 
             // Load impersonated user data
             dbService.getUser(session.targetUserId)
               .then((targetUser) => {
-                setImpersonatedUser(targetUser);
-                setOrganizationId(targetUser.organizationId || null);
+                if (targetUser) {
+                  setImpersonatedUser(targetUser);
+                  setOrganizationId(targetUser.organizationId || null);
+                }
               })
               .catch(console.error);
           }
@@ -84,8 +86,10 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children, 
     if (user) {
       try {
         const updatedUser = await dbService.getUser(user.id);
-        setUser(updatedUser);
-        setOrganizationId(updatedUser.organizationId || null);
+        if (updatedUser) {
+          setUser(updatedUser);
+          setOrganizationId(updatedUser.organizationId || null);
+        }
       } catch (error) {
         console.error('Failed to refresh context:', error);
       }
