@@ -70,18 +70,10 @@ export const UserManagement: React.FC<UserManagementProps> = ({ onImpersonate })
     if (!confirm(confirmMessage)) return;
 
     try {
-      const response = await fetch('/api/admin/users/bulk', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userIds: Array.from(selectedUsers),
-          action,
-        }),
+      await dbService.bulkUpdateUsers({
+        userIds: Array.from(selectedUsers),
+        action,
       });
-
-      if (!response.ok) {
-        throw new Error(`Failed to ${action} users`);
-      }
 
       alert(`Successfully ${action}ed ${selectedUsers.size} user(s)`);
       setSelectedUsers(new Set());
@@ -99,32 +91,10 @@ export const UserManagement: React.FC<UserManagementProps> = ({ onImpersonate })
     }
 
     try {
-      const response = await fetch(`/api/admin/users/${impersonateUserId}/impersonate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          reason: impersonationReason,
-          durationMinutes: 30,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to start impersonation');
-      }
-
-      const { token, expiresAt } = await response.json();
-
-      // Store impersonation token in sessionStorage
-      sessionStorage.setItem('impersonation-token', token);
-      sessionStorage.setItem('impersonation-expires', expiresAt);
-
-      alert(`Impersonation started. Session expires at ${new Date(expiresAt).toLocaleString()}`);
+      await onImpersonate(impersonateUserId, impersonationReason.trim());
       setShowImpersonateModal(false);
       setImpersonationReason('');
       setImpersonateUserId(null);
-
-      // Reload the page to apply impersonation
-      window.location.reload();
     } catch (err) {
       console.error('Error starting impersonation:', err);
       alert('Failed to start impersonation session');
@@ -133,12 +103,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ onImpersonate })
 
   const handleExportUser = async (userId: string) => {
     try {
-      const response = await fetch(`/api/admin/users/${userId}/export`);
-      if (!response.ok) {
-        throw new Error('Failed to export user data');
-      }
-
-      const data = await response.json();
+      const data = await dbService.exportUserData(userId);
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
