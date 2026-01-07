@@ -5,6 +5,12 @@ import { DataTable, Column } from '../UI/DataTable';
 import { dbService } from '../../services/dbService';
 import { User } from '../../types';
 
+interface ClientOverviewProps {
+  user?: User | null;
+  onCreateBot?: () => void;
+  onOpenLeads?: () => void;
+}
+
 interface ClientStats {
   botCount: number;
   leadCount: number;
@@ -30,20 +36,21 @@ interface LeadData {
   createdAt: string;
 }
 
-export const ClientOverview: React.FC = () => {
+export const ClientOverview: React.FC<ClientOverviewProps> = ({ user, onCreateBot, onOpenLeads }) => {
   const [stats, setStats] = useState<ClientStats | null>(null);
   const [recentBots, setRecentBots] = useState<BotData[]>([]);
   const [recentLeads, setRecentLeads] = useState<LeadData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(
+    Boolean(user && !user.preferences?.onboardingComplete)
+  );
+  const [onboardingStep, setOnboardingStep] = useState(1);
+  const [onboardingData, setOnboardingData] = useState<{ industry?: string; goal?: string }>({});
 
   const fetchOverview = async () => {
     try {
-      const response = await fetch('/api/clients/overview');
-      if (!response.ok) {
-        throw new Error('Failed to fetch overview data');
-      }
-      const data = await response.json();
+      const data = await dbService.getClientOverview();
       setStats(data.stats);
       setRecentBots(data.recentBots);
       setRecentLeads(data.recentLeads);
