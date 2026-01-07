@@ -20,7 +20,8 @@
     "db:seed": "tsx server/seeds/seedTemplates.ts",
     "migrate:schema": "tsx scripts/runMigrations.ts",
     "migrate:data": "tsx scripts/runDataMigration.ts",
-    "migrate:all": "npm run migrate:schema && npm run migrate:data"
+    "migrate:all": "npm run migrate:schema && npm run migrate:data",
+    "set-admin-permissions": "tsx scripts/setAdminPermissions.ts"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.1.18",
