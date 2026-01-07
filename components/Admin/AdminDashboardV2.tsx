@@ -4,9 +4,6 @@ import { LiveMetrics } from './widgets/LiveMetrics';
 import { UserManagement } from './widgets/UserManagement';
 import { PartnerOversight } from './widgets/PartnerOversight';
 import { FinancialDashboard } from './widgets/FinancialDashboard';
-import { SystemAnalytics } from './widgets/SystemAnalytics';
-import { SupportQueue } from './widgets/SupportQueue';
-import { SystemSettings } from './widgets/SystemSettings';
 
 type AdminTab = 'metrics' | 'users' | 'partners' | 'financial' | 'analytics' | 'support' | 'system';
 
@@ -58,9 +55,30 @@ export const AdminDashboardV2: React.FC<AdminDashboardV2Props> = ({ onImpersonat
         {activeTab === 'users' && <UserManagement onImpersonate={onImpersonate} />}
         {activeTab === 'partners' && <PartnerOversight />}
         {activeTab === 'financial' && <FinancialDashboard />}
-        {activeTab === 'analytics' && <SystemAnalytics />}
-        {activeTab === 'support' && <SupportQueue />}
-        {activeTab === 'system' && <SystemSettings />}
+        {activeTab === 'analytics' && (
+          <div className="bg-white border border-slate-200 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-slate-900 mb-2">System Analytics</h3>
+            <p className="text-sm text-slate-600">
+              Analytics insights are being prepared. Check back shortly for trend reports and traffic breakdowns.
+            </p>
+          </div>
+        )}
+        {activeTab === 'support' && (
+          <div className="bg-white border border-slate-200 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-slate-900 mb-2">Support Queue</h3>
+            <p className="text-sm text-slate-600">
+              Support ticket triage is loading. You can manage escalations and responses here once the queue syncs.
+            </p>
+          </div>
+        )}
+        {activeTab === 'system' && (
+          <div className="bg-white border border-slate-200 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-slate-900 mb-2">System Settings</h3>
+            <p className="text-sm text-slate-600">
+              System configuration tools are warming up. Use this area to manage flags, API keys, and maintenance mode.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

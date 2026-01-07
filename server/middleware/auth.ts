@@ -17,7 +17,7 @@ export interface AuthRequest extends Request {
   };
   organization?: any;
   permissions?: string[];
-  session?: any;
+  session: any;
 }
 
 // ========================================

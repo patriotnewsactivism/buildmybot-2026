@@ -4,8 +4,6 @@ import { User } from '../../types';
 import { ClientManagement } from './widgets/ClientManagement';
 import { CommissionsEarnings } from './widgets/CommissionsEarnings';
 import { MarketingMaterials } from './widgets/MarketingMaterials';
-import { PartnerAnalytics } from './widgets/PartnerAnalytics';
-import { CollaborationHub } from './widgets/CollaborationHub';
 
 type PartnerTab = 'clients' | 'commissions' | 'marketing' | 'analytics' | 'collaboration';
 
@@ -77,8 +75,22 @@ export const PartnerDashboardV2: React.FC<PartnerDashboardV2Props> = ({ user, on
         {activeTab === 'clients' && <ClientManagement onImpersonate={onImpersonate} />}
         {activeTab === 'commissions' && <CommissionsEarnings />}
         {activeTab === 'marketing' && <MarketingMaterials />}
-        {activeTab === 'analytics' && <PartnerAnalytics />}
-        {activeTab === 'collaboration' && <CollaborationHub />}
+        {activeTab === 'analytics' && (
+          <div className="bg-white border border-slate-200 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-slate-900 mb-2">Performance Analytics</h3>
+            <p className="text-sm text-slate-600">
+              Analytics reporting is syncing. Review referral funnel progress and retention summaries here once available.
+            </p>
+          </div>
+        )}
+        {activeTab === 'collaboration' && (
+          <div className="bg-white border border-slate-200 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-slate-900 mb-2">Collaboration Hub</h3>
+            <p className="text-sm text-slate-600">
+              Collaboration tools are on the way. Use this space to coordinate joint campaigns and shared tasks.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
