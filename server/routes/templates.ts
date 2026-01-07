@@ -30,10 +30,15 @@ router.get('/', async (req, res) => {
       conditions.push(eq(botTemplates.isPublic, true));
     }
 
-    const baseQuery = conditions.length
-      ? db.select().from(botTemplates).where(and(...conditions))
-      : db.select().from(botTemplates);
-    const templates = await (featured ? baseQuery.orderBy(desc(botTemplates.rating)) : baseQuery);
+    let baseQuery = db.select().from(botTemplates);
+
+    if (conditions.length) {
+      baseQuery = baseQuery.where(and(...conditions)) as typeof baseQuery;
+    }
+
+    const templates = featured
+      ? await baseQuery.orderBy(desc(botTemplates.rating))
+      : await baseQuery;
     res.json(templates);
   } catch (error) {
     console.error('Template list error:', error);
