@@ -1,6 +1,7 @@
 import { db } from '../db';
 import { botTemplates } from '../../shared/schema';
 import { v4 as uuidv4 } from 'uuid';
+import { fileURLToPath } from 'url';
 
 const INITIAL_TEMPLATES = [
   {
@@ -323,7 +324,8 @@ export async function seedTemplates() {
 }
 
 // Run if called directly
-if (require.main === module) {
+const isMainModule = process.argv[1] === fileURLToPath(import.meta.url);
+if (isMainModule) {
   seedTemplates()
     .then(() => {
       console.log('✅ Seeding complete!');

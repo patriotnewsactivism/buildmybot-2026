@@ -27,25 +27,3 @@ export async function getStripeSecretKey() {
   const { secretKey } = getStripeKeys();
   return secretKey;
 }
-
-let stripeSync: any = null;
-
-export async function getStripeSync() {
-  if (!stripeSync) {
-    const { StripeSync } = await import('stripe-replit-sync');
-    const secretKey = await getStripeSecretKey();
-    const databaseUrl = process.env.DATABASE_URL;
-    if (!databaseUrl) {
-      throw new Error('DATABASE_URL must be set for Stripe sync');
-    }
-
-    stripeSync = new StripeSync({
-      poolConfig: {
-        connectionString: databaseUrl,
-        max: 2,
-      },
-      stripeSecretKey: secretKey,
-    });
-  }
-  return stripeSync;
-}
