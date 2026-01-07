@@ -544,6 +544,15 @@ export const dbService = {
     return response.json();
   },
 
+  updateEmailTemplate: async (payload: { id?: string; name: string; subject: string; body: string; scope?: string }) => {
+    const response = await request('/admin/system/email-templates', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) throw new Error('Failed to update email template');
+    return response.json();
+  },
+
   rotateApiKey: async (name: string) => {
     const response = await request('/admin/system/api-keys/rotate', {
       method: 'POST',
