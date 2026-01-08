@@ -32,8 +32,8 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
     );
   }
 
-  // Check organization membership
-  if (requireOrganization && !organizationId) {
+  // Check organization membership (exempt MASTER_ADMIN users)
+  if (requireOrganization && !organizationId && user.role !== UserRole.MASTER_ADMIN) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
