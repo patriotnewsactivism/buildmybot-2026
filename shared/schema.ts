@@ -2,6 +2,7 @@ import { pgTable, text, varchar, integer, boolean, timestamp, json, real } from 
 import { relations } from 'drizzle-orm';
 
 export * from './models/auth';
+export * from './billing-schema';
 
 // ========================================
 // ORGANIZATIONS & MULTI-TENANCY

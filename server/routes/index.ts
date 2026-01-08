@@ -13,6 +13,7 @@ import impersonationRouter from './impersonation';
 import templatesRouter from './templates';
 import channelsRouter from './channels';
 import knowledgeRouter from './knowledge';
+import revenueRouter from './revenue';
 
 export {
   organizationsRouter,
@@ -25,4 +26,5 @@ export {
   templatesRouter,
   channelsRouter,
   knowledgeRouter,
+  revenueRouter,
 };

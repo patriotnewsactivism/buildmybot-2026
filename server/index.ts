@@ -26,7 +26,7 @@ import { stripeService } from './stripeService';
 import { PLANS, RESELLER_TIERS, WHITELABEL_FEE } from '../constants';
 import multer from 'multer';
 import { securityHeaders, apiLimiter, metricsMiddleware, authenticate, loadOrganizationContext, tenantIsolation, applyImpersonation, authorize } from './middleware';
-import { auditRouter, analyticsRouter, organizationsRouter, adminRouter, partnersRouter, clientsRouter, impersonationRouter, templatesRouter, channelsRouter, knowledgeRouter } from './routes';
+import { auditRouter, analyticsRouter, organizationsRouter, adminRouter, partnersRouter, clientsRouter, impersonationRouter, templatesRouter, channelsRouter, knowledgeRouter, revenueRouter } from './routes';
 
 const uploadsDir = path.join(process.cwd(), 'uploads');
 if (!fs.existsSync(uploadsDir)) {
@@ -724,6 +724,9 @@ app.use('/api/channels', channelsRouter);
 
 // Knowledge base management
 app.use('/api/knowledge', knowledgeRouter);
+
+// Revenue and billing features
+app.use('/api/revenue', revenueRouter);
 
 // Serve static files in production
 if (isProduction) {
