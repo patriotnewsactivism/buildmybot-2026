@@ -330,6 +330,37 @@ export const botDocuments = pgTable('bot_documents', {
 });
 
 // ========================================
+// KNOWLEDGE BASE
+// ========================================
+
+export const knowledgeSources = pgTable('knowledge_sources', {
+  id: text('id').primaryKey(),
+  botId: text('bot_id').references(() => bots.id, { onDelete: 'cascade' }),
+  organizationId: text('organization_id').references(() => organizations.id, { onDelete: 'cascade' }),
+  sourceType: varchar('source_type', { length: 50 }).notNull(), // 'url', 'document', 'manual'
+  sourceName: varchar('source_name', { length: 255 }).notNull(), // URL or filename
+  sourceUrl: text('source_url'),
+  status: varchar('status', { length: 50 }).default('pending'), // 'pending', 'processing', 'completed', 'failed'
+  errorMessage: text('error_message'),
+  pagesCrawled: integer('pages_crawled').default(0),
+  lastCrawledAt: timestamp('last_crawled_at'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const knowledgeChunks = pgTable('knowledge_chunks', {
+  id: text('id').primaryKey(),
+  sourceId: text('source_id').references(() => knowledgeSources.id, { onDelete: 'cascade' }),
+  botId: text('bot_id').references(() => bots.id, { onDelete: 'cascade' }),
+  content: text('content').notNull(),
+  contentHash: varchar('content_hash', { length: 255 }),
+  metadata: json('metadata').default({}),
+  chunkIndex: integer('chunk_index'),
+  tokenCount: integer('token_count'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+// ========================================
 // RELATIONS
 // ========================================
 
@@ -499,11 +530,36 @@ export const botsRelations = relations(bots, ({ one, many }) => ({
   conversations: many(conversations),
   documents: many(botDocuments),
   analyticsEvents: many(analyticsEvents),
+  knowledgeSources: many(knowledgeSources),
+  knowledgeChunks: many(knowledgeChunks),
 }));
 
 export const botDocumentsRelations = relations(botDocuments, ({ one }) => ({
   bot: one(bots, {
     fields: [botDocuments.botId],
+    references: [bots.id],
+  }),
+}));
+
+export const knowledgeSourcesRelations = relations(knowledgeSources, ({ one, many }) => ({
+  bot: one(bots, {
+    fields: [knowledgeSources.botId],
+    references: [bots.id],
+  }),
+  organization: one(organizations, {
+    fields: [knowledgeSources.organizationId],
+    references: [organizations.id],
+  }),
+  chunks: many(knowledgeChunks),
+}));
+
+export const knowledgeChunksRelations = relations(knowledgeChunks, ({ one }) => ({
+  source: one(knowledgeSources, {
+    fields: [knowledgeChunks.sourceId],
+    references: [knowledgeSources.id],
+  }),
+  bot: one(bots, {
+    fields: [knowledgeChunks.botId],
     references: [bots.id],
   }),
 }));
@@ -585,3 +641,8 @@ export type Conversation = typeof conversations.$inferSelect;
 export type InsertConversation = typeof conversations.$inferInsert;
 export type BotDocument = typeof botDocuments.$inferSelect;
 export type InsertBotDocument = typeof botDocuments.$inferInsert;
+
+export type KnowledgeSource = typeof knowledgeSources.$inferSelect;
+export type InsertKnowledgeSource = typeof knowledgeSources.$inferInsert;
+export type KnowledgeChunk = typeof knowledgeChunks.$inferSelect;
+export type InsertKnowledgeChunk = typeof knowledgeChunks.$inferInsert;
