@@ -590,7 +590,13 @@ function App() {
 
             {currentView === 'website' && <WebsiteBuilder />}
 
-            {currentView === 'marketplace' && <EnhancedMarketplace onInstall={handleInstallTemplate} />}
+            {currentView === 'marketplace' && (
+              <TemplateMarketplace 
+                onInstall={handleInstallTemplate as any} 
+                userId={activeUser?.id} 
+                organizationId={activeUser?.id} 
+              />
+            )}
 
             {currentView === 'phone' && activeUser && (
               <PhoneAgent
