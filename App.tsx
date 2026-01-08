@@ -476,7 +476,7 @@ function App() {
                     else if (path === '/admin/users') setAdminActiveTab('users');
                     else if (path === '/admin/partners') setAdminActiveTab('partners');
                     else if (path === '/admin/financial') setAdminActiveTab('financial');
-                    else if (path === '/admin/bots') setAdminActiveTab('metrics');
+                    else if (path === '/admin/bots') setCurrentView('bots');
                     else if (path === '/admin/analytics') setAdminActiveTab('analytics');
                     else if (path === '/admin/support') setAdminActiveTab('support');
                     else if (path === '/admin/system') setAdminActiveTab('system');
