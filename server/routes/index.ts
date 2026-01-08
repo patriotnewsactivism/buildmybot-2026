@@ -14,6 +14,7 @@ import templatesRouter from './templates';
 import channelsRouter from './channels';
 import knowledgeRouter from './knowledge';
 import revenueRouter from './revenue';
+import chatRouter from './chat';
 
 export {
   organizationsRouter,
@@ -27,4 +28,5 @@ export {
   channelsRouter,
   knowledgeRouter,
   revenueRouter,
+  chatRouter,
 };

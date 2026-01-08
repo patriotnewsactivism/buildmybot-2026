@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Bot, Zap, CheckCircle, Globe, ArrowRight, X, Play, LayoutDashboard, MessageSquare, Users, TrendingUp, Flame, Smartphone, Bell, Target, Briefcase, Instagram, DollarSign, Crown, Menu, Gavel, Stethoscope, Home, Landmark, ShoppingBag, Wrench, Car, Utensils, Dumbbell, GraduationCap, Phone, Megaphone, Layout, Shield, FileText, Upload, Link as LinkIcon, Search, Mail, Plus, Loader, RefreshCcw, Send, Mic, PhoneCall, Clock, ChevronDown, ChevronUp, Star, XCircle, Sparkles } from 'lucide-react';
 import { PLANS } from '../../constants';
 import { PlanType } from '../../types';
-import { generateBotResponse, scrapeWebsiteContent, generateWebsiteStructure, generateMarketingContent } from '../../services/openaiService';
+import { generateBotResponseDemo, scrapeWebsiteContent, generateWebsiteStructure, generateMarketingContent } from '../../services/openaiService';
 
 interface LandingProps {
   onLogin: () => void;
@@ -16,7 +16,9 @@ const AVATAR_COLORS = ['#1e3a8a', '#be123c', '#047857', '#d97706', '#7c3aed'];
 export const LandingPage: React.FC<LandingProps> = ({ onLogin, onNavigateToPartner, onAdminLogin }) => {
   const [isHoverOpen, setIsHoverOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [chatHistory, setChatHistory] = useState<{role: 'user'|'model', text: string}[]>([]);
+  const [chatHistory, setChatHistory] = useState<{role: 'user'|'model', text: string}[]>([
+    { role: 'model', text: "Hi there! 👋 How can I help you today? I'm here to answer any questions about our AI chatbot and voice agent solutions." }
+  ]);
   const [chatInput, setChatInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [demoIdentity, setDemoIdentity] = useState({ name: 'Bot', color: '#1e3a8a' });
@@ -54,10 +56,10 @@ export const LandingPage: React.FC<LandingProps> = ({ onLogin, onNavigateToPartn
     setHistory((prev: any) => [...prev, userMsg]);
     setTyping(true);
     try {
-      const response = await generateBotResponse("You are a helpful business assistant.", [...history, userMsg], input);
+      const response = await generateBotResponseDemo("You are a helpful business assistant for BuildMyBot, an AI chatbot and voice agent platform. Be friendly, helpful, and concise.", history, input);
       setHistory((prev: any) => [...prev, { role: 'model', text: response }]);
     } catch (e) {
-      setHistory((prev: any) => [...prev, { role: 'model', text: "Error connecting to AI." }]);
+      setHistory((prev: any) => [...prev, { role: 'model', text: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment." }]);
     } finally {
       setTyping(false);
     }
@@ -223,7 +225,9 @@ export const LandingPage: React.FC<LandingProps> = ({ onLogin, onNavigateToPartn
   );
 
   const FixedEmbedChat = () => {
-    const [embedHistory, setEmbedHistory] = useState<{role: 'user'|'model', text: string}[]>([]);
+    const [embedHistory, setEmbedHistory] = useState<{role: 'user'|'model', text: string}[]>([
+      { role: 'model', text: "Hello! 👋 I'm your AI assistant. How can I help you today?" }
+    ]);
     const [embedInput, setEmbedInput] = useState('');
     const [embedTyping, setEmbedTyping] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
