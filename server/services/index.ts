@@ -8,6 +8,9 @@ export { OrganizationService } from './OrganizationService';
 export { UserService } from './UserService';
 export { AnalyticsService } from './AnalyticsService';
 export { ChannelService } from './ChannelService';
+export { WebScraperService } from './WebScraperService';
+export { DocumentProcessorService } from './DocumentProcessorService';
+export { KnowledgeService } from './KnowledgeService';
 
 // Export types from AnalyticsService
 export type {

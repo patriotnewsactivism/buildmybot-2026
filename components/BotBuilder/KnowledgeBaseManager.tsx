@@ -1,12 +1,26 @@
-/**
- * Knowledge Base Manager Component
- * Enhanced upload experience with drag & drop, progress tracking, and document management
- */
-
-import React, { useState, useRef } from 'react';
-import { Upload, FileText, X, CheckCircle, AlertCircle, Loader, Trash2, Eye, Download } from 'lucide-react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { Upload, FileText, X, CheckCircle, AlertCircle, Loader, Trash2, Globe, RefreshCw, Database, Link } from 'lucide-react';
 import { BotDocument } from '../../types';
 import { dbService } from '../../services/dbService';
+
+interface KnowledgeSource {
+  id: string;
+  sourceType: 'url' | 'document' | 'manual';
+  sourceName: string;
+  sourceUrl?: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  errorMessage?: string;
+  pagesCrawled?: number;
+  chunkCount: number;
+  lastCrawledAt?: string;
+  createdAt: string;
+}
+
+interface KnowledgeStats {
+  sources: number;
+  chunks: number;
+  totalTokens: number;
+}
 
 interface KnowledgeBaseManagerProps {
   botId: string;
@@ -24,7 +38,81 @@ export const KnowledgeBaseManager: React.FC<KnowledgeBaseManagerProps> = ({
   const [currentFile, setCurrentFile] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [urlInput, setUrlInput] = useState('');
+  const [crawlDepth, setCrawlDepth] = useState(3);
+  const [scraping, setScraping] = useState(false);
+
+  const [sources, setSources] = useState<KnowledgeSource[]>([]);
+  const [stats, setStats] = useState<KnowledgeStats>({ sources: 0, chunks: 0, totalTokens: 0 });
+  const [loadingSources, setLoadingSources] = useState(false);
+
+  const fetchSources = useCallback(async () => {
+    if (!botId || botId === 'new') return;
+    
+    try {
+      const response = await fetch(`/api/knowledge/sources/${botId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setSources(data.sources || []);
+        setStats(data.stats || { sources: 0, chunks: 0, totalTokens: 0 });
+      }
+    } catch (err) {
+      console.error('Failed to fetch sources:', err);
+    }
+  }, [botId]);
+
+  useEffect(() => {
+    fetchSources();
+  }, [fetchSources]);
+
+  useEffect(() => {
+    const hasProcessing = sources.some(s => s.status === 'processing');
+    if (hasProcessing) {
+      const interval = setInterval(fetchSources, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [sources, fetchSources]);
+
+  const handleUrlScrape = async () => {
+    if (!urlInput.trim() || !botId || botId === 'new') return;
+
+    try {
+      new URL(urlInput);
+    } catch {
+      setError('Please enter a valid URL (e.g., https://example.com)');
+      return;
+    }
+
+    setScraping(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const response = await fetch(`/api/knowledge/scrape/${botId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: urlInput, crawlDepth }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSuccess(`Started crawling ${urlInput}. This may take a few minutes.`);
+        setUrlInput('');
+        fetchSources();
+      } else {
+        const data = await response.json();
+        setError(data.error || 'Failed to start scraping');
+      }
+    } catch (err) {
+      console.error('Scrape error:', err);
+      setError('Failed to connect to server');
+    } finally {
+      setScraping(false);
+    }
+  };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -58,36 +146,32 @@ export const KnowledgeBaseManager: React.FC<KnowledgeBaseManagerProps> = ({
 
     setUploading(true);
     setError(null);
+    setSuccess(null);
     setUploadProgress(0);
-
-    const uploadedDocs: BotDocument[] = [];
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       setCurrentFile(file.name);
 
-      // Validate file size (10MB limit)
-      if (file.size > 10 * 1024 * 1024) {
-        setError(`${file.name} exceeds 10MB limit`);
-        continue;
-      }
-
-      // Validate file type
-      const validTypes = ['.pdf', '.docx', '.txt', '.md'];
-      const fileExt = '.' + file.name.split('.').pop()?.toLowerCase();
-      if (!validTypes.includes(fileExt)) {
-        setError(`${file.name} is not a supported format. Use PDF, Word, Text, or Markdown.`);
+      if (file.size > 20 * 1024 * 1024) {
+        setError(`${file.name} exceeds 20MB limit`);
         continue;
       }
 
       try {
-        const doc = await dbService.uploadBotDocument(botId, file, (progress) => {
-          const fileProgress = ((i / files.length) * 100) + (progress / files.length);
-          setUploadProgress(fileProgress);
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await fetch(`/api/knowledge/upload/${botId}`, {
+          method: 'POST',
+          body: formData,
         });
 
-        if (doc) {
-          uploadedDocs.push(doc);
+        if (response.ok) {
+          setUploadProgress(((i + 1) / files.length) * 100);
+        } else {
+          const data = await response.json();
+          setError(data.error || `Failed to upload ${file.name}`);
         }
       } catch (err) {
         console.error(`Failed to upload ${file.name}:`, err);
@@ -95,32 +179,49 @@ export const KnowledgeBaseManager: React.FC<KnowledgeBaseManagerProps> = ({
       }
     }
 
-    if (uploadedDocs.length > 0) {
-      onDocumentsChange([...documents, ...uploadedDocs]);
-    }
-
+    setSuccess('Documents uploaded successfully. Processing may take a moment.');
     setUploading(false);
     setUploadProgress(0);
     setCurrentFile(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+    fetchSources();
   };
 
-  const handleDelete = async (docId: string) => {
+  const handleDeleteSource = async (sourceId: string) => {
     try {
-      const response = await fetch(`/api/bots/${botId}/documents/${docId}`, {
+      const response = await fetch(`/api/knowledge/sources/${sourceId}`, {
         method: 'DELETE',
       });
 
       if (response.ok) {
-        onDocumentsChange(documents.filter((d) => d.id !== docId));
+        setSources(sources.filter(s => s.id !== sourceId));
+        setSuccess('Source deleted successfully');
       } else {
-        setError('Failed to delete document');
+        setError('Failed to delete source');
       }
     } catch (err) {
       console.error('Delete error:', err);
-      setError('Failed to delete document');
+      setError('Failed to delete source');
+    }
+  };
+
+  const handleRefreshSource = async (sourceId: string) => {
+    try {
+      const response = await fetch(`/api/knowledge/refresh/${sourceId}`, {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        setSuccess('Refresh started');
+        fetchSources();
+      } else {
+        setError('Failed to refresh source');
+      }
+    } catch (err) {
+      console.error('Refresh error:', err);
+      setError('Failed to refresh source');
     }
   };
 
@@ -130,9 +231,77 @@ export const KnowledgeBaseManager: React.FC<KnowledgeBaseManagerProps> = ({
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">Completed</span>;
+      case 'processing':
+        return (
+          <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full flex items-center gap-1">
+            <Loader className="animate-spin" size={12} /> Processing
+          </span>
+        );
+      case 'failed':
+        return <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-700 rounded-full">Failed</span>;
+      default:
+        return <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-full">Pending</span>;
+    }
+  };
+
   return (
     <div className="space-y-6">
-      {/* Drag & Drop Zone */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+            <Database className="text-white" size={20} />
+          </div>
+          <div>
+            <h3 className="font-semibold text-slate-900">Knowledge Base</h3>
+            <p className="text-sm text-slate-600">
+              {stats.sources} sources | {stats.chunks} chunks | ~{Math.round(stats.totalTokens / 1000)}k tokens
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg p-4 border border-blue-100">
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            <Globe size={16} className="inline mr-2" />
+            Add Website URL
+          </label>
+          <div className="flex gap-3">
+            <input
+              type="url"
+              value={urlInput}
+              onChange={(e) => setUrlInput(e.target.value)}
+              placeholder="https://example.com"
+              className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              disabled={scraping || botId === 'new'}
+            />
+            <select
+              value={crawlDepth}
+              onChange={(e) => setCrawlDepth(Number(e.target.value))}
+              className="px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              disabled={scraping}
+            >
+              {[1, 2, 3, 5, 10].map(n => (
+                <option key={n} value={n}>{n} page{n > 1 ? 's' : ''}</option>
+              ))}
+            </select>
+            <button
+              onClick={handleUrlScrape}
+              disabled={scraping || !urlInput.trim() || botId === 'new'}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {scraping ? <Loader className="animate-spin" size={16} /> : <Link size={16} />}
+              {scraping ? 'Scraping...' : 'Scrape'}
+            </button>
+          </div>
+          <p className="text-xs text-slate-500 mt-2">
+            We'll crawl the website and extract content for your knowledge base.
+          </p>
+        </div>
+      </div>
+
       <div
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -154,7 +323,7 @@ export const KnowledgeBaseManager: React.FC<KnowledgeBaseManagerProps> = ({
           ref={fileInputRef}
           type="file"
           multiple
-          accept=".pdf,.docx,.txt,.md"
+          accept=".pdf,.docx,.txt,.md,.png,.jpg,.jpeg,.webp"
           onChange={handleFileSelect}
           className="hidden"
           disabled={uploading || botId === 'new'}
@@ -182,85 +351,74 @@ export const KnowledgeBaseManager: React.FC<KnowledgeBaseManagerProps> = ({
                 {botId === 'new' ? 'Save your bot first to upload documents' : 'Drop files here or click to upload'}
               </p>
               <p className="text-sm text-slate-500 mt-1">
-                PDF, Word, Text, or Markdown files (max 10MB each)
+                PDF, Word, Text, Markdown, or Images (OCR supported) - max 20MB each
               </p>
             </div>
           </div>
         )}
       </div>
 
-      {/* Error Message */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
-          <AlertCircle className="text-red-600 shrink-0 mt-0.5" size={20} />
+      {(error || success) && (
+        <div className={`border rounded-lg p-4 flex items-start gap-3 ${error ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'}`}>
+          {error ? (
+            <AlertCircle className="text-red-600 shrink-0 mt-0.5" size={20} />
+          ) : (
+            <CheckCircle className="text-green-600 shrink-0 mt-0.5" size={20} />
+          )}
           <div className="flex-1">
-            <p className="text-sm font-medium text-red-900">Upload Error</p>
-            <p className="text-sm text-red-700 mt-1">{error}</p>
+            <p className={`text-sm ${error ? 'text-red-700' : 'text-green-700'}`}>{error || success}</p>
           </div>
           <button
-            onClick={() => setError(null)}
-            className="text-red-400 hover:text-red-600"
+            onClick={() => { setError(null); setSuccess(null); }}
+            className={error ? 'text-red-400 hover:text-red-600' : 'text-green-400 hover:text-green-600'}
           >
             <X size={18} />
           </button>
         </div>
       )}
 
-      {/* Upload Progress */}
-      {uploading && uploadProgress > 0 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-center gap-3 mb-2">
-            <Loader className="animate-spin text-blue-600" size={20} />
-            <span className="font-medium text-blue-900">Uploading documents...</span>
-          </div>
-          <div className="w-full bg-blue-200 h-2 rounded-full overflow-hidden">
-            <div
-              className="bg-blue-600 h-full transition-all duration-300"
-              style={{ width: `${uploadProgress}%` }}
-            />
-          </div>
-          <p className="text-xs text-blue-700 mt-2">{Math.round(uploadProgress)}% complete</p>
-        </div>
-      )}
-
-      {/* Document List */}
-      {documents.length > 0 && (
+      {sources.length > 0 && (
         <div className="space-y-3">
           <h4 className="font-semibold text-slate-900 flex items-center gap-2">
-            <FileText size={18} />
-            Uploaded Documents ({documents.length})
+            <Database size={18} />
+            Knowledge Sources ({sources.length})
           </h4>
           <div className="space-y-2">
-            {documents.map((doc) => (
+            {sources.map((source) => (
               <div
-                key={doc.id}
+                key={source.id}
                 className="bg-white border border-slate-200 rounded-lg p-4 flex items-center justify-between hover:border-slate-300 transition-colors"
               >
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center shrink-0">
-                    <FileText className="text-blue-600" size={20} />
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${source.sourceType === 'url' ? 'bg-indigo-100' : 'bg-blue-100'}`}>
+                    {source.sourceType === 'url' ? (
+                      <Globe className="text-indigo-600" size={20} />
+                    ) : (
+                      <FileText className="text-blue-600" size={20} />
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-slate-900 truncate">{doc.fileName}</p>
+                    <p className="font-medium text-slate-900 truncate">{source.sourceName}</p>
                     <p className="text-xs text-slate-500">
-                      {doc.fileType.toUpperCase()} • {formatFileSize(doc.fileSize || 0)}
+                      {source.sourceType === 'url' && source.pagesCrawled ? `${source.pagesCrawled} pages crawled | ` : ''}
+                      {source.chunkCount} chunks
+                      {source.errorMessage && <span className="text-red-500 ml-2">Error: {source.errorMessage}</span>}
                     </p>
                   </div>
-                  <CheckCircle className="text-green-500 shrink-0" size={20} />
+                  {getStatusBadge(source.status)}
                 </div>
                 <div className="flex items-center gap-2 ml-4">
+                  {source.sourceType === 'url' && source.status === 'completed' && (
+                    <button
+                      onClick={() => handleRefreshSource(source.id)}
+                      className="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      title="Refresh"
+                    >
+                      <RefreshCw size={18} />
+                    </button>
+                  )}
                   <button
-                    onClick={() => {
-                      // Preview document (could open in modal)
-                      console.log('Preview:', doc);
-                    }}
-                    className="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                    title="Preview"
-                  >
-                    <Eye size={18} />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(doc.id)}
+                    onClick={() => handleDeleteSource(source.id)}
                     className="p-2 text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                     title="Delete"
                   >
@@ -273,19 +431,17 @@ export const KnowledgeBaseManager: React.FC<KnowledgeBaseManagerProps> = ({
         </div>
       )}
 
-      {/* Help Text */}
       <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
         <h4 className="font-semibold text-slate-800 mb-2 flex items-center gap-2">
-          <FileText size={16} />
-          Knowledge Base Tips
+          <Database size={16} />
+          How Your Knowledge Base Works
         </h4>
         <ul className="text-sm text-slate-600 space-y-1 list-disc list-inside">
-          <li>Upload FAQs, product docs, and company information</li>
-          <li>Supported formats: PDF, Word (.docx), Text (.txt), Markdown (.md)</li>
-          <li>Documents are automatically chunked and indexed for AI retrieval</li>
-          <li>Maximum file size: 10MB per document</li>
-          <li>You can upload multiple files at once</li>
-          <li>Documents are processed in the background - your bot will use them automatically</li>
+          <li>Add websites - we'll crawl and extract content automatically</li>
+          <li>Upload documents - PDF, Word, text files, or images with text (OCR)</li>
+          <li>Content is automatically chunked and indexed for fast AI retrieval</li>
+          <li>Both your chatbot and voice agent use this knowledge to answer questions</li>
+          <li>Keep your knowledge base updated by refreshing sources periodically</li>
         </ul>
       </div>
     </div>

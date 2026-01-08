@@ -1,0 +1,183 @@
+import { db } from '../db';
+import { knowledgeSources, knowledgeChunks, bots } from '../../shared/schema';
+import { eq, sql, and, desc } from 'drizzle-orm';
+
+export interface KnowledgeSearchResult {
+  id: string;
+  content: string;
+  metadata: any;
+  score: number;
+  sourceId: string;
+}
+
+export class KnowledgeService {
+  static async searchKnowledge(
+    botId: string,
+    query: string,
+    limit: number = 5
+  ): Promise<KnowledgeSearchResult[]> {
+    const queryWords = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+    
+    if (queryWords.length === 0) {
+      return [];
+    }
+
+    const chunks = await db.select()
+      .from(knowledgeChunks)
+      .where(eq(knowledgeChunks.botId, botId))
+      .limit(100);
+
+    const scoredChunks = chunks.map(chunk => {
+      const content = chunk.content.toLowerCase();
+      let score = 0;
+
+      for (const word of queryWords) {
+        const regex = new RegExp(word, 'gi');
+        const matches = content.match(regex);
+        if (matches) {
+          score += matches.length;
+        }
+      }
+
+      const exactMatch = content.includes(query.toLowerCase());
+      if (exactMatch) {
+        score += 10;
+      }
+
+      return {
+        id: chunk.id,
+        content: chunk.content,
+        metadata: chunk.metadata,
+        score,
+        sourceId: chunk.sourceId!,
+      };
+    });
+
+    return scoredChunks
+      .filter(c => c.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, limit);
+  }
+
+  static async buildContext(
+    botId: string,
+    query: string,
+    maxTokens: number = 4000
+  ): Promise<string> {
+    const results = await this.searchKnowledge(botId, query, 10);
+    
+    if (results.length === 0) {
+      return '';
+    }
+
+    let context = '';
+    let tokenCount = 0;
+
+    for (const result of results) {
+      const chunkTokens = Math.ceil(result.content.length / 4);
+      
+      if (tokenCount + chunkTokens > maxTokens) {
+        break;
+      }
+
+      const source = result.metadata?.title || result.metadata?.fileName || 'Knowledge Base';
+      context += `\n\n[From: ${source}]\n${result.content}`;
+      tokenCount += chunkTokens;
+    }
+
+    return context.trim();
+  }
+
+  static async getSystemPromptWithKnowledge(
+    botId: string,
+    basePrompt: string,
+    userQuery: string
+  ): Promise<string> {
+    const context = await this.buildContext(botId, userQuery);
+    
+    if (!context) {
+      return basePrompt;
+    }
+
+    return `${basePrompt}
+
+---
+
+IMPORTANT: Use the following knowledge base information to answer questions accurately. Always prioritize this information over general knowledge:
+
+${context}
+
+---
+
+When answering:
+1. Base your responses on the knowledge provided above
+2. If the information isn't in the knowledge base, say so honestly
+3. Cite the source when possible (e.g., "According to the documentation...")`;
+  }
+
+  static async getKnowledgeSources(botId: string) {
+    const sources = await db.select()
+      .from(knowledgeSources)
+      .where(eq(knowledgeSources.botId, botId))
+      .orderBy(desc(knowledgeSources.createdAt));
+
+    const sourcesWithCounts = await Promise.all(
+      sources.map(async (source) => {
+        const chunkCount = await db.select({ count: sql<number>`count(*)` })
+          .from(knowledgeChunks)
+          .where(eq(knowledgeChunks.sourceId, source.id));
+
+        return {
+          ...source,
+          chunkCount: Number(chunkCount[0]?.count || 0),
+        };
+      })
+    );
+
+    return sourcesWithCounts;
+  }
+
+  static async deleteSource(sourceId: string, botId: string): Promise<boolean> {
+    const source = await db.select()
+      .from(knowledgeSources)
+      .where(and(
+        eq(knowledgeSources.id, sourceId),
+        eq(knowledgeSources.botId, botId)
+      ))
+      .limit(1);
+
+    if (source.length === 0) {
+      return false;
+    }
+
+    await db.delete(knowledgeChunks)
+      .where(eq(knowledgeChunks.sourceId, sourceId));
+
+    await db.delete(knowledgeSources)
+      .where(eq(knowledgeSources.id, sourceId));
+
+    return true;
+  }
+
+  static async getStats(botId: string) {
+    const [sourceCount] = await db.select({ count: sql<number>`count(*)` })
+      .from(knowledgeSources)
+      .where(eq(knowledgeSources.botId, botId));
+
+    const [chunkCount] = await db.select({ count: sql<number>`count(*)` })
+      .from(knowledgeChunks)
+      .where(eq(knowledgeChunks.botId, botId));
+
+    const [tokenSum] = await db.select({ 
+      total: sql<number>`COALESCE(SUM(token_count), 0)` 
+    })
+      .from(knowledgeChunks)
+      .where(eq(knowledgeChunks.botId, botId));
+
+    return {
+      sources: Number(sourceCount?.count || 0),
+      chunks: Number(chunkCount?.count || 0),
+      totalTokens: Number(tokenSum?.total || 0),
+    };
+  }
+}
