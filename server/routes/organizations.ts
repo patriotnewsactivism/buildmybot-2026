@@ -33,7 +33,7 @@ router.get('/:id', async (req: AuthRequest, res) => {
     }
 
     // Check if user has access to this organization
-    if (req.user.role !== 'MasterAdmin' && req.user.role !== 'Admin') {
+    if (req.user.role !== 'MasterAdmin' && req.user.role !== 'Admin' && req.user.role !== 'ADMIN') {
       if (req.organization?.id !== id) {
         return res.status(403).json({ error: 'Access denied to this organization' });
       }
@@ -101,7 +101,7 @@ router.get('/:id/members', async (req: AuthRequest, res) => {
     const { id } = req.params;
 
     // Check access
-    if (req.user.role !== 'MasterAdmin' && req.user.role !== 'Admin') {
+    if (req.user.role !== 'MasterAdmin' && req.user.role !== 'Admin' && req.user.role !== 'ADMIN') {
       if (req.organization?.id !== id) {
         return res.status(403).json({ error: 'Access denied' });
       }

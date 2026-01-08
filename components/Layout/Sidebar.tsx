@@ -29,13 +29,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, role, is
   ];
 
   const isPendingPartner = role === UserRole.RESELLER && user?.status === 'Pending';
-  
-  if ((role === UserRole.RESELLER && !isPendingPartner) || role === UserRole.ADMIN) {
+  const isAdmin = role === UserRole.ADMIN || role === UserRole.MASTER_ADMIN || role === UserRole.ADMIN_LEGACY;
+
+  if ((role === UserRole.RESELLER && !isPendingPartner) || isAdmin) {
     menuItems.splice(1, 0, { id: 'reseller', label: 'Partner/Reseller', icon: Briefcase });
   }
 
   // Admin has a special separate dashboard, but can access it via sidebar if logged in as admin context
-  if (role === UserRole.ADMIN) {
+  if (isAdmin) {
     menuItems.push({ id: 'admin', label: 'Master Admin', icon: TrendingUp });
   }
 
