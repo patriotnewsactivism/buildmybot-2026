@@ -55,47 +55,105 @@ export class StripeService {
   }
 
   async getProduct(productId: string) {
-    const result = await db.execute(
-      sql`SELECT * FROM stripe.products WHERE id = ${productId}`
-    );
-    return result.rows[0] || null;
+    const stripe = await getUncachableStripeClient();
+    return await stripe.products.retrieve(productId);
   }
 
   async listProducts(active = true) {
-    const result = await db.execute(
-      sql`SELECT * FROM stripe.products WHERE active = ${active}`
-    );
-    return result.rows;
+    const stripe = await getUncachableStripeClient();
+    const products = await stripe.products.list({ active, limit: 100 });
+    return products.data;
   }
 
   async listProductsWithPrices(active = true) {
-    const result = await db.execute(
-      sql`
-        SELECT 
-          p.id as product_id,
-          p.name as product_name,
-          p.description as product_description,
-          p.active as product_active,
-          p.metadata as product_metadata,
-          pr.id as price_id,
-          pr.unit_amount,
-          pr.currency,
-          pr.recurring,
-          pr.active as price_active
-        FROM stripe.products p
-        LEFT JOIN stripe.prices pr ON pr.product = p.id AND pr.active = true
-        WHERE p.active = ${active}
-        ORDER BY pr.unit_amount ASC
-      `
-    );
-    return result.rows;
+    const stripe = await getUncachableStripeClient();
+    const products = await stripe.products.list({ active, limit: 100 });
+    const prices = await stripe.prices.list({ active: true, limit: 100 });
+    
+    const result: any[] = [];
+    for (const product of products.data) {
+      const productPrices = prices.data.filter(p => p.product === product.id);
+      if (productPrices.length === 0) {
+        result.push({
+          product_id: product.id,
+          product_name: product.name,
+          product_description: product.description,
+          product_active: product.active,
+          product_metadata: product.metadata,
+          price_id: null,
+          unit_amount: null,
+          currency: null,
+          recurring: null,
+          price_active: null
+        });
+      } else {
+        for (const price of productPrices) {
+          result.push({
+            product_id: product.id,
+            product_name: product.name,
+            product_description: product.description,
+            product_active: product.active,
+            product_metadata: product.metadata,
+            price_id: price.id,
+            unit_amount: price.unit_amount,
+            currency: price.currency,
+            recurring: price.recurring,
+            price_active: price.active
+          });
+        }
+      }
+    }
+    return result.sort((a, b) => (a.unit_amount || 0) - (b.unit_amount || 0));
   }
 
   async getSubscription(subscriptionId: string) {
-    const result = await db.execute(
-      sql`SELECT * FROM stripe.subscriptions WHERE id = ${subscriptionId}`
-    );
-    return result.rows[0] || null;
+    const stripe = await getUncachableStripeClient();
+    try {
+      return await stripe.subscriptions.retrieve(subscriptionId);
+    } catch (error) {
+      return null;
+    }
+  }
+
+  async syncPlansToStripe(plans: Record<string, { price: number; name: string; features: string[] }>) {
+    const stripe = await getUncachableStripeClient();
+    const results: { plan: string; productId: string; priceId: string }[] = [];
+
+    for (const [planKey, planData] of Object.entries(plans)) {
+      if (planData.price === 0) continue;
+
+      const existingProducts = await stripe.products.list({ limit: 100 });
+      let product = existingProducts.data.find(
+        p => p.metadata?.planKey === planKey
+      );
+
+      if (!product) {
+        product = await stripe.products.create({
+          name: planData.name,
+          description: planData.features.slice(0, 3).join(', '),
+          metadata: { planKey }
+        });
+      }
+
+      const existingPrices = await stripe.prices.list({ product: product.id, active: true });
+      let price = existingPrices.data.find(
+        p => p.unit_amount === planData.price * 100 && p.recurring?.interval === 'month'
+      );
+
+      if (!price) {
+        price = await stripe.prices.create({
+          product: product.id,
+          unit_amount: planData.price * 100,
+          currency: 'usd',
+          recurring: { interval: 'month' },
+          metadata: { planKey }
+        });
+      }
+
+      results.push({ plan: planKey, productId: product.id, priceId: price.id });
+    }
+
+    return results;
   }
 
   async updateUserStripeInfo(userId: string, stripeInfo: {

@@ -1,29 +1,28 @@
 import Stripe from 'stripe';
 
-function getStripeKeys() {
+function getStripeSecretKeyInternal() {
   const secretKey = process.env.STRIPE_SECRET_KEY;
-  const publishableKey = process.env.STRIPE_PUBLISHABLE_KEY;
-
-  if (!secretKey || !publishableKey) {
-    throw new Error('Missing STRIPE_SECRET_KEY or STRIPE_PUBLISHABLE_KEY');
+  if (!secretKey) {
+    throw new Error('Missing STRIPE_SECRET_KEY');
   }
-
-  return { secretKey, publishableKey };
+  return secretKey;
 }
 
 export async function getUncachableStripeClient() {
-  const { secretKey } = getStripeKeys();
+  const secretKey = getStripeSecretKeyInternal();
   return new Stripe(secretKey, {
-    apiVersion: '2025-08-27.basil' as any,
+    apiVersion: '2024-12-18.acacia' as any,
   });
 }
 
 export async function getStripePublishableKey() {
-  const { publishableKey } = getStripeKeys();
+  const publishableKey = process.env.STRIPE_PUBLISHABLE_KEY;
+  if (!publishableKey) {
+    throw new Error('Missing STRIPE_PUBLISHABLE_KEY');
+  }
   return publishableKey;
 }
 
 export async function getStripeSecretKey() {
-  const { secretKey } = getStripeKeys();
-  return secretKey;
+  return getStripeSecretKeyInternal();
 }

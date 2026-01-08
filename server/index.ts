@@ -163,6 +163,16 @@ app.get('/api/stripe/products', async (req, res) => {
   }
 });
 
+app.post('/api/stripe/sync-plans', async (req, res) => {
+  try {
+    const results = await stripeService.syncPlansToStripe(PLANS);
+    res.json({ success: true, synced: results });
+  } catch (error) {
+    console.error('Error syncing plans to Stripe:', error);
+    res.status(500).json({ error: 'Failed to sync plans to Stripe' });
+  }
+});
+
 app.post('/api/stripe/checkout', async (req, res) => {
   try {
     const { userId, priceId } = req.body;
