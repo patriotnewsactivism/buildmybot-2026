@@ -45,8 +45,8 @@ const INITIAL_RESELLER_STATS: ResellerStats = {
   pendingPayout: 0,
 };
 
-// MASTER ADMIN CONFIGURATION
-const MASTER_ADMINS = ['mreardon@wtpnews.org', 'jadj19@gmail.com'];
+// MASTER ADMIN CONFIGURATION - Only MasterAdmin role users should be in this list
+const MASTER_ADMINS = ['mreardon@wtpnews.org'];
 
 function App() {
   const { user: authUser, isLoading: authLoading, isAuthenticated, logout } = useAuth();
@@ -75,9 +75,10 @@ function App() {
       const userEmail = authUser.email?.toLowerCase() || '';
       const isMasterAdmin = MASTER_ADMINS.includes(userEmail);
       
-      // Force Admin Role if Master Admin, otherwise use stored role
+      // Force MasterAdmin Role if in master admin list, otherwise use stored role
+      // Roles: MASTER_ADMIN (highest), ADMIN, RESELLER, CLIENT, OWNER
       const effectiveRole = isMasterAdmin 
-        ? UserRole.ADMIN 
+        ? UserRole.MASTER_ADMIN 
         : (authUser.role as UserRole) || UserRole.OWNER;
 
       const mappedUser: User = {
@@ -97,11 +98,13 @@ function App() {
       setIsLoggedIn(true);
       dbService.setAuthContext({ userId: mappedUser.id });
 
-      // Automatically route Admins to the Admin View
-      if (mappedUser.role === UserRole.ADMIN) {
+      // Automatically route based on role
+      if (mappedUser.role === UserRole.MASTER_ADMIN || mappedUser.role === UserRole.ADMIN) {
         setCurrentView('admin');
       } else if (mappedUser.role === UserRole.RESELLER) {
         setCurrentView('reseller');
+      } else if (mappedUser.role === UserRole.CLIENT) {
+        setCurrentView('client');
       }
     }
   }, [authLoading, isAuthenticated, authUser]);
@@ -221,7 +224,7 @@ function App() {
           id: 'demo-user-' + Date.now(),
           name: name || email.split('@')[0],
           email: email,
-          role: isMasterAdmin ? UserRole.ADMIN : UserRole.OWNER,
+          role: isMasterAdmin ? UserRole.MASTER_ADMIN : UserRole.OWNER,
           plan: PlanType.FREE,
           companyName: companyName || 'Demo Company',
           createdAt: new Date().toISOString()
@@ -234,7 +237,7 @@ function App() {
 
       setNotification(isMasterAdmin ? "Welcome Master Admin" : "Logged in successfully");
       
-      // Auto-switch view for admin
+      // Auto-switch view for admin (MasterAdmin or ADMIN roles)
       if (isMasterAdmin) {
         setCurrentView('admin');
       }
