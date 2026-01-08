@@ -13,10 +13,10 @@ interface RouteGuardProps {
   requireOrganization?: boolean;
 }
 
-export const RouteGuard: React.FC<RouteGuardProps> = ({ 
-  role, 
-  children, 
-  requireOrganization = true 
+export const RouteGuard: React.FC<RouteGuardProps> = ({
+  role,
+  children,
+  requireOrganization = false
 }) => {
   const { user, organizationId } = useDashboardContext();
 
