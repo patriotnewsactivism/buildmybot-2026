@@ -10,8 +10,8 @@ import { PhoneAgent } from './components/PhoneAgent/PhoneAgent';
 import { ChatLogs } from './components/Chat/ChatLogs';
 import { Billing } from './components/Billing/Billing';
 import { AdminDashboard } from './components/Admin/AdminDashboard';
-import { AdminDashboardV2 } from './components/Admin/AdminDashboardV2';
-import { PartnerDashboardV2 } from './components/Partner/PartnerDashboardV2';
+import { AdminDashboardV2, AdminTab } from './components/Admin/AdminDashboardV2';
+import { PartnerDashboardV2, PartnerTab } from './components/Partner/PartnerDashboardV2';
 import { ClientOverview } from './components/Client/ClientOverview';
 import { Settings } from './components/Settings/Settings';
 import { LandingPage } from './components/Landing/LandingPage';
@@ -68,6 +68,10 @@ function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [impersonation, setImpersonation] = useState<{ token: string; targetUserId: string; expiresAt: string } | null>(null);
   const [impersonatedUser, setImpersonatedUser] = useState<User | null>(null);
+  
+  // Dashboard tab state for controlled navigation
+  const [adminActiveTab, setAdminActiveTab] = useState<'metrics' | 'users' | 'partners' | 'financial' | 'analytics' | 'support' | 'system'>('metrics');
+  const [partnerActiveTab, setPartnerActiveTab] = useState<'clients' | 'commissions' | 'marketing' | 'analytics' | 'collaboration'>('clients');
 
   useEffect(() => {
     if (!authLoading && isAuthenticated && authUser) {
@@ -465,18 +469,28 @@ function App() {
             {currentView === 'admin' && (
               <RouteGuard role="admin">
                 <DashboardShell
-                  currentPath="/admin"
+                  currentPath={`/admin${adminActiveTab === 'metrics' ? '' : '/' + adminActiveTab}`}
                   onNavigate={(path) => {
-                    // Map URL paths to view state
-                    if (path === '/admin') setCurrentView('admin');
+                    // Map URL paths to tab state
+                    if (path === '/admin') setAdminActiveTab('metrics');
+                    else if (path === '/admin/users') setAdminActiveTab('users');
+                    else if (path === '/admin/partners') setAdminActiveTab('partners');
+                    else if (path === '/admin/financial') setAdminActiveTab('financial');
+                    else if (path === '/admin/bots') setAdminActiveTab('metrics');
+                    else if (path === '/admin/analytics') setAdminActiveTab('analytics');
+                    else if (path === '/admin/support') setAdminActiveTab('support');
+                    else if (path === '/admin/system') setAdminActiveTab('system');
                     else if (path.startsWith('/app/bots')) setCurrentView('bots');
                     else if (path.startsWith('/app/leads')) setCurrentView('leads');
-                    // Add more mappings as needed
                   }}
                   onLogout={handleLogout}
                   onSettingsClick={() => setCurrentView('settings')}
                 >
-                  <AdminDashboardV2 onImpersonate={handleStartImpersonation} />
+                  <AdminDashboardV2 
+                    onImpersonate={handleStartImpersonation} 
+                    activeTab={adminActiveTab}
+                    onTabChange={setAdminActiveTab}
+                  />
                 </DashboardShell>
               </RouteGuard>
             )}
@@ -485,17 +499,26 @@ function App() {
             {currentView === 'reseller' && (
               <RouteGuard role="partner">
                 <DashboardShell
-                  currentPath="/partner/clients"
+                  currentPath={`/partner/${partnerActiveTab}`}
                   onNavigate={(path) => {
-                    // Map URL paths to view state
-                    if (path.startsWith('/partner')) setCurrentView('reseller');
+                    // Map URL paths to tab state
+                    if (path === '/partner/clients') setPartnerActiveTab('clients');
+                    else if (path === '/partner/commissions') setPartnerActiveTab('commissions');
+                    else if (path === '/partner/marketing') setPartnerActiveTab('marketing');
+                    else if (path === '/partner/analytics') setPartnerActiveTab('analytics');
+                    else if (path === '/partner/collaboration') setPartnerActiveTab('collaboration');
                     else if (path.startsWith('/app/bots')) setCurrentView('bots');
                     else if (path.startsWith('/app/leads')) setCurrentView('leads');
                   }}
                   onLogout={handleLogout}
                   onSettingsClick={() => setCurrentView('settings')}
                 >
-                  <PartnerDashboardV2 user={user} onImpersonate={handleStartImpersonation} />
+                  <PartnerDashboardV2 
+                    user={user} 
+                    onImpersonate={handleStartImpersonation}
+                    activeTab={partnerActiveTab}
+                    onTabChange={setPartnerActiveTab}
+                  />
                 </DashboardShell>
               </RouteGuard>
             )}

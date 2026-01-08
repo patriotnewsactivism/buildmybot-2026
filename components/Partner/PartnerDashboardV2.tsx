@@ -5,15 +5,27 @@ import { ClientManagement } from './widgets/ClientManagement';
 import { CommissionsEarnings } from './widgets/CommissionsEarnings';
 import { MarketingMaterials } from './widgets/MarketingMaterials';
 
-type PartnerTab = 'clients' | 'commissions' | 'marketing' | 'analytics' | 'collaboration';
+export type PartnerTab = 'clients' | 'commissions' | 'marketing' | 'analytics' | 'collaboration';
 
 interface PartnerDashboardV2Props {
   user: User;
   onImpersonate: (userId: string, reason: string) => void;
+  activeTab?: PartnerTab;
+  onTabChange?: (tab: PartnerTab) => void;
 }
 
-export const PartnerDashboardV2: React.FC<PartnerDashboardV2Props> = ({ user, onImpersonate }) => {
-  const [activeTab, setActiveTab] = useState<PartnerTab>('clients');
+export const PartnerDashboardV2: React.FC<PartnerDashboardV2Props> = ({ user, onImpersonate, activeTab: controlledTab, onTabChange }) => {
+  const [internalTab, setInternalTab] = useState<PartnerTab>('clients');
+  
+  // Use controlled tab if provided, otherwise use internal state
+  const activeTab = controlledTab ?? internalTab;
+  const setActiveTab = (tab: PartnerTab) => {
+    if (onTabChange) {
+      onTabChange(tab);
+    } else {
+      setInternalTab(tab);
+    }
+  };
 
   // Show pending approval screen if status is Pending
   if (user.status === 'Pending') {

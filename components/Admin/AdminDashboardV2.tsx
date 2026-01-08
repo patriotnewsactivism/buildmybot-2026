@@ -5,14 +5,26 @@ import { UserManagement } from './widgets/UserManagement';
 import { PartnerOversight } from './widgets/PartnerOversight';
 import { FinancialDashboard } from './widgets/FinancialDashboard';
 
-type AdminTab = 'metrics' | 'users' | 'partners' | 'financial' | 'analytics' | 'support' | 'system';
+export type AdminTab = 'metrics' | 'users' | 'partners' | 'financial' | 'analytics' | 'support' | 'system';
 
 interface AdminDashboardV2Props {
   onImpersonate: (userId: string, reason: string) => void;
+  activeTab?: AdminTab;
+  onTabChange?: (tab: AdminTab) => void;
 }
 
-export const AdminDashboardV2: React.FC<AdminDashboardV2Props> = ({ onImpersonate }) => {
-  const [activeTab, setActiveTab] = useState<AdminTab>('metrics');
+export const AdminDashboardV2: React.FC<AdminDashboardV2Props> = ({ onImpersonate, activeTab: controlledTab, onTabChange }) => {
+  const [internalTab, setInternalTab] = useState<AdminTab>('metrics');
+  
+  // Use controlled tab if provided, otherwise use internal state
+  const activeTab = controlledTab ?? internalTab;
+  const setActiveTab = (tab: AdminTab) => {
+    if (onTabChange) {
+      onTabChange(tab);
+    } else {
+      setInternalTab(tab);
+    }
+  };
 
   const tabs = [
     { id: 'metrics' as AdminTab, label: 'Live Metrics', icon: Activity },
