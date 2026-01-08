@@ -39,11 +39,11 @@ export const DASHBOARD_NAV: Record<DashboardRole, NavItem[]> = {
     { id: 'collaboration', label: 'Collaboration', href: '/partner/collaboration' },
   ],
   client: [
-    { id: 'home', label: 'Dashboard', href: '/client' },
-    { id: 'bots', label: 'My Bots', href: '/client/bots' },
-    { id: 'leads', label: 'Leads', href: '/client/leads' },
-    { id: 'analytics', label: 'Analytics', href: '/client/analytics' },
-    { id: 'help', label: 'Help', href: '/client/help' },
+    { id: 'home', label: 'Dashboard', href: '/app' },
+    { id: 'bots', label: 'Bots', href: '/app/bots' },
+    { id: 'leads', label: 'Leads', href: '/app/leads' },
+    { id: 'analytics', label: 'Analytics', href: '/app/analytics' },
+    { id: 'help', label: 'Help', href: '/app/help' },
   ],
   owner: [
     { id: 'home', label: 'Dashboard', href: '/app' },

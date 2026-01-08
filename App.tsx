@@ -527,12 +527,12 @@ function App() {
             {currentView === 'client' && (
               <RouteGuard role="client">
                 <DashboardShell
-                  currentPath="/client"
+                  currentPath="/app"
                   onNavigate={(path) => {
                     // Map paths to currentView
-                    if (path === '/client/bots') setCurrentView('bots');
-                    else if (path === '/client/leads') setCurrentView('leads');
-                    else if (path === '/client') setCurrentView('client');
+                    if (path === '/app/bots') setCurrentView('bots');
+                    else if (path === '/app/leads') setCurrentView('leads');
+                    else if (path === '/app') setCurrentView('client');
                   }}
                   onLogout={handleLogout}
                   onSettingsClick={() => setCurrentView('settings')}
