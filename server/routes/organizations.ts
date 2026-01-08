@@ -33,13 +33,8 @@ router.get('/:id', async (req: Request, res: Response) => {
     }
 
     // Check if user has access to this organization
-<<<<<<< HEAD
-    if (user.role !== 'MasterAdmin' && user.role !== 'Admin') {
+    if (user.role !== 'MasterAdmin' && user.role !== 'Admin' && user.role !== 'ADMIN') {
       if (organization?.id !== id) {
-=======
-    if (req.user.role !== 'MasterAdmin' && req.user.role !== 'Admin' && req.user.role !== 'ADMIN') {
-      if (req.organization?.id !== id) {
->>>>>>> ef495d458b1000d2c3126b1a5b0a1675f906fe27
         return res.status(403).json({ error: 'Access denied to this organization' });
       }
     }
@@ -109,13 +104,8 @@ router.get('/:id/members', async (req: Request, res: Response) => {
     const organization = (req as any).organization;
 
     // Check access
-<<<<<<< HEAD
-    if (user.role !== 'MasterAdmin' && user.role !== 'Admin') {
+    if (user.role !== 'MasterAdmin' && user.role !== 'Admin' && user.role !== 'ADMIN') {
       if (organization?.id !== id) {
-=======
-    if (req.user.role !== 'MasterAdmin' && req.user.role !== 'Admin' && req.user.role !== 'ADMIN') {
-      if (req.organization?.id !== id) {
->>>>>>> ef495d458b1000d2c3126b1a5b0a1675f906fe27
         return res.status(403).json({ error: 'Access denied' });
       }
     }

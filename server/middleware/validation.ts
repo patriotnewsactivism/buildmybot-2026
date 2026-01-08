@@ -35,6 +35,50 @@ export const OrganizationSchema = z.object({
   slug: z.string().min(1).max(100).regex(/^[a-z0-9-]+$/),
 });
 
+export const BotTemplateSchema = z.object({
+  name: z.string().min(1).max(255),
+  description: z.string().max(1000).optional(),
+  category: z.string().max(100).optional(),
+  industry: z.string().max(100).optional(),
+  systemPrompt: z.string().max(10000),
+  configuration: z.record(z.string(), z.unknown()).optional(),
+  isPublic: z.boolean().default(false),
+  isPremium: z.boolean().default(false),
+  priceCents: z.number().int().min(0).default(0),
+});
+
+export const AnalyticsEventSchema = z.object({
+  eventType: z.string().min(1).max(50),
+  eventData: z.record(z.string(), z.unknown()).optional(),
+  botId: z.string().optional(),
+  sessionId: z.string().optional(),
+});
+
+export const MemberSchema = z.object({
+  userId: z.string().min(1),
+  role: z.enum(['owner', 'admin', 'member', 'viewer']),
+  permissions: z.array(z.string()).default([]),
+});
+
+export const PartnerClientSchema = z.object({
+  clientId: z.string().min(1),
+  accessLevel: z.enum(['view', 'manage', 'full']).default('view'),
+  commissionRate: z.number().min(0).max(1).default(0),
+  canImpersonate: z.boolean().default(false),
+});
+
+export const PaginationSchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  sortBy: z.string().optional(),
+  sortOrder: z.enum(['asc', 'desc']).optional(),
+});
+
+export const DateRangeSchema = z.object({
+  startDate: z.coerce.date().optional(),
+  endDate: z.coerce.date().optional(),
+});
+
 // ========================================
 // VALIDATION MIDDLEWARE
 // ========================================
