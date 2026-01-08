@@ -1,4 +1,4 @@
-modules = ["nodejs-20", "web"]
+modules = ["nodejs-20", "web", "postgresql-16"]
 [agent]
 expertMode = true
 
@@ -49,3 +49,9 @@ externalPort = 3000
 deploymentTarget = "autoscale"
 run = ["npm", "run", "start"]
 build = ["npm", "run", "build"]
+
+[userenv]
+
+[userenv.shared]
+SUPABASE_URL = "https://qjwwkcoredotrjtstigt.supabase.co"
+SUPABASE_ANON_KEY = "sb_publishable_9pigFMhMUGbc0HOElh2rNw_UqYVU6ei"

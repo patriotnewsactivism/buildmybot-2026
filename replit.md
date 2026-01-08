@@ -52,7 +52,10 @@ BuildMyBot is an AI-powered chatbot builder platform that helps businesses autom
 - Production: `npm run build` then `npm run start`
 
 ### Environment Variables
-- `DATABASE_URL` - PostgreSQL connection string (auto-provided by Replit)
+- `SUPABASE_DATABASE_URL` - Supabase PostgreSQL connection string (primary database)
+- `SUPABASE_URL` - Supabase project URL
+- `SUPABASE_ANON_KEY` - Supabase publishable/anon key
+- `DATABASE_URL` - Fallback PostgreSQL connection string (auto-provided by Replit)
 - `APP_BASE_URL` - Base URL for Stripe redirects
 - `STRIPE_SECRET_KEY` - Stripe API secret key
 - `STRIPE_WEBHOOK_SECRET` - Stripe webhook signing secret
