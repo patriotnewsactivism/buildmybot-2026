@@ -82,6 +82,46 @@ The knowledge base system enables clients to build custom knowledge repositories
 - Relevance-based search with stopword filtering
 - Per-client knowledge isolation through tenant/organization context
 
+## Revenue Model Implementation
+
+### Billing Schema (`shared/billing-schema.ts`)
+Comprehensive billing foundation with 20+ tables:
+- **Plans & Subscriptions**: Tiered plans (Free, Starter, Professional, Enterprise) with Stripe integration
+- **Entitlements**: Feature-based access control with usage limits
+- **Usage Pools**: SMS, email, and storage credits with consumption tracking
+- **Voice Minutes**: Prepaid packages with auto-depletion
+- **API Keys**: Rate-limited developer access
+- **Services**: One-time professional services catalog
+- **Templates**: Premium marketplace with purchase history
+
+### Backend Services
+- **BillingService** (`server/services/BillingService.ts`): Plan management, subscriptions, entitlements
+- **WhitelabelService** (`server/services/WhitelabelService.ts`): Custom branding, domains, logos
+- **ApiKeyService** (`server/services/ApiKeyService.ts`): API key lifecycle, rate limiting
+
+### Revenue API (`server/routes/revenue.ts`)
+30+ endpoints organized under `/api/revenue`:
+- `/plans`, `/subscriptions`, `/entitlements`
+- `/voice-minutes`, `/usage-pools`, `/credits`
+- `/whitelabel`, `/api-keys`, `/services`
+
+### Revenue UI Components
+- **AdvancedAnalytics** (`components/Analytics/`): Detailed metrics and reporting
+- **LandingPageBuilder** (`components/LandingPages/`): Lead capture page creation
+- **ServiceCatalog** (`components/Services/`): Professional services ordering
+- **SupportTicketSystem** (`components/Support/`): Priority SLA-based support
+- **TemplateMarketplace** (`components/Marketplace/`): Premium template purchases
+- **VoiceMinutes** (`components/Billing/`): Voice package management
+- **UsageCredits** (`components/Billing/`): SMS/email/storage tracking
+- **WhiteLabelSettings** (`components/Settings/`): Custom branding configuration
+- **ApiKeyManager** (`components/Settings/`): Developer API access
+
+### Navigation Updates
+Sidebar includes: Analytics, Landing Pages, Pro Services, Support, and enhanced Billing & Usage
+
 ## Recent Changes
+- 2026-01-08: Complete revenue model with recurring subscriptions, one-time services, usage-based billing
+- 2026-01-08: Added 9 revenue-generating UI components with premium styling
+- 2026-01-08: Integrated all features into navigation with controlled component pattern
 - 2026-01-08: Implemented comprehensive knowledge base with website scraping, document OCR, and RAG integration
 - 2026-01-08: Initial Replit setup and configuration
