@@ -39,13 +39,25 @@ export const authenticate: RequestHandler = async (
       return res.status(401).json({ error: 'Authentication required' });
     }
 
-    const [user] = await db
+    // Try to find user by ID first, then by email if ID lookup fails
+    let [user] = await db
       .select()
       .from(users)
       .where(and(
         eq(users.id, userId as string),
         isNull(users.deletedAt)
       ));
+
+    // If not found by ID, try lookup by email (frontend may send email as userId)
+    if (!user) {
+      [user] = await db
+        .select()
+        .from(users)
+        .where(and(
+          eq(users.email, userId as string),
+          isNull(users.deletedAt)
+        ));
+    }
 
     if (!user) {
       return res.status(401).json({ error: 'Invalid user or user has been deleted' });

@@ -314,9 +314,12 @@ app.get('/api/bots/:id', ...apiAuthStack, async (req, res) => {
 
 app.post('/api/bots', ...apiAuthStack, async (req, res) => {
   try {
+    const user = (req as any).user;
     const botData = {
       ...req.body,
       id: req.body.id || uuidv4(),
+      userId: user?.id || req.body.userId,
+      organizationId: user?.organizationId || req.body.organizationId,
       createdAt: new Date(),
     };
     const [newBot] = await db.insert(bots).values(botData).returning();
@@ -329,9 +332,12 @@ app.post('/api/bots', ...apiAuthStack, async (req, res) => {
 
 app.put('/api/bots/:id', ...apiAuthStack, async (req, res) => {
   try {
+    const user = (req as any).user;
+    // Ensure user can only update their own bots or org bots
+    const { userId: _, organizationId: __, ...updateData } = req.body;
     const [updatedBot] = await db
       .update(bots)
-      .set(req.body)
+      .set({ ...updateData, updatedAt: new Date() })
       .where(eq(bots.id, req.params.id))
       .returning();
     res.json(updatedBot);
