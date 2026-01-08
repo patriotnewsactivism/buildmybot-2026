@@ -24,7 +24,7 @@ router.get('/metrics/:orgId', async (req: AuthRequest, res) => {
     const { startDate, endDate } = req.query;
 
     // Check access
-    if (req.user.role !== 'MasterAdmin' && req.user.role !== 'Admin') {
+    if (req.user.role !== 'MasterAdmin' && req.user.role !== 'Admin' && req.user.role !== 'ADMIN') {
       if (req.organization?.id !== orgId) {
         return res.status(403).json({ error: 'Access denied' });
       }
@@ -51,7 +51,7 @@ router.get('/performance/:orgId', async (req: AuthRequest, res) => {
     const { startDate, endDate } = req.query;
 
     // Check access
-    if (req.user.role !== 'MasterAdmin' && req.user.role !== 'Admin') {
+    if (req.user.role !== 'MasterAdmin' && req.user.role !== 'Admin' && req.user.role !== 'ADMIN') {
       if (req.organization?.id !== orgId) {
         return res.status(403).json({ error: 'Access denied' });
       }
@@ -78,7 +78,7 @@ router.get('/timeseries/:orgId', async (req: AuthRequest, res) => {
     const days = parseInt(req.query.days as string) || 30;
 
     // Check access
-    if (req.user.role !== 'MasterAdmin' && req.user.role !== 'Admin') {
+    if (req.user.role !== 'MasterAdmin' && req.user.role !== 'Admin' && req.user.role !== 'ADMIN') {
       if (req.organization?.id !== orgId) {
         return res.status(403).json({ error: 'Access denied' });
       }
@@ -102,7 +102,7 @@ router.get('/events/:orgId', async (req: AuthRequest, res) => {
     const { eventType, startDate, endDate, limit } = req.query;
 
     // Check access
-    if (req.user.role !== 'MasterAdmin' && req.user.role !== 'Admin') {
+    if (req.user.role !== 'MasterAdmin' && req.user.role !== 'Admin' && req.user.role !== 'ADMIN') {
       if (req.organization?.id !== orgId) {
         return res.status(403).json({ error: 'Access denied' });
       }

@@ -37,7 +37,8 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
 
   // Determine role and navigation
   const getRole = (): 'admin' | 'partner' | 'client' => {
-    if (user.role === UserRole.ADMIN) return 'admin';
+    const isAdmin = user.role === UserRole.ADMIN || user.role === UserRole.MASTER_ADMIN || user.role === UserRole.ADMIN_LEGACY;
+    if (isAdmin) return 'admin';
     if (user.role === UserRole.RESELLER) return 'partner';
     return 'client';
   };

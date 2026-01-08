@@ -2,6 +2,8 @@
 export enum UserRole {
   OWNER = 'OWNER',
   ADMIN = 'ADMIN',
+  ADMIN_LEGACY = 'Admin',
+  MASTER_ADMIN = 'MasterAdmin',
   RESELLER = 'RESELLER',
   CLIENT = 'CLIENT',
 }

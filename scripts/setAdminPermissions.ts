@@ -32,9 +32,13 @@ async function setAdminPermissions() {
 
   try {
     // Define the users and their roles
+    const masterAdminEmail = process.env.MASTER_ADMIN_EMAIL || 'mreardon@wtpnews.org';
+    const adminEmail = process.env.ADMIN_EMAIL || 'jadj19@gmail.com';
+    const masterAdminPlan = process.env.MASTER_ADMIN_PLAN || 'ENTERPRISE';
+    const adminPlan = process.env.ADMIN_PLAN || 'ENTERPRISE';
     const adminUsers = [
-      { email: 'mreardon@wtpnews.org', role: 'MasterAdmin', description: 'Master Admin' },
-      { email: 'jadj19@gmail.com', role: 'ADMIN', description: 'Admin' }
+      { email: masterAdminEmail, role: 'MasterAdmin', description: 'Master Admin', plan: masterAdminPlan },
+      { email: adminEmail, role: 'ADMIN', description: 'Admin', plan: adminPlan }
     ];
 
     console.log('Updating admin permissions for users:\n');
@@ -59,7 +63,7 @@ async function setAdminPermissions() {
             ${user.email},
             ${user.email.split('@')[0]},
             ${user.role},
-            'FREE',
+            ${user.plan},
             'Active',
             NOW()
           )
@@ -74,7 +78,9 @@ async function setAdminPermissions() {
         // Update the user's role
         await sql`
           UPDATE users
-          SET role = ${user.role}
+          SET role = ${user.role},
+              plan = ${user.plan},
+              status = 'Active'
           WHERE email = ${user.email}
         `;
 
@@ -87,7 +93,7 @@ async function setAdminPermissions() {
     const verifyResults = await sql`
       SELECT email, role, name, status, created_at
       FROM users
-      WHERE email IN ('mreardon@wtpnews.org', 'jadj19@gmail.com')
+      WHERE email = ANY(${adminUsers.map((user) => user.email)})
       ORDER BY email
     `;
 

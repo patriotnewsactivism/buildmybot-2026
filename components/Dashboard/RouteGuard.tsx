@@ -46,7 +46,7 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
 
   // Check role authorization
   const roleMap: Record<'admin' | 'partner' | 'client', UserRole[]> = {
-    admin: [UserRole.ADMIN],
+    admin: [UserRole.ADMIN, UserRole.MASTER_ADMIN, UserRole.ADMIN_LEGACY],
     partner: [UserRole.RESELLER],
     client: [UserRole.OWNER, UserRole.CLIENT],
   };

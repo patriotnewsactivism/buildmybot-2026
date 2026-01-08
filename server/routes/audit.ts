@@ -18,13 +18,13 @@ router.use(loadOrganizationContext);
 // GET /api/audit/organization/:orgId
 // Get audit logs for an organization
 // ========================================
-router.get('/organization/:orgId', authorize(['MasterAdmin', 'Admin', 'Partner']), async (req: AuthRequest, res) => {
+router.get('/organization/:orgId', authorize(['MasterAdmin', 'Admin', 'ADMIN', 'Partner']), async (req: AuthRequest, res) => {
   try {
     const { orgId } = req.params;
     const limit = parseInt(req.query.limit as string) || 100;
 
     // Check if user has access to this organization
-    if (req.user.role !== 'MasterAdmin' && req.user.role !== 'Admin') {
+    if (req.user.role !== 'MasterAdmin' && req.user.role !== 'Admin' && req.user.role !== 'ADMIN') {
       if (req.organization?.id !== orgId) {
         return res.status(403).json({ error: 'Access denied' });
       }
@@ -42,7 +42,7 @@ router.get('/organization/:orgId', authorize(['MasterAdmin', 'Admin', 'Partner']
 // GET /api/audit/user/:userId
 // Get audit logs for a specific user
 // ========================================
-router.get('/user/:userId', authorize(['MasterAdmin', 'Admin']), async (req: AuthRequest, res) => {
+router.get('/user/:userId', authorize(['MasterAdmin', 'Admin', 'ADMIN']), async (req: AuthRequest, res) => {
   try {
     const { userId } = req.params;
     const limit = parseInt(req.query.limit as string) || 100;

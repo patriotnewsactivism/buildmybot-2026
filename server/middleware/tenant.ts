@@ -42,7 +42,7 @@ export function verifyResourceOwnership(resourceType: string) {
       }
 
       // System admins can access all resources
-      if (req.user.role === 'MasterAdmin' || req.user.role === 'Admin') {
+      if (req.user.role === 'MasterAdmin' || req.user.role === 'Admin' || req.user.role === 'ADMIN') {
         return next();
       }
 
