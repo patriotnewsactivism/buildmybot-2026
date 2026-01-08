@@ -100,7 +100,7 @@ export const LeadsCRM: React.FC<LeadsCRMProps> = ({ leads, onUpdateLead }) => {
     <div 
       onDragOver={handleDragOver}
       onDrop={(e) => handleDrop(e, status)}
-      className="bg-slate-50 rounded-xl p-4 border border-slate-200 min-h-[500px] flex flex-col"
+      className="bg-slate-50 rounded-xl p-3 md:p-4 border border-slate-200 min-h-[200px] md:min-h-[500px] flex flex-col"
     >
       <div className={`flex justify-between items-center mb-4 pb-2 border-b-2 ${
          status === 'New' ? 'border-blue-500' : 
@@ -254,7 +254,7 @@ export const LeadsCRM: React.FC<LeadsCRMProps> = ({ leads, onUpdateLead }) => {
                   className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:ring-blue-900 focus:border-blue-900" 
                 />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 overflow-x-auto pb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 pb-4">
               {['New', 'Contacted', 'Qualified', 'Closed'].map(status => (
                 <KanbanColumn 
                   key={status} 
