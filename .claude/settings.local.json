@@ -38,7 +38,10 @@
       "Bash(curl:*)",
       "Bash(node test-db-connection.mjs:*)",
       "Bash(npm install:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(timeout 5 npx tsx:*)",
+      "Bash(npx kill-port:*)",
+      "Bash(npx kill-port 5001)"
     ]
   }
 }
