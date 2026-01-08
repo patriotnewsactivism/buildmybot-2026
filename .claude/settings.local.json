@@ -36,7 +36,9 @@
       "Bash(npm run db:seed:*)",
       "Bash(npm run seed:roles:*)",
       "Bash(curl:*)",
-      "Bash(node test-db-connection.mjs:*)"
+      "Bash(node test-db-connection.mjs:*)",
+      "Bash(npm install:*)",
+      "Bash(cat:*)"
     ]
   }
 }

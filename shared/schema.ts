@@ -229,6 +229,7 @@ export const users = pgTable('users', {
   id: text('id').primaryKey(),
   name: varchar('name', { length: 255 }).notNull(),
   email: varchar('email', { length: 255 }).notNull().unique(),
+  passwordHash: text('password_hash'),
   role: varchar('role', { length: 50 }).default('OWNER'),
   plan: varchar('plan', { length: 50 }).default('FREE'),
   companyName: varchar('company_name', { length: 255 }).default(''),

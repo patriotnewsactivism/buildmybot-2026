@@ -186,7 +186,7 @@ router.post('/signup', async (req: Request, res: Response) => {
 
 // POST /api/auth/logout - Logout
 router.post('/logout', (req: Request, res: Response) => {
-  req.session.destroy((err) => {
+  req.session.destroy((err: Error | null) => {
     if (err) {
       console.error('Logout error:', err);
       return res.status(500).json({ error: 'Logout failed' });

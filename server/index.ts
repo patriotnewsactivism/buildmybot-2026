@@ -14,9 +14,11 @@ if (fs.existsSync(envLocalPath)) {
 }
 
 import express from 'express';
+import session from 'express-session';
+import connectPgSimple from 'connect-pg-simple';
 import cors from 'cors';
 import { fileURLToPath } from 'url';
-import { db } from './db';
+import { db, pool } from './db';
 import { users, bots, leads, conversations, botDocuments } from '../shared/schema';
 import { eq, desc } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
@@ -26,7 +28,7 @@ import { stripeService } from './stripeService';
 import { PLANS, RESELLER_TIERS, WHITELABEL_FEE } from '../constants';
 import multer from 'multer';
 import { securityHeaders, apiLimiter, metricsMiddleware, authenticate, loadOrganizationContext, tenantIsolation, applyImpersonation, authorize } from './middleware';
-import { auditRouter, analyticsRouter, organizationsRouter, adminRouter, partnersRouter, clientsRouter, impersonationRouter, templatesRouter, channelsRouter, knowledgeRouter, revenueRouter, chatRouter } from './routes';
+import { auditRouter, analyticsRouter, organizationsRouter, adminRouter, partnersRouter, clientsRouter, impersonationRouter, templatesRouter, channelsRouter, knowledgeRouter, revenueRouter, chatRouter, authRouter } from './routes';
 
 const uploadsDir = path.join(process.cwd(), 'uploads');
 if (!fs.existsSync(uploadsDir)) {
@@ -84,7 +86,29 @@ function getBaseUrl() {
 // Stripe is configured via environment variables
 // Webhook endpoint is available at /api/stripe/webhook
 
-app.use(cors());
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
+
+// Configure session store with PostgreSQL
+const PgSession = connectPgSimple(session);
+app.use(session({
+  store: new PgSession({
+    pool: pool as any,
+    tableName: 'sessions',
+    createTableIfMissing: true,
+  }),
+  secret: process.env.SESSION_SECRET || 'buildmybot-dev-secret-change-in-production',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: isProduction,
+    httpOnly: true,
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    sameSite: isProduction ? 'strict' : 'lax',
+  },
+}));
 
 app.post(
   '/api/stripe/webhook',
@@ -705,6 +729,20 @@ app.delete('/api/documents/:docId', ...apiAuthStack, async (req, res) => {
     console.error('Error deleting document:', error);
     res.status(500).json({ error: 'Failed to delete document' });
   }
+});
+
+// ========================================
+// AUTHENTICATION ROUTES (no auth required)
+// ========================================
+app.use('/api/auth', authRouter);
+
+// Legacy routes for backwards compatibility
+app.get('/api/login', (req, res) => res.redirect('/?auth=login'));
+app.get('/api/logout', (req, res) => {
+  req.session.destroy(() => {
+    res.clearCookie('connect.sid');
+    res.redirect('/');
+  });
 });
 
 // ========================================

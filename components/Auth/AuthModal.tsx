@@ -24,14 +24,42 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultMo
     setError('');
 
     try {
-      if (onLoginSuccess) {
-        onLoginSuccess(email, email.split('@')[0], companyName);
+      const endpoint = mode === 'login' ? '/api/auth/login' : '/api/auth/signup';
+      const body = mode === 'login'
+        ? { email, password }
+        : { email, password, name: email.split('@')[0], companyName };
+
+      // Get referral code from localStorage
+      const referredBy = localStorage.getItem('bmb_ref_code');
+      if (referredBy && mode === 'signup') {
+        (body as any).referredBy = referredBy;
       }
-      onClose();
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(body),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Authentication failed');
+      }
+
+      // Clear referral code after successful signup
+      if (mode === 'signup' && referredBy) {
+        localStorage.removeItem('bmb_ref_code');
+      }
+
+      // Refresh the page to reload with session
+      window.location.reload();
     } catch (err: any) {
       console.error("Auth Error:", err);
       setError(err.message || "Authentication failed");
-    } finally {
       setLoading(false);
     }
   };
@@ -39,7 +67,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultMo
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative animate-fade-in">
-        <button 
+        <button
           onClick={onClose}
           className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition"
         >
@@ -54,8 +82,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultMo
             {mode === 'login' ? 'Welcome Back' : 'Start Building Free'}
           </h2>
           <p className="text-slate-500 mt-2 text-sm">
-            {mode === 'login' 
-              ? 'Log in to manage your AI workforce.' 
+            {mode === 'login'
+              ? 'Log in to manage your AI workforce.'
               : 'Join thousands of businesses automating with AI.'}
           </p>
         </div>
@@ -70,7 +98,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultMo
           {mode === 'signup' && (
              <div>
                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Company Name</label>
-               <input 
+               <input
                  type="text"
                  required
                  value={companyName}
@@ -85,7 +113,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultMo
             <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Email Address</label>
             <div className="relative">
               <Mail className="absolute left-3 top-3.5 text-slate-400" size={18} />
-              <input 
+              <input
                 type="email"
                 required
                 value={email}
@@ -100,18 +128,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultMo
             <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Password</label>
             <div className="relative">
               <Lock className="absolute left-3 top-3.5 text-slate-400" size={18} />
-              <input 
+              <input
                 type="password"
                 required
+                minLength={6}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-200 focus:ring-blue-900 focus:border-blue-900"
                 placeholder="••••••••"
               />
             </div>
+            {mode === 'signup' && (
+              <p className="text-xs text-slate-400 mt-1">Minimum 6 characters</p>
+            )}
           </div>
 
-          <button 
+          <button
             type="submit"
             disabled={loading}
             className="w-full bg-blue-900 text-white py-3.5 rounded-xl font-bold hover:bg-blue-950 transition shadow-lg shadow-blue-900/20 flex items-center justify-center gap-2 mt-2"
@@ -125,7 +157,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultMo
           </button>
 
           <div className="text-center pt-2">
-            <button 
+            <button
               type="button"
               onClick={() => {
                 setMode(mode === 'login' ? 'signup' : 'login');
@@ -133,8 +165,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultMo
               }}
               className="text-sm text-slate-500 hover:text-blue-900 font-medium"
             >
-              {mode === 'login' 
-                ? "Don't have an account? Sign up" 
+              {mode === 'login'
+                ? "Don't have an account? Sign up"
                 : "Already have an account? Log in"}
             </button>
           </div>

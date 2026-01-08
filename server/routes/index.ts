@@ -15,6 +15,7 @@ import channelsRouter from './channels';
 import knowledgeRouter from './knowledge';
 import revenueRouter from './revenue';
 import chatRouter from './chat';
+import { authRouter } from './auth';
 
 export {
   organizationsRouter,
@@ -29,4 +30,5 @@ export {
   knowledgeRouter,
   revenueRouter,
   chatRouter,
+  authRouter,
 };
