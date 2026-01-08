@@ -31,7 +31,12 @@
       "Bash(npm run migrate:data:*)",
       "Bash(taskkill:*)",
       "Bash(taskkill /PID 36256 /F)",
-      "Bash(powershell \"taskkill /PID 36292 /F; taskkill /PID 36220 /F; taskkill /PID 36256 /F; taskkill /PID 34948 /F; taskkill /PID 32932 /F\")"
+      "Bash(powershell \"taskkill /PID 36292 /F; taskkill /PID 36220 /F; taskkill /PID 36256 /F; taskkill /PID 34948 /F; taskkill /PID 32932 /F\")",
+      "Bash(Select-String \"DATABASE_URL\")",
+      "Bash(npm run db:seed:*)",
+      "Bash(npm run seed:roles:*)",
+      "Bash(curl:*)",
+      "Bash(node test-db-connection.mjs:*)"
     ]
   }
 }
