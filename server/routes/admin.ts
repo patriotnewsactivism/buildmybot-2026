@@ -268,21 +268,6 @@ router.get('/partners', async (_req, res) => {
   }
 });
 
-router.post('/partners/:id/approve', auditSensitiveAction('partners.approve'), async (req, res) => {
-  try {
-    const [updated] = await db
-      .update(users)
-      .set({ status: 'Active' })
-      .where(eq(users.id, req.params.id))
-      .returning();
-
-    res.json(updated);
-  } catch (error) {
-    console.error('Partner approve error:', error);
-    res.status(500).json({ error: 'Failed to approve partner' });
-  }
-});
-
 router.get('/partners/leaderboard', async (_req, res) => {
   try {
     const partners = await db
@@ -310,6 +295,21 @@ router.get('/partners/leaderboard', async (_req, res) => {
   } catch (error) {
     console.error('Leaderboard error:', error);
     res.status(500).json({ error: 'Failed to load leaderboard' });
+  }
+});
+
+router.post('/partners/:id/approve', auditSensitiveAction('partners.approve'), async (req, res) => {
+  try {
+    const [updated] = await db
+      .update(users)
+      .set({ status: 'Active' })
+      .where(eq(users.id, req.params.id))
+      .returning();
+
+    res.json(updated);
+  } catch (error) {
+    console.error('Partner approve error:', error);
+    res.status(500).json({ error: 'Failed to approve partner' });
   }
 });
 
