@@ -6,6 +6,7 @@ import { eq, and, isNull } from 'drizzle-orm';
 // ========================================
 // EXTENDED REQUEST INTERFACE
 // ========================================
+<<<<<<< HEAD
 
 export interface AuthRequest extends Request {
   user?: any;
@@ -19,6 +20,11 @@ export interface AuthRequest extends Request {
   permissions?: string[];
   session?: any;
 }
+=======
+// Note: The Request interface is extended globally in server/types/express.d.ts
+// This type alias maintains backward compatibility
+export type AuthRequest = Request;
+>>>>>>> ef495d458b1000d2c3126b1a5b0a1675f906fe27
 
 // ========================================
 // AUTHENTICATION MIDDLEWARE

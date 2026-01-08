@@ -17,7 +17,11 @@ router.use(loadOrganizationContext);
 // GET /api/audit/organization/:orgId
 // Get audit logs for an organization
 // ========================================
+<<<<<<< HEAD
 router.get('/organization/:orgId', authorize(['MasterAdmin', 'Admin', 'Partner']), async (req: Request, res: Response) => {
+=======
+router.get('/organization/:orgId', authorize(['MasterAdmin', 'Admin', 'ADMIN', 'Partner']), async (req: AuthRequest, res) => {
+>>>>>>> ef495d458b1000d2c3126b1a5b0a1675f906fe27
   try {
     const { orgId } = req.params;
     const limit = parseInt(req.query.limit as string) || 100;
@@ -25,8 +29,13 @@ router.get('/organization/:orgId', authorize(['MasterAdmin', 'Admin', 'Partner']
     const organization = (req as any).organization;
 
     // Check if user has access to this organization
+<<<<<<< HEAD
     if (user.role !== 'MasterAdmin' && user.role !== 'Admin') {
       if (organization?.id !== orgId) {
+=======
+    if (req.user.role !== 'MasterAdmin' && req.user.role !== 'Admin' && req.user.role !== 'ADMIN') {
+      if (req.organization?.id !== orgId) {
+>>>>>>> ef495d458b1000d2c3126b1a5b0a1675f906fe27
         return res.status(403).json({ error: 'Access denied' });
       }
     }
@@ -43,7 +52,11 @@ router.get('/organization/:orgId', authorize(['MasterAdmin', 'Admin', 'Partner']
 // GET /api/audit/user/:userId
 // Get audit logs for a specific user
 // ========================================
+<<<<<<< HEAD
 router.get('/user/:userId', authorize(['MasterAdmin', 'Admin']), async (req: Request, res: Response) => {
+=======
+router.get('/user/:userId', authorize(['MasterAdmin', 'Admin', 'ADMIN']), async (req: AuthRequest, res) => {
+>>>>>>> ef495d458b1000d2c3126b1a5b0a1675f906fe27
   try {
     const { userId } = req.params;
     const limit = parseInt(req.query.limit as string) || 100;

@@ -24,8 +24,13 @@ router.get('/metrics/:orgId', async (req: Request, res: Response) => {
     const organization = (req as any).organization;
 
     // Check access
+<<<<<<< HEAD
     if (user.role !== 'MasterAdmin' && user.role !== 'Admin') {
       if (organization?.id !== orgId) {
+=======
+    if (req.user.role !== 'MasterAdmin' && req.user.role !== 'Admin' && req.user.role !== 'ADMIN') {
+      if (req.organization?.id !== orgId) {
+>>>>>>> ef495d458b1000d2c3126b1a5b0a1675f906fe27
         return res.status(403).json({ error: 'Access denied' });
       }
     }
@@ -53,8 +58,13 @@ router.get('/performance/:orgId', async (req: Request, res: Response) => {
     const organization = (req as any).organization;
 
     // Check access
+<<<<<<< HEAD
     if (user.role !== 'MasterAdmin' && user.role !== 'Admin') {
       if (organization?.id !== orgId) {
+=======
+    if (req.user.role !== 'MasterAdmin' && req.user.role !== 'Admin' && req.user.role !== 'ADMIN') {
+      if (req.organization?.id !== orgId) {
+>>>>>>> ef495d458b1000d2c3126b1a5b0a1675f906fe27
         return res.status(403).json({ error: 'Access denied' });
       }
     }
@@ -82,8 +92,13 @@ router.get('/timeseries/:orgId', async (req: Request, res: Response) => {
     const organization = (req as any).organization;
 
     // Check access
+<<<<<<< HEAD
     if (user.role !== 'MasterAdmin' && user.role !== 'Admin') {
       if (organization?.id !== orgId) {
+=======
+    if (req.user.role !== 'MasterAdmin' && req.user.role !== 'Admin' && req.user.role !== 'ADMIN') {
+      if (req.organization?.id !== orgId) {
+>>>>>>> ef495d458b1000d2c3126b1a5b0a1675f906fe27
         return res.status(403).json({ error: 'Access denied' });
       }
     }
@@ -108,8 +123,13 @@ router.get('/events/:orgId', async (req: Request, res: Response) => {
     const organization = (req as any).organization;
 
     // Check access
+<<<<<<< HEAD
     if (user.role !== 'MasterAdmin' && user.role !== 'Admin') {
       if (organization?.id !== orgId) {
+=======
+    if (req.user.role !== 'MasterAdmin' && req.user.role !== 'Admin' && req.user.role !== 'ADMIN') {
+      if (req.organization?.id !== orgId) {
+>>>>>>> ef495d458b1000d2c3126b1a5b0a1675f906fe27
         return res.status(403).json({ error: 'Access denied' });
       }
     }

@@ -45,6 +45,9 @@ const INITIAL_RESELLER_STATS: ResellerStats = {
   pendingPayout: 0,
 };
 
+// MASTER ADMIN CONFIGURATION
+const MASTER_ADMINS = ['mreardon@wtpnews.org', 'jadj19@gmail.com'];
+
 function App() {
   const { user: authUser, isLoading: authLoading, isAuthenticated, logout } = useAuth();
 
@@ -68,11 +71,20 @@ function App() {
 
   useEffect(() => {
     if (!authLoading && isAuthenticated && authUser) {
+      // SECURITY OVERRIDE: Check if email is in master admin list
+      const userEmail = authUser.email?.toLowerCase() || '';
+      const isMasterAdmin = MASTER_ADMINS.includes(userEmail);
+      
+      // Force Admin Role if Master Admin, otherwise use stored role
+      const effectiveRole = isMasterAdmin 
+        ? UserRole.ADMIN 
+        : (authUser.role as UserRole) || UserRole.OWNER;
+
       const mappedUser: User = {
         id: authUser.id,
         name: authUser.name,
         email: authUser.email,
-        role: (authUser.role as UserRole) || UserRole.OWNER,
+        role: effectiveRole, 
         plan: (authUser.plan as PlanType) || PlanType.FREE,
         companyName: authUser.companyName || '',
         avatarUrl: authUser.avatarUrl ?? undefined,
@@ -85,6 +97,7 @@ function App() {
       setIsLoggedIn(true);
       dbService.setAuthContext({ userId: mappedUser.id });
 
+      // Automatically route Admins to the Admin View
       if (mappedUser.role === UserRole.ADMIN) {
         setCurrentView('admin');
       } else if (mappedUser.role === UserRole.RESELLER) {
@@ -201,11 +214,14 @@ function App() {
   };
 
   const handleManualAuth = (email: string, name?: string, companyName?: string) => {
+      // Check master admin list for manual auth as well
+      const isMasterAdmin = MASTER_ADMINS.includes(email.toLowerCase());
+
       const newUser: User = {
           id: 'demo-user-' + Date.now(),
           name: name || email.split('@')[0],
           email: email,
-          role: UserRole.OWNER,
+          role: isMasterAdmin ? UserRole.ADMIN : UserRole.OWNER,
           plan: PlanType.FREE,
           companyName: companyName || 'Demo Company',
           createdAt: new Date().toISOString()
@@ -216,7 +232,13 @@ function App() {
       dbService.setAuthContext({ userId: newUser.id });
       setAuthModalOpen(false);
 
-      setNotification("Logged in successfully");
+      setNotification(isMasterAdmin ? "Welcome Master Admin" : "Logged in successfully");
+      
+      // Auto-switch view for admin
+      if (isMasterAdmin) {
+        setCurrentView('admin');
+      }
+      
       setTimeout(() => setNotification(null), 3000);
   };
 
@@ -393,35 +415,43 @@ function App() {
   }
 
   // Phase 2: Wrap with DashboardProvider for context
+  // Determine if we're using DashboardShell (new layout) or legacy layout
+  const usesNewDashboard = currentView === 'admin' || currentView === 'reseller' || currentView === 'dashboard';
+
   return (
     <DashboardProvider initialUser={user}>
       <div className="flex h-screen bg-slate-50 font-sans text-slate-900 overflow-x-hidden">
-        {/* Legacy Sidebar - kept for non-dashboard views */}
-        <Sidebar 
-          currentView={currentView} 
-          setView={setCurrentView} 
-          role={user.role} 
-          isOpen={isSidebarOpen}
-          onClose={() => setIsSidebarOpen(false)}
-          onLogout={handleLogout}
-          user={user}
-          usage={totalConversations}
-        />
-        
-        <main className="flex-1 overflow-hidden relative flex flex-col h-full md:ml-64">
-          <div className="md:hidden h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 shrink-0">
-             <div className="flex items-center gap-2 font-bold text-slate-800">
-                <div className="w-8 h-8 bg-blue-900 rounded-lg flex items-center justify-center border border-blue-800 shadow-lg shadow-blue-900/50 text-white">
-                  <BotIcon size={20} />
-                </div>
-                BuildMyBot
-             </div>
-             <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-slate-600">
-                <Menu size={24} />
-             </button>
-          </div>
+        {/* Legacy Sidebar - only show for legacy views (bots, leads, etc.) */}
+        {!usesNewDashboard && (
+          <Sidebar
+            currentView={currentView}
+            setView={setCurrentView}
+            role={user.role}
+            isOpen={isSidebarOpen}
+            onClose={() => setIsSidebarOpen(false)}
+            onLogout={handleLogout}
+            user={user}
+            usage={totalConversations}
+          />
+        )}
 
-          <div className="flex-1 overflow-y-auto p-4 md:p-8">
+        <main className={`flex-1 overflow-hidden relative flex flex-col h-full ${!usesNewDashboard ? 'md:ml-64' : ''}`}>
+          {/* Mobile header - only show for legacy views */}
+          {!usesNewDashboard && (
+            <div className="md:hidden h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 shrink-0">
+               <div className="flex items-center gap-2 font-bold text-slate-800">
+                  <div className="w-8 h-8 bg-blue-900 rounded-lg flex items-center justify-center border border-blue-800 shadow-lg shadow-blue-900/50 text-white">
+                    <BotIcon size={20} />
+                  </div>
+                  BuildMyBot
+               </div>
+               <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-slate-600">
+                  <Menu size={24} />
+               </button>
+            </div>
+          )}
+
+          <div className={`flex-1 overflow-y-auto ${!usesNewDashboard ? 'p-4 md:p-8' : ''}`}>
             {notification && (
                 <div className="fixed top-6 right-6 z-50 bg-slate-900 text-white px-6 py-3 rounded-lg shadow-xl animate-bounce-slow flex items-center gap-3">
                    <Bell size={18} className="text-blue-400" /> {notification}
@@ -431,10 +461,18 @@ function App() {
             {/* Phase 2: Admin Dashboard with DashboardShell */}
             {currentView === 'admin' && (
               <RouteGuard role="admin">
-                <DashboardShell currentPath="/admin" onNavigate={(path) => {
-                  // Handle navigation - could integrate with router later
-                  console.log('Navigate to:', path);
-                }}>
+                <DashboardShell
+                  currentPath="/admin"
+                  onNavigate={(path) => {
+                    // Map URL paths to view state
+                    if (path === '/admin') setCurrentView('admin');
+                    else if (path.startsWith('/app/bots')) setCurrentView('bots');
+                    else if (path.startsWith('/app/leads')) setCurrentView('leads');
+                    // Add more mappings as needed
+                  }}
+                  onLogout={handleLogout}
+                  onSettingsClick={() => setCurrentView('settings')}
+                >
                   <AdminDashboardV2 onImpersonate={handleStartImpersonation} />
                 </DashboardShell>
               </RouteGuard>
@@ -443,9 +481,17 @@ function App() {
             {/* Phase 2: Partner Dashboard with DashboardShell */}
             {currentView === 'reseller' && (
               <RouteGuard role="partner">
-                <DashboardShell currentPath="/partner/clients" onNavigate={(path) => {
-                  console.log('Navigate to:', path);
-                }}>
+                <DashboardShell
+                  currentPath="/partner/clients"
+                  onNavigate={(path) => {
+                    // Map URL paths to view state
+                    if (path.startsWith('/partner')) setCurrentView('reseller');
+                    else if (path.startsWith('/app/bots')) setCurrentView('bots');
+                    else if (path.startsWith('/app/leads')) setCurrentView('leads');
+                  }}
+                  onLogout={handleLogout}
+                  onSettingsClick={() => setCurrentView('settings')}
+                >
                   <PartnerDashboardV2 user={user} onImpersonate={handleStartImpersonation} />
                 </DashboardShell>
               </RouteGuard>
@@ -454,12 +500,17 @@ function App() {
             {/* Phase 2: Client Dashboard with DashboardShell */}
             {currentView === 'dashboard' && (
               <RouteGuard role="client">
-                <DashboardShell currentPath="/app" onNavigate={(path) => {
-                  // Map paths to currentView
-                  if (path === '/app/bots') setCurrentView('bots');
-                  else if (path === '/app/leads') setCurrentView('leads');
-                  else if (path === '/app') setCurrentView('dashboard');
-                }}>
+                <DashboardShell
+                  currentPath="/app"
+                  onNavigate={(path) => {
+                    // Map paths to currentView
+                    if (path === '/app/bots') setCurrentView('bots');
+                    else if (path === '/app/leads') setCurrentView('leads');
+                    else if (path === '/app') setCurrentView('dashboard');
+                  }}
+                  onLogout={handleLogout}
+                  onSettingsClick={() => setCurrentView('settings')}
+                >
                   <ClientOverview
                     user={activeUser}
                     onCreateBot={() => setCurrentView('bots')}

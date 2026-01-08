@@ -13,10 +13,10 @@ interface RouteGuardProps {
   requireOrganization?: boolean;
 }
 
-export const RouteGuard: React.FC<RouteGuardProps> = ({ 
-  role, 
-  children, 
-  requireOrganization = true 
+export const RouteGuard: React.FC<RouteGuardProps> = ({
+  role,
+  children,
+  requireOrganization = false
 }) => {
   const { user, organizationId } = useDashboardContext();
 
@@ -32,8 +32,8 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
     );
   }
 
-  // Check organization membership
-  if (requireOrganization && !organizationId) {
+  // Check organization membership (exempt MASTER_ADMIN users)
+  if (requireOrganization && !organizationId && user.role !== UserRole.MASTER_ADMIN) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -46,7 +46,7 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
 
   // Check role authorization
   const roleMap: Record<'admin' | 'partner' | 'client', UserRole[]> = {
-    admin: [UserRole.ADMIN],
+    admin: [UserRole.ADMIN, UserRole.MASTER_ADMIN, UserRole.ADMIN_LEGACY],
     partner: [UserRole.RESELLER],
     client: [UserRole.OWNER, UserRole.CLIENT],
   };

@@ -21,12 +21,16 @@ interface DashboardShellProps {
   children: React.ReactNode;
   currentPath?: string;
   onNavigate?: (path: string) => void;
+  onLogout?: () => void;
+  onSettingsClick?: () => void;
 }
 
-export const DashboardShell: React.FC<DashboardShellProps> = ({ 
-  children, 
+export const DashboardShell: React.FC<DashboardShellProps> = ({
+  children,
   currentPath = '/',
-  onNavigate 
+  onNavigate,
+  onLogout,
+  onSettingsClick
 }) => {
   const { user, isImpersonating, impersonatedUser, exitImpersonation } = useDashboardContext();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -37,7 +41,8 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
 
   // Determine role and navigation
   const getRole = (): 'admin' | 'partner' | 'client' => {
-    if (user.role === UserRole.ADMIN) return 'admin';
+    const isAdmin = user.role === UserRole.ADMIN || user.role === UserRole.MASTER_ADMIN || user.role === UserRole.ADMIN_LEGACY;
+    if (isAdmin) return 'admin';
     if (user.role === UserRole.RESELLER) return 'partner';
     return 'client';
   };
@@ -97,12 +102,36 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
 
             {/* Right side actions */}
             <div className="flex items-center gap-4">
-              <button className="p-2 rounded-md text-slate-600 hover:bg-slate-100 relative">
+              <button
+                className="p-2 rounded-md text-slate-600 hover:bg-slate-100 relative"
+                onClick={() => {
+                  // TODO: Implement notifications panel
+                  console.log('Notifications clicked');
+                }}
+              >
                 <Bell size={20} />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
               </button>
-              <button className="p-2 rounded-md text-slate-600 hover:bg-slate-100">
+              <button
+                className="p-2 rounded-md text-slate-600 hover:bg-slate-100"
+                onClick={() => {
+                  if (onSettingsClick) {
+                    onSettingsClick();
+                  }
+                }}
+              >
                 <Settings size={20} />
+              </button>
+              <button
+                className="p-2 rounded-md text-slate-600 hover:bg-slate-100"
+                onClick={() => {
+                  if (onLogout) {
+                    onLogout();
+                  }
+                }}
+                title="Logout"
+              >
+                <LogOut size={20} />
               </button>
               <div className="flex items-center gap-2">
                 {user.avatarUrl ? (
