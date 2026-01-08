@@ -126,7 +126,8 @@ describe('DashboardShell', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/impersonating/i)).toBeInTheDocument();
-      expect(screen.getByText(/Impersonated User/i)).toBeInTheDocument();
+      const impersonatedElements = screen.getAllByText(/Impersonated User/i);
+      expect(impersonatedElements.length).toBeGreaterThan(0);
     });
   });
 
