@@ -8,7 +8,7 @@ import { useDashboardContext } from '../../hooks/useDashboardContext';
 import { UserRole } from '../../types';
 
 interface RouteGuardProps {
-  role: 'admin' | 'partner' | 'client';
+  role: 'admin' | 'partner' | 'reseller' | 'client' | 'owner';
   children: React.ReactNode;
   requireOrganization?: boolean;
 }
@@ -45,10 +45,12 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
   }
 
   // Check role authorization
-  const roleMap: Record<'admin' | 'partner' | 'client', UserRole[]> = {
+  const roleMap: Record<'admin' | 'partner' | 'reseller' | 'client' | 'owner', UserRole[]> = {
     admin: [UserRole.ADMIN, UserRole.MASTER_ADMIN, UserRole.ADMIN_LEGACY],
     partner: [UserRole.RESELLER],
-    client: [UserRole.OWNER, UserRole.CLIENT],
+    reseller: [UserRole.RESELLER],
+    client: [UserRole.CLIENT],
+    owner: [UserRole.OWNER, UserRole.CLIENT],
   };
 
   const allowedRoles = roleMap[role];

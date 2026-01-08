@@ -419,7 +419,7 @@ function App() {
 
   // Phase 2: Wrap with DashboardProvider for context
   // Determine if we're using DashboardShell (new layout) or legacy layout
-  const usesNewDashboard = currentView === 'admin' || currentView === 'reseller' || currentView === 'dashboard';
+  const usesNewDashboard = currentView === 'admin' || currentView === 'reseller' || currentView === 'dashboard' || currentView === 'client';
 
   return (
     <DashboardProvider initialUser={user}>
@@ -500,9 +500,9 @@ function App() {
               </RouteGuard>
             )}
 
-            {/* Phase 2: Client Dashboard with DashboardShell */}
+            {/* Phase 2: Owner Dashboard with DashboardShell (regular business owners) */}
             {currentView === 'dashboard' && (
-              <RouteGuard role="client">
+              <RouteGuard role="owner">
                 <DashboardShell
                   currentPath="/app"
                   onNavigate={(path) => {
@@ -510,6 +510,29 @@ function App() {
                     if (path === '/app/bots') setCurrentView('bots');
                     else if (path === '/app/leads') setCurrentView('leads');
                     else if (path === '/app') setCurrentView('dashboard');
+                  }}
+                  onLogout={handleLogout}
+                  onSettingsClick={() => setCurrentView('settings')}
+                >
+                  <ClientOverview
+                    user={activeUser}
+                    onCreateBot={() => setCurrentView('bots')}
+                    onOpenLeads={() => setCurrentView('leads')}
+                  />
+                </DashboardShell>
+              </RouteGuard>
+            )}
+
+            {/* Phase 2: Client Dashboard with DashboardShell (CLIENT role - managed by resellers) */}
+            {currentView === 'client' && (
+              <RouteGuard role="client">
+                <DashboardShell
+                  currentPath="/client"
+                  onNavigate={(path) => {
+                    // Map paths to currentView
+                    if (path === '/client/bots') setCurrentView('bots');
+                    else if (path === '/client/leads') setCurrentView('leads');
+                    else if (path === '/client') setCurrentView('client');
                   }}
                   onLogout={handleLogout}
                   onSettingsClick={() => setCurrentView('settings')}

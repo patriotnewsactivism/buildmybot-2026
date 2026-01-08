@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import { useDashboardContext } from '../../hooks/useDashboardContext';
-import { DASHBOARD_NAV, NavItem } from './dashboardNav';
+import { DASHBOARD_NAV, NavItem, DashboardRole } from './dashboardNav';
 import { UserRole } from '../../types';
 import { 
   Menu, 
@@ -40,11 +40,12 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
   }
 
   // Determine role and navigation
-  const getRole = (): 'admin' | 'partner' | 'client' => {
+  const getRole = (): DashboardRole => {
     const isAdmin = user.role === UserRole.ADMIN || user.role === UserRole.MASTER_ADMIN || user.role === UserRole.ADMIN_LEGACY;
     if (isAdmin) return 'admin';
-    if (user.role === UserRole.RESELLER) return 'partner';
-    return 'client';
+    if (user.role === UserRole.RESELLER) return 'reseller';
+    if (user.role === UserRole.CLIENT) return 'client';
+    return 'owner';
   };
 
   const role = getRole();

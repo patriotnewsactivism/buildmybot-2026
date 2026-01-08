@@ -11,7 +11,9 @@ export interface NavItem {
   permissions?: string[];
 }
 
-export const DASHBOARD_NAV: Record<'admin' | 'partner' | 'client', NavItem[]> = {
+export type DashboardRole = 'admin' | 'partner' | 'reseller' | 'client' | 'owner';
+
+export const DASHBOARD_NAV: Record<DashboardRole, NavItem[]> = {
   admin: [
     { id: 'overview', label: 'Overview', href: '/admin' },
     { id: 'users', label: 'Users', href: '/admin/users' },
@@ -29,7 +31,21 @@ export const DASHBOARD_NAV: Record<'admin' | 'partner' | 'client', NavItem[]> = 
     { id: 'analytics', label: 'Analytics', href: '/partner/analytics' },
     { id: 'collaboration', label: 'Collaboration', href: '/partner/collaboration' },
   ],
+  reseller: [
+    { id: 'clients', label: 'Clients', href: '/partner/clients' },
+    { id: 'commissions', label: 'Earnings', href: '/partner/commissions' },
+    { id: 'marketing', label: 'Marketing', href: '/partner/marketing' },
+    { id: 'analytics', label: 'Analytics', href: '/partner/analytics' },
+    { id: 'collaboration', label: 'Collaboration', href: '/partner/collaboration' },
+  ],
   client: [
+    { id: 'home', label: 'Dashboard', href: '/client' },
+    { id: 'bots', label: 'My Bots', href: '/client/bots' },
+    { id: 'leads', label: 'Leads', href: '/client/leads' },
+    { id: 'analytics', label: 'Analytics', href: '/client/analytics' },
+    { id: 'help', label: 'Help', href: '/client/help' },
+  ],
+  owner: [
     { id: 'home', label: 'Dashboard', href: '/app' },
     { id: 'bots', label: 'Bots', href: '/app/bots' },
     { id: 'leads', label: 'Leads', href: '/app/leads' },
