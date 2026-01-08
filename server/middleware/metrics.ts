@@ -1,8 +1,7 @@
-import { Response, NextFunction } from 'express';
-import { AuthRequest } from './auth';
+import { Request, Response, NextFunction } from 'express';
 import { systemMetricsService } from '../services/SystemMetricsService';
 
-export function metricsMiddleware(req: AuthRequest, res: Response, next: NextFunction) {
+export function metricsMiddleware(req: Request, res: Response, next: NextFunction): void {
   const start = Date.now();
 
   res.on('finish', () => {
@@ -10,7 +9,7 @@ export function metricsMiddleware(req: AuthRequest, res: Response, next: NextFun
       timestamp: Date.now(),
       status: res.statusCode,
       durationMs: Date.now() - start,
-      userId: req.user?.id ?? req.actor?.id,
+      userId: (req as any).user?.id ?? (req as any).actor?.id,
     });
   });
 

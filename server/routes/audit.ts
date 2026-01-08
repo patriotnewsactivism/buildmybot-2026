@@ -1,10 +1,9 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { AuditService } from '../services';
 import {
   authenticate,
   authorize,
   loadOrganizationContext,
-  AuthRequest,
 } from '../middleware';
 
 const router = Router();
@@ -18,14 +17,16 @@ router.use(loadOrganizationContext);
 // GET /api/audit/organization/:orgId
 // Get audit logs for an organization
 // ========================================
-router.get('/organization/:orgId', authorize(['MasterAdmin', 'Admin', 'Partner']), async (req: AuthRequest, res) => {
+router.get('/organization/:orgId', authorize(['MasterAdmin', 'Admin', 'Partner']), async (req: Request, res: Response) => {
   try {
     const { orgId } = req.params;
     const limit = parseInt(req.query.limit as string) || 100;
+    const user = (req as any).user;
+    const organization = (req as any).organization;
 
     // Check if user has access to this organization
-    if (req.user.role !== 'MasterAdmin' && req.user.role !== 'Admin') {
-      if (req.organization?.id !== orgId) {
+    if (user.role !== 'MasterAdmin' && user.role !== 'Admin') {
+      if (organization?.id !== orgId) {
         return res.status(403).json({ error: 'Access denied' });
       }
     }
@@ -42,7 +43,7 @@ router.get('/organization/:orgId', authorize(['MasterAdmin', 'Admin', 'Partner']
 // GET /api/audit/user/:userId
 // Get audit logs for a specific user
 // ========================================
-router.get('/user/:userId', authorize(['MasterAdmin', 'Admin']), async (req: AuthRequest, res) => {
+router.get('/user/:userId', authorize(['MasterAdmin', 'Admin']), async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
     const limit = parseInt(req.query.limit as string) || 100;
@@ -59,7 +60,7 @@ router.get('/user/:userId', authorize(['MasterAdmin', 'Admin']), async (req: Aut
 // GET /api/audit/resource/:resourceType/:resourceId
 // Get audit logs for a specific resource
 // ========================================
-router.get('/resource/:resourceType/:resourceId', async (req: AuthRequest, res) => {
+router.get('/resource/:resourceType/:resourceId', async (req: Request, res: Response) => {
   try {
     const { resourceType, resourceId } = req.params;
     const limit = parseInt(req.query.limit as string) || 50;

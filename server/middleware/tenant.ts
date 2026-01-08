@@ -1,18 +1,19 @@
-import { Request, Response, NextFunction } from 'express';
-import { AuthRequest } from './auth';
+import { Request, Response, NextFunction, RequestHandler } from 'express';
 
 // ========================================
 // TENANT ISOLATION MIDDLEWARE
 // ========================================
 
-export function tenantIsolation() {
-  return async (req: AuthRequest, res: Response, next: NextFunction) => {
+export function tenantIsolation(): RequestHandler {
+  return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      if (!req.user) {
+      const user = (req as any).user;
+      if (!user) {
         return res.status(401).json({ error: 'Authentication required for tenant isolation' });
       }
 
-      if (!req.organization) {
+      const organization = (req as any).organization;
+      if (!organization) {
         // User doesn't belong to an organization yet
         // This is okay for initial setup
         return next();
@@ -20,7 +21,7 @@ export function tenantIsolation() {
 
       // Add organization context to all queries
       // This will be used by service layer to filter data
-      req.query.organizationId = req.organization.id;
+      req.query.organizationId = organization.id;
 
       next();
     } catch (error) {
@@ -34,15 +35,16 @@ export function tenantIsolation() {
 // VERIFY RESOURCE OWNERSHIP
 // ========================================
 
-export function verifyResourceOwnership(resourceType: string) {
-  return async (req: AuthRequest, res: Response, next: NextFunction) => {
+export function verifyResourceOwnership(resourceType: string): RequestHandler {
+  return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      if (!req.user) {
+      const user = (req as any).user;
+      if (!user) {
         return res.status(401).json({ error: 'Authentication required' });
       }
 
       // System admins can access all resources
-      if (req.user.role === 'MasterAdmin' || req.user.role === 'Admin') {
+      if (user.role === 'MasterAdmin' || user.role === 'Admin') {
         return next();
       }
 

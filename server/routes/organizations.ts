@@ -1,13 +1,11 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { OrganizationService } from '../services';
 import {
   authenticate,
-  authorize,
   loadOrganizationContext,
   validateRequest,
   OrganizationSchema,
   auditSensitiveAction,
-  AuthRequest,
 } from '../middleware';
 import { z } from 'zod';
 
@@ -22,9 +20,11 @@ router.use(loadOrganizationContext);
 // GET /api/organizations/:id
 // Get organization details
 // ========================================
-router.get('/:id', async (req: AuthRequest, res) => {
+router.get('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    const user = (req as any).user;
+    const organization = (req as any).organization;
 
     const org = await orgService.getOrganization(id);
 
@@ -33,8 +33,8 @@ router.get('/:id', async (req: AuthRequest, res) => {
     }
 
     // Check if user has access to this organization
-    if (req.user.role !== 'MasterAdmin' && req.user.role !== 'Admin') {
-      if (req.organization?.id !== id) {
+    if (user.role !== 'MasterAdmin' && user.role !== 'Admin') {
+      if (organization?.id !== id) {
         return res.status(403).json({ error: 'Access denied to this organization' });
       }
     }
@@ -54,13 +54,14 @@ router.post(
   '/',
   validateRequest(OrganizationSchema),
   auditSensitiveAction('create_organization'),
-  async (req: AuthRequest, res) => {
+  async (req: Request, res: Response) => {
     try {
       const orgData = req.body;
+      const user = (req as any).user;
 
       const newOrg = await orgService.createOrganization(
         orgData,
-        req.user.id
+        user.id
       );
 
       res.status(201).json(newOrg);
@@ -75,7 +76,7 @@ router.post(
 // GET /api/organizations/slug/:slug
 // Get organization by slug
 // ========================================
-router.get('/slug/:slug', async (req: AuthRequest, res) => {
+router.get('/slug/:slug', async (req: Request, res: Response) => {
   try {
     const { slug } = req.params;
 
@@ -96,13 +97,15 @@ router.get('/slug/:slug', async (req: AuthRequest, res) => {
 // GET /api/organizations/:id/members
 // Get organization members
 // ========================================
-router.get('/:id/members', async (req: AuthRequest, res) => {
+router.get('/:id/members', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    const user = (req as any).user;
+    const organization = (req as any).organization;
 
     // Check access
-    if (req.user.role !== 'MasterAdmin' && req.user.role !== 'Admin') {
-      if (req.organization?.id !== id) {
+    if (user.role !== 'MasterAdmin' && user.role !== 'Admin') {
+      if (organization?.id !== id) {
         return res.status(403).json({ error: 'Access denied' });
       }
     }
@@ -129,13 +132,15 @@ router.post(
   '/:id/members',
   validateRequest(addMemberSchema),
   auditSensitiveAction('add_organization_member'),
-  async (req: AuthRequest, res) => {
+  async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       const { userId, role, permissions } = req.body;
+      const user = (req as any).user;
+      const organization = (req as any).organization;
 
       // Check if user is owner or admin of the organization
-      if (req.organization?.id !== id || req.user.role === 'CLIENT') {
+      if (organization?.id !== id || user.role === 'CLIENT') {
         return res.status(403).json({ error: 'Insufficient permissions' });
       }
 
@@ -144,7 +149,7 @@ router.post(
         userId,
         role,
         permissions,
-        req.user.id
+        user.id
       );
 
       res.status(201).json(member);
@@ -162,16 +167,18 @@ router.post(
 router.delete(
   '/:id/members/:userId',
   auditSensitiveAction('remove_organization_member'),
-  async (req: AuthRequest, res) => {
+  async (req: Request, res: Response) => {
     try {
       const { id, userId } = req.params;
+      const user = (req as any).user;
+      const organization = (req as any).organization;
 
       // Check permissions
-      if (req.organization?.id !== id || req.user.role === 'CLIENT') {
+      if (organization?.id !== id || user.role === 'CLIENT') {
         return res.status(403).json({ error: 'Insufficient permissions' });
       }
 
-      await orgService.removeMember(id, userId, req.user.id);
+      await orgService.removeMember(id, userId, user.id);
       res.status(204).send();
     } catch (error) {
       console.error('Error removing member:', error);
@@ -193,13 +200,15 @@ router.put(
   '/:id/members/:userId',
   validateRequest(updateMemberSchema),
   auditSensitiveAction('update_organization_member'),
-  async (req: AuthRequest, res) => {
+  async (req: Request, res: Response) => {
     try {
       const { id, userId } = req.params;
       const { role, permissions } = req.body;
+      const user = (req as any).user;
+      const organization = (req as any).organization;
 
       // Check permissions
-      if (req.organization?.id !== id || req.user.role === 'CLIENT') {
+      if (organization?.id !== id || user.role === 'CLIENT') {
         return res.status(403).json({ error: 'Insufficient permissions' });
       }
 
@@ -208,7 +217,7 @@ router.put(
         userId,
         role,
         permissions,
-        req.user.id
+        user.id
       );
 
       res.json(updated);

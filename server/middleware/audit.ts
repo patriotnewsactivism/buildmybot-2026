@@ -1,26 +1,26 @@
-import { Request, Response, NextFunction } from 'express';
-import { AuthRequest } from './auth';
+import { Request, Response, NextFunction, RequestHandler } from 'express';
 import { AuditService } from '../services/AuditService';
 
 const auditService = new AuditService();
 
-export function auditLog(action?: string) {
-  return async (req: AuthRequest, res: Response, next: NextFunction) => {
+export function auditLog(action?: string): RequestHandler {
+  return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      if (!req.user) {
+      const user = (req as any).user;
+      if (!user) {
         return next();
       }
 
       const auditAction = action || req.method.toLowerCase() + '.' + req.path.split('/')[2];
-      const ipAddress = req.ip || req.connection.remoteAddress || '';
+      const ipAddress = req.ip || req.socket.remoteAddress || '';
       const userAgent = req.headers['user-agent'] || '';
 
       const originalSend = res.send.bind(res);
 
       res.send = function (body: any): Response {
         auditService.log({
-          userId: req.actor?.id || req.user.id,
-          organizationId: req.organization?.id,
+          userId: (req as any).actor?.id || user.id,
+          organizationId: (req as any).organization?.id,
           action: auditAction,
           resourceType: req.params.id ? req.path.split('/')[2] : undefined,
           resourceId: req.params.id || req.params.botId || req.params.leadId,
@@ -28,7 +28,7 @@ export function auditLog(action?: string) {
           newValues: req.method === 'POST' || req.method === 'PUT'
             ? {
                 data: body,
-                impersonatedUserId: req.impersonation?.targetUserId,
+                impersonatedUserId: (req as any).impersonation?.targetUserId,
               }
             : undefined,
           ipAddress,
@@ -46,25 +46,26 @@ export function auditLog(action?: string) {
   };
 }
 
-export function auditSensitiveAction(actionName: string) {
-  return async (req: AuthRequest, res: Response, next: NextFunction) => {
+export function auditSensitiveAction(actionName: string): RequestHandler {
+  return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      if (!req.user) {
+      const user = (req as any).user;
+      if (!user) {
         return next();
       }
 
       await auditService.log({
-        userId: req.actor?.id || req.user.id,
-        organizationId: req.organization?.id,
+        userId: (req as any).actor?.id || user.id,
+        organizationId: (req as any).organization?.id,
         action: 'sensitive.' + actionName,
         resourceType: 'system',
         oldValues: { path: req.path, method: req.method },
         newValues: {
           query: req.query,
           params: req.params,
-          impersonatedUserId: req.impersonation?.targetUserId,
+          impersonatedUserId: (req as any).impersonation?.targetUserId,
         },
-        ipAddress: req.ip || req.connection.remoteAddress || '',
+        ipAddress: req.ip || req.socket.remoteAddress || '',
         userAgent: req.headers['user-agent'] || '',
       });
 

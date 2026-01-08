@@ -1,21 +1,21 @@
-import { Response, NextFunction } from 'express';
+import { Request, Response, NextFunction, RequestHandler } from 'express';
 import { eq, and, isNull } from 'drizzle-orm';
 import { db } from '../db';
 import { impersonationSessions, users } from '../../shared/schema';
-import type { AuthRequest } from './auth';
 
-export async function applyImpersonation(
-  req: AuthRequest,
+export const applyImpersonation: RequestHandler = async (
+  req: Request,
   res: Response,
   next: NextFunction
-) {
+) => {
   try {
     const token = req.headers['x-impersonation-token'];
     if (!token) {
       return next();
     }
 
-    if (!req.user) {
+    const user = (req as any).user;
+    if (!user) {
       return res.status(401).json({ error: 'Authentication required' });
     }
 
@@ -32,7 +32,7 @@ export async function applyImpersonation(
       return res.status(401).json({ error: 'Impersonation session expired' });
     }
 
-    if (session.actorUserId !== req.user.id) {
+    if (session.actorUserId !== user.id) {
       return res.status(403).json({ error: 'Impersonation session not authorized' });
     }
 
@@ -45,9 +45,9 @@ export async function applyImpersonation(
       return res.status(404).json({ error: 'Impersonation target not found' });
     }
 
-    req.actor = req.user;
-    req.user = targetUser;
-    req.impersonation = {
+    (req as any).actor = user;
+    (req as any).user = targetUser;
+    (req as any).impersonation = {
       sessionId: session.id,
       targetUserId: session.targetUserId,
       actorUserId: session.actorUserId,
@@ -58,4 +58,4 @@ export async function applyImpersonation(
     console.error('Impersonation error:', error);
     res.status(500).json({ error: 'Failed to apply impersonation session' });
   }
-}
+};
