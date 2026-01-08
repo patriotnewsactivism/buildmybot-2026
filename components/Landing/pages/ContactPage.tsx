@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { PageLayout } from './PageLayout';
-import { Mail, MapPin, Phone, MessageSquare, Send, Linkedin, Twitter, CheckCircle } from 'lucide-react';
+import { Mail, MessageSquare, Send, Linkedin, Twitter, CheckCircle } from 'lucide-react';
 
 export const ContactPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -125,25 +125,12 @@ export const ContactPage: React.FC = () => {
                 </div>
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-700 shrink-0">
-                    <Phone size={18} />
+                    <MessageSquare size={18} />
                   </div>
                   <div>
-                    <p className="font-medium text-slate-900">Phone</p>
-                    <a href="tel:+18005551234" className="text-slate-600">
-                      +1 (800) 555-1234
-                    </a>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-700 shrink-0">
-                    <MapPin size={18} />
-                  </div>
-                  <div>
-                    <p className="font-medium text-slate-900">Office</p>
+                    <p className="font-medium text-slate-900">Response Time</p>
                     <p className="text-slate-600">
-                      123 AI Innovation Way<br />
-                      San Francisco, CA 94105<br />
-                      United States
+                      We typically respond within 24 hours
                     </p>
                   </div>
                 </div>

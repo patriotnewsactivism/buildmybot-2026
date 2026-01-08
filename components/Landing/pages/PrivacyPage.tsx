@@ -177,18 +177,15 @@ export const PrivacyPage: React.FC = () => {
           <section>
             <h2 className="text-2xl font-bold text-slate-900 mb-4">14. Contact Us</h2>
             <p className="text-slate-600 leading-relaxed">
-              If you have any questions about this Privacy Policy or our privacy practices, please contact us at:
+              If you have any questions about this Privacy Policy or our privacy practices, please contact us:
             </p>
             <div className="bg-slate-100 rounded-xl p-6 mt-4">
               <p className="text-slate-900 font-medium">BuildMyBot AI</p>
-              <p className="text-slate-600">123 AI Innovation Way</p>
-              <p className="text-slate-600">San Francisco, CA 94105</p>
-              <p className="text-slate-600">United States</p>
               <p className="text-slate-600 mt-2">
-                Email: <a href="mailto:privacy@buildmybot.app" className="text-blue-700 hover:underline">privacy@buildmybot.app</a>
+                For privacy inquiries, please use our <a href="/contact" className="text-blue-700 hover:underline">contact form</a> or email us at <a href="mailto:support@buildmybot.app" className="text-blue-700 hover:underline">support@buildmybot.app</a>
               </p>
-              <p className="text-slate-600">
-                Phone: <a href="tel:+18005551234" className="text-blue-700 hover:underline">+1 (800) 555-1234</a>
+              <p className="text-slate-600 mt-2">
+                We respond to all privacy-related requests within 30 days.
               </p>
             </div>
           </section>
