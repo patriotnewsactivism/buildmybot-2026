@@ -124,13 +124,13 @@ export const CommissionsEarnings: React.FC = () => {
   ];
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-slate-900">Commissions & Earnings</h2>
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <h2 className="text-xl md:text-2xl font-bold text-slate-900">Commissions & Earnings</h2>
         <button
           onClick={fetchCommissions}
           disabled={loading}
-          className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 flex items-center space-x-2 disabled:opacity-50"
+          className="px-3 md:px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 flex items-center space-x-2 disabled:opacity-50 text-sm self-start sm:self-auto"
         >
           <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
           <span>Refresh</span>
@@ -138,7 +138,7 @@ export const CommissionsEarnings: React.FC = () => {
       </div>
 
       {/* Commission Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <MetricCard
           icon={DollarSign}
           label="Total Revenue"
@@ -167,24 +167,24 @@ export const CommissionsEarnings: React.FC = () => {
       </div>
 
       {/* Current Tier */}
-      <div className="mb-6 bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 rounded-lg p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">Current Tier: {tier.label}</h3>
-            <p className="text-sm text-slate-700">
+      <div className="bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 rounded-lg p-4 md:p-6">
+        <div className="flex items-center justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <h3 className="text-base md:text-lg font-semibold text-slate-900 mb-2">Current Tier: {tier.label}</h3>
+            <p className="text-xs md:text-sm text-slate-700">
               You're earning <span className="font-bold text-orange-600">{(tier.commission * 100).toFixed(0)}%</span> commission on all client revenue
             </p>
             <p className="text-xs text-slate-600 mt-2">
               Tier range: {tier.min}-{tier.max === 999999 ? '∞' : tier.max} clients
             </p>
           </div>
-          <Award size={48} className="text-orange-600" />
+          <Award size={40} className="text-orange-600 flex-shrink-0 md:w-12 md:h-12" />
         </div>
       </div>
 
       {/* Whitelabel Fee Notice */}
       {stats.whitelabelFeeDue && (
-        <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 md:p-4">
           <div className="flex items-center space-x-2">
             <CreditCard className="text-yellow-600" size={20} />
             <div>
@@ -201,7 +201,7 @@ export const CommissionsEarnings: React.FC = () => {
 
       {/* Payout History */}
       <div>
-        <h3 className="text-lg font-semibold text-slate-900 mb-4">Payout History</h3>
+        <h3 className="text-base md:text-lg font-semibold text-slate-900 mb-3 md:mb-4">Payout History</h3>
         <DataTable
           columns={payoutColumns}
           data={payouts}
@@ -212,8 +212,8 @@ export const CommissionsEarnings: React.FC = () => {
 
       {/* Commission Breakdown */}
       {stats.grossCommission > 0 && (
-        <div className="mt-6 bg-slate-50 rounded-lg p-6">
-          <h3 className="text-sm font-semibold text-slate-700 mb-4">Commission Breakdown</h3>
+        <div className="bg-slate-50 rounded-lg p-4 md:p-6">
+          <h3 className="text-sm font-semibold text-slate-700 mb-3 md:mb-4">Commission Breakdown</h3>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-sm text-slate-600">Client Revenue</span>

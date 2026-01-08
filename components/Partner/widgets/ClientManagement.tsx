@@ -180,12 +180,12 @@ export const ClientManagement: React.FC<ClientManagementProps> = ({ onImpersonat
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-slate-900">Client Management</h2>
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <h2 className="text-xl md:text-2xl font-bold text-slate-900">Client Management</h2>
         <button
           onClick={fetchClients}
-          className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 flex items-center space-x-2"
+          className="px-3 md:px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 flex items-center space-x-2 text-sm self-start sm:self-auto"
         >
           <RefreshCw size={16} />
           <span>Refresh</span>
@@ -193,7 +193,7 @@ export const ClientManagement: React.FC<ClientManagementProps> = ({ onImpersonat
       </div>
 
       {/* Summary Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
         <MetricCard
           icon={Users}
           label="Total Clients"
@@ -227,7 +227,8 @@ export const ClientManagement: React.FC<ClientManagementProps> = ({ onImpersonat
       </div>
 
       {/* Client Table */}
-      <DataTable
+      <div className="overflow-x-auto">
+        <DataTable
         columns={columns}
         data={clients}
         loading={loading}
@@ -235,6 +236,7 @@ export const ClientManagement: React.FC<ClientManagementProps> = ({ onImpersonat
         searchPlaceholder="Search clients..."
         emptyMessage="No clients found. Share your referral link to start earning commissions!"
       />
+      </div>
     </div>
   );
 };

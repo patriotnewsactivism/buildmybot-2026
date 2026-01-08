@@ -193,9 +193,9 @@ export const ClientOverview: React.FC<ClientOverviewProps> = ({ user, onCreateBo
   }
 
   return (
-    <div>
+    <div className="space-y-4 md:space-y-6 px-2 md:px-0">
       {showOnboarding && (
-        <div className="mb-8 bg-white border border-slate-200 rounded-xl p-6">
+        <div className="bg-white border border-slate-200 rounded-xl p-4 md:p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-slate-900">Quick Start Wizard</h3>
             <span className="text-xs text-slate-500">Step {onboardingStep} of 3</span>
@@ -263,34 +263,34 @@ export const ClientOverview: React.FC<ClientOverviewProps> = ({ user, onCreateBo
         </div>
       )}
 
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Dashboard Overview</h2>
-          <p className="text-sm text-slate-600 mt-1">
+          <h2 className="text-xl md:text-2xl font-bold text-slate-900">Dashboard Overview</h2>
+          <p className="text-xs md:text-sm text-slate-600 mt-1">
             Welcome back! Here's your performance at a glance.
           </p>
         </div>
         <div className="flex items-center space-x-2">
           <button
             onClick={handleCreateBot}
-            className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 flex items-center space-x-2"
+            className="px-3 md:px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 flex items-center space-x-2 text-sm"
           >
             <Plus size={16} />
             <span>Create Bot</span>
           </button>
           <button
             onClick={fetchOverview}
-            className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 flex items-center space-x-2"
+            className="px-3 md:px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 flex items-center space-x-2 text-sm"
           >
             <RefreshCw size={16} />
-            <span>Refresh</span>
+            <span className="hidden sm:inline">Refresh</span>
           </button>
         </div>
       </div>
 
       {/* Key Metrics */}
       {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           <MetricCard
             icon={Bot}
             label="Active Bots"
@@ -321,37 +321,37 @@ export const ClientOverview: React.FC<ClientOverviewProps> = ({ user, onCreateBo
 
       {/* Quick Start Guide for New Users */}
       {stats && stats.botCount === 0 && (
-        <div className="mb-8 bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-slate-900 mb-3">Get Started with BuildMyBot</h3>
-          <p className="text-sm text-slate-700 mb-4">
+        <div className="bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 rounded-lg p-4 md:p-6">
+          <h3 className="text-base md:text-lg font-semibold text-slate-900 mb-3">Get Started with BuildMyBot</h3>
+          <p className="text-xs md:text-sm text-slate-700 mb-4">
             Create your first AI voice bot in 3 simple steps:
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <div className="bg-white rounded-lg p-4 border border-orange-200">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-4">
+            <div className="bg-white rounded-lg p-3 md:p-4 border border-orange-200">
               <div className="flex items-center space-x-2 mb-2">
-                <div className="w-6 h-6 bg-orange-600 text-white rounded-full flex items-center justify-center text-xs font-bold">1</div>
-                <span className="font-medium text-slate-900">Create a Bot</span>
+                <div className="w-5 md:w-6 h-5 md:h-6 bg-orange-600 text-white rounded-full flex items-center justify-center text-xs font-bold">1</div>
+                <span className="font-medium text-slate-900 text-sm md:text-base">Create a Bot</span>
               </div>
               <p className="text-xs text-slate-600">Give your bot a name and choose a voice</p>
             </div>
-            <div className="bg-white rounded-lg p-4 border border-orange-200">
+            <div className="bg-white rounded-lg p-3 md:p-4 border border-orange-200">
               <div className="flex items-center space-x-2 mb-2">
-                <div className="w-6 h-6 bg-orange-600 text-white rounded-full flex items-center justify-center text-xs font-bold">2</div>
-                <span className="font-medium text-slate-900">Configure Settings</span>
+                <div className="w-5 md:w-6 h-5 md:h-6 bg-orange-600 text-white rounded-full flex items-center justify-center text-xs font-bold">2</div>
+                <span className="font-medium text-slate-900 text-sm md:text-base">Configure Settings</span>
               </div>
               <p className="text-xs text-slate-600">Set up your bot's behavior and prompts</p>
             </div>
-            <div className="bg-white rounded-lg p-4 border border-orange-200">
+            <div className="bg-white rounded-lg p-3 md:p-4 border border-orange-200">
               <div className="flex items-center space-x-2 mb-2">
-                <div className="w-6 h-6 bg-orange-600 text-white rounded-full flex items-center justify-center text-xs font-bold">3</div>
-                <span className="font-medium text-slate-900">Start Capturing Leads</span>
+                <div className="w-5 md:w-6 h-5 md:h-6 bg-orange-600 text-white rounded-full flex items-center justify-center text-xs font-bold">3</div>
+                <span className="font-medium text-slate-900 text-sm md:text-base">Start Capturing Leads</span>
               </div>
               <p className="text-xs text-slate-600">Deploy and watch the leads roll in</p>
             </div>
           </div>
           <button
             onClick={handleCreateBot}
-            className="px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 flex items-center space-x-2"
+            className="px-4 md:px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 flex items-center space-x-2 text-sm"
           >
             <Plus size={16} />
             <span>Create Your First Bot</span>
@@ -360,9 +360,9 @@ export const ClientOverview: React.FC<ClientOverviewProps> = ({ user, onCreateBo
       )}
 
       {/* Recent Bots */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-slate-900">Recent Bots</h3>
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-base md:text-lg font-semibold text-slate-900">Recent Bots</h3>
           {recentBots.length > 0 && (
             <button
               onClick={handleCreateBot}
@@ -382,8 +382,8 @@ export const ClientOverview: React.FC<ClientOverviewProps> = ({ user, onCreateBo
 
       {/* Recent Leads */}
       <div>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-slate-900">Recent Leads</h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-base md:text-lg font-semibold text-slate-900">Recent Leads</h3>
           {recentLeads.length > 0 && (
             <button
               onClick={() => onOpenLeads?.()}
@@ -401,29 +401,29 @@ export const ClientOverview: React.FC<ClientOverviewProps> = ({ user, onCreateBo
         />
       </div>
 
-      <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
+        <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 md:p-4">
           <div className="flex items-center gap-2 text-slate-700">
-            <BookOpen size={18} />
-            <span className="font-medium">Knowledge Base</span>
+            <BookOpen size={16} className="md:w-[18px] md:h-[18px]" />
+            <span className="font-medium text-sm md:text-base">Knowledge Base</span>
           </div>
           <p className="text-xs text-slate-600 mt-2">
             Add FAQs, docs, and scripts so your bot answers accurately.
           </p>
         </div>
-        <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+        <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 md:p-4">
           <div className="flex items-center gap-2 text-slate-700">
-            <MessageCircle size={18} />
-            <span className="font-medium">Support</span>
+            <MessageCircle size={16} className="md:w-[18px] md:h-[18px]" />
+            <span className="font-medium text-sm md:text-base">Support</span>
           </div>
           <p className="text-xs text-slate-600 mt-2">
             Need help? Reach our team for setup, optimization, and billing.
           </p>
         </div>
-        <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+        <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 md:p-4">
           <div className="flex items-center gap-2 text-slate-700">
-            <TrendingUp size={18} />
-            <span className="font-medium">Weekly Insights</span>
+            <TrendingUp size={16} className="md:w-[18px] md:h-[18px]" />
+            <span className="font-medium text-sm md:text-base">Weekly Insights</span>
           </div>
           <p className="text-xs text-slate-600 mt-2">
             Monitor conversions and leads in a simple weekly summary.

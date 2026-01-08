@@ -145,17 +145,17 @@ export const MarketingMaterials: React.FC = () => {
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Marketing Materials</h2>
-          <p className="text-sm text-slate-600 mt-1">
+          <h2 className="text-xl md:text-2xl font-bold text-slate-900">Marketing Materials</h2>
+          <p className="text-xs md:text-sm text-slate-600 mt-1">
             Download assets to help promote BuildMyBot to your clients
           </p>
         </div>
         <button
           onClick={fetchMaterials}
-          className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 flex items-center space-x-2"
+          className="px-3 md:px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 flex items-center space-x-2 text-sm self-start"
         >
           <RefreshCw size={16} />
           <span>Refresh</span>
@@ -163,37 +163,37 @@ export const MarketingMaterials: React.FC = () => {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 md:p-4">
           <div className="flex items-center space-x-3">
-            <Image size={24} className="text-blue-600" />
+            <Image size={20} className="text-blue-600 md:w-6 md:h-6" />
             <div>
-              <p className="text-sm font-medium text-blue-900">Images</p>
-              <p className="text-2xl font-bold text-blue-700">
+              <p className="text-xs md:text-sm font-medium text-blue-900">Images</p>
+              <p className="text-xl md:text-2xl font-bold text-blue-700">
                 {materials.filter((m) => m.type.toLowerCase() === 'image').length}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+        <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 md:p-4">
           <div className="flex items-center space-x-3">
-            <Video size={24} className="text-purple-600" />
+            <Video size={20} className="text-purple-600 md:w-6 md:h-6" />
             <div>
-              <p className="text-sm font-medium text-purple-900">Videos</p>
-              <p className="text-2xl font-bold text-purple-700">
+              <p className="text-xs md:text-sm font-medium text-purple-900">Videos</p>
+              <p className="text-xl md:text-2xl font-bold text-purple-700">
                 {materials.filter((m) => m.type.toLowerCase() === 'video').length}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+        <div className="bg-green-50 border border-green-200 rounded-lg p-3 md:p-4">
           <div className="flex items-center space-x-3">
-            <FileText size={24} className="text-green-600" />
+            <FileText size={20} className="text-green-600 md:w-6 md:h-6" />
             <div>
-              <p className="text-sm font-medium text-green-900">Documents</p>
-              <p className="text-2xl font-bold text-green-700">
+              <p className="text-xs md:text-sm font-medium text-green-900">Documents</p>
+              <p className="text-xl md:text-2xl font-bold text-green-700">
                 {materials.filter((m) => m.type.toLowerCase() === 'document').length}
               </p>
             </div>
