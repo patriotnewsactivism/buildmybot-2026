@@ -291,7 +291,7 @@ app.post('/api/stripe/portal', async (req, res) => {
   }
 });
 
-const apiAuthStack = [authenticate, applyImpersonation, loadOrganizationContext, tenantIsolation];
+const apiAuthStack = [authenticate, applyImpersonation, loadOrganizationContext, tenantIsolation()];
 
 app.get('/api/bots', ...apiAuthStack, async (req, res) => {
   try {

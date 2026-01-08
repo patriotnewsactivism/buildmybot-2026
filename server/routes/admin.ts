@@ -16,6 +16,11 @@ import {
   marketingMaterials,
   supportTickets,
   botDocuments,
+  discountCodes,
+  discountCodeRedemptions,
+  freeAccessCodes,
+  freeAccessRedemptions,
+  organizations,
 } from '../../shared/schema';
 import { systemMetricsService } from '../services/SystemMetricsService';
 import { stripeService } from '../stripeService';
@@ -711,6 +716,288 @@ router.get('/fraud-alerts', async (_req, res) => {
   } catch (error) {
     console.error('Fraud alerts error:', error);
     res.status(500).json({ error: 'Failed to fetch fraud alerts' });
+  }
+});
+
+router.get('/discount-codes', async (_req, res) => {
+  try {
+    const codes = await db.select().from(discountCodes).orderBy(desc(discountCodes.createdAt));
+    res.json(codes);
+  } catch (error) {
+    console.error('Discount codes fetch error:', error);
+    res.status(500).json({ error: 'Failed to fetch discount codes' });
+  }
+});
+
+router.post('/discount-codes', auditSensitiveAction('discount.create'), async (req, res) => {
+  try {
+    const { code, type, value, description, maxUses, minPurchaseAmount, applicablePlans, validFrom, validUntil } = req.body;
+    if (!code || !type || value === undefined) {
+      return res.status(400).json({ error: 'code, type, and value are required' });
+    }
+    const userId = (req as any).user?.id;
+    const [newCode] = await db.insert(discountCodes).values({
+      id: uuidv4(),
+      code: code.toUpperCase(),
+      type,
+      value,
+      description,
+      maxUses,
+      minPurchaseAmount,
+      applicablePlans: applicablePlans || [],
+      validFrom: validFrom ? new Date(validFrom) : null,
+      validUntil: validUntil ? new Date(validUntil) : null,
+      isActive: true,
+      createdBy: userId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }).returning();
+    res.json(newCode);
+  } catch (error) {
+    console.error('Discount code create error:', error);
+    res.status(500).json({ error: 'Failed to create discount code' });
+  }
+});
+
+router.put('/discount-codes/:id', auditSensitiveAction('discount.update'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { code, type, value, description, maxUses, minPurchaseAmount, applicablePlans, validFrom, validUntil, isActive } = req.body;
+    const [updated] = await db.update(discountCodes).set({
+      code: code?.toUpperCase(),
+      type,
+      value,
+      description,
+      maxUses,
+      minPurchaseAmount,
+      applicablePlans,
+      validFrom: validFrom ? new Date(validFrom) : null,
+      validUntil: validUntil ? new Date(validUntil) : null,
+      isActive,
+      updatedAt: new Date(),
+    }).where(eq(discountCodes.id, id)).returning();
+    res.json(updated);
+  } catch (error) {
+    console.error('Discount code update error:', error);
+    res.status(500).json({ error: 'Failed to update discount code' });
+  }
+});
+
+router.delete('/discount-codes/:id', auditSensitiveAction('discount.delete'), async (req, res) => {
+  try {
+    await db.delete(discountCodes).where(eq(discountCodes.id, req.params.id));
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Discount code delete error:', error);
+    res.status(500).json({ error: 'Failed to delete discount code' });
+  }
+});
+
+router.get('/discount-codes/:id/redemptions', async (req, res) => {
+  try {
+    const redemptions = await db.select().from(discountCodeRedemptions).where(eq(discountCodeRedemptions.discountCodeId, req.params.id)).orderBy(desc(discountCodeRedemptions.redeemedAt));
+    res.json(redemptions);
+  } catch (error) {
+    console.error('Redemptions fetch error:', error);
+    res.status(500).json({ error: 'Failed to fetch redemptions' });
+  }
+});
+
+router.get('/free-codes', async (_req, res) => {
+  try {
+    const codes = await db.select().from(freeAccessCodes).orderBy(desc(freeAccessCodes.createdAt));
+    res.json(codes);
+  } catch (error) {
+    console.error('Free codes fetch error:', error);
+    res.status(500).json({ error: 'Failed to fetch free codes' });
+  }
+});
+
+router.post('/free-codes', auditSensitiveAction('freecode.create'), async (req, res) => {
+  try {
+    const { code, plan, durationDays, description, maxUses, validUntil } = req.body;
+    if (!code || !plan) {
+      return res.status(400).json({ error: 'code and plan are required' });
+    }
+    const userId = (req as any).user?.id;
+    const [newCode] = await db.insert(freeAccessCodes).values({
+      id: uuidv4(),
+      code: code.toUpperCase(),
+      plan,
+      durationDays: durationDays || 30,
+      description,
+      maxUses: maxUses || 1,
+      validUntil: validUntil ? new Date(validUntil) : null,
+      isActive: true,
+      createdBy: userId,
+      createdAt: new Date(),
+    }).returning();
+    res.json(newCode);
+  } catch (error) {
+    console.error('Free code create error:', error);
+    res.status(500).json({ error: 'Failed to create free code' });
+  }
+});
+
+router.put('/free-codes/:id', auditSensitiveAction('freecode.update'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { code, plan, durationDays, description, maxUses, validUntil, isActive } = req.body;
+    const [updated] = await db.update(freeAccessCodes).set({
+      code: code?.toUpperCase(),
+      plan,
+      durationDays,
+      description,
+      maxUses,
+      validUntil: validUntil ? new Date(validUntil) : null,
+      isActive,
+    }).where(eq(freeAccessCodes.id, id)).returning();
+    res.json(updated);
+  } catch (error) {
+    console.error('Free code update error:', error);
+    res.status(500).json({ error: 'Failed to update free code' });
+  }
+});
+
+router.delete('/free-codes/:id', auditSensitiveAction('freecode.delete'), async (req, res) => {
+  try {
+    await db.delete(freeAccessCodes).where(eq(freeAccessCodes.id, req.params.id));
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Free code delete error:', error);
+    res.status(500).json({ error: 'Failed to delete free code' });
+  }
+});
+
+router.post('/free-codes/generate-batch', auditSensitiveAction('freecode.batch'), async (req, res) => {
+  try {
+    const { plan, durationDays, count, prefix, validUntil } = req.body;
+    if (!plan || !count) {
+      return res.status(400).json({ error: 'plan and count are required' });
+    }
+    const userId = (req as any).user?.id;
+    const codes = [];
+    for (let i = 0; i < Math.min(count, 100); i++) {
+      const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const codeValue = prefix ? `${prefix.toUpperCase()}-${randomPart}` : randomPart;
+      codes.push({
+        id: uuidv4(),
+        code: codeValue,
+        plan,
+        durationDays: durationDays || 30,
+        maxUses: 1,
+        validUntil: validUntil ? new Date(validUntil) : null,
+        isActive: true,
+        createdBy: userId,
+        createdAt: new Date(),
+      });
+    }
+    const inserted = await db.insert(freeAccessCodes).values(codes).returning();
+    res.json(inserted);
+  } catch (error) {
+    console.error('Batch generate error:', error);
+    res.status(500).json({ error: 'Failed to generate codes' });
+  }
+});
+
+router.get('/plans', async (_req, res) => {
+  try {
+    res.json({ plans: PLANS, tiers: RESELLER_TIERS });
+  } catch (error) {
+    console.error('Plans fetch error:', error);
+    res.status(500).json({ error: 'Failed to fetch plans' });
+  }
+});
+
+router.post('/plans/sync-stripe', auditSensitiveAction('plans.sync'), async (req, res) => {
+  try {
+    const results = await stripeService.syncPlansToStripe(PLANS);
+    res.json({ success: true, synced: results });
+  } catch (error) {
+    console.error('Stripe sync error:', error);
+    res.status(500).json({ error: 'Failed to sync plans to Stripe' });
+  }
+});
+
+router.get('/organizations', async (req, res) => {
+  try {
+    const { search, limit = '50', offset = '0' } = req.query;
+    const conditions: SQL[] = [isNull(organizations.deletedAt)];
+    if (search) {
+      const searchPattern = `%${search}%`;
+      conditions.push(sql`${organizations.name} ILIKE ${searchPattern} OR ${organizations.slug} ILIKE ${searchPattern}`);
+    }
+    const orgs = await db.select().from(organizations).where(and(...conditions)).orderBy(desc(organizations.createdAt)).limit(Number(limit)).offset(Number(offset));
+    res.json(orgs);
+  } catch (error) {
+    console.error('Organizations fetch error:', error);
+    res.status(500).json({ error: 'Failed to fetch organizations' });
+  }
+});
+
+router.put('/organizations/:id', auditSensitiveAction('org.update'), async (req, res) => {
+  try {
+    const { name, plan, subscriptionStatus, settings } = req.body;
+    const [updated] = await db.update(organizations).set({
+      name,
+      plan,
+      subscriptionStatus,
+      settings,
+      updatedAt: new Date(),
+    }).where(eq(organizations.id, req.params.id)).returning();
+    res.json(updated);
+  } catch (error) {
+    console.error('Organization update error:', error);
+    res.status(500).json({ error: 'Failed to update organization' });
+  }
+});
+
+router.delete('/organizations/:id', auditSensitiveAction('org.delete'), async (req, res) => {
+  try {
+    await db.update(organizations).set({ deletedAt: new Date() }).where(eq(organizations.id, req.params.id));
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Organization delete error:', error);
+    res.status(500).json({ error: 'Failed to delete organization' });
+  }
+});
+
+router.get('/bots', async (req, res) => {
+  try {
+    const { userId, search, limit = '50', offset = '0' } = req.query;
+    const conditions: SQL[] = [];
+    if (userId) {
+      conditions.push(eq(bots.userId, userId as string));
+    }
+    if (search) {
+      const searchPattern = `%${search}%`;
+      conditions.push(sql`${bots.name} ILIKE ${searchPattern}`);
+    }
+    const allBots = await db.select().from(bots).where(conditions.length ? and(...conditions) : undefined).orderBy(desc(bots.createdAt)).limit(Number(limit)).offset(Number(offset));
+    res.json(allBots);
+  } catch (error) {
+    console.error('Admin bots fetch error:', error);
+    res.status(500).json({ error: 'Failed to fetch bots' });
+  }
+});
+
+router.put('/bots/:id', auditSensitiveAction('bot.update'), async (req, res) => {
+  try {
+    const [updated] = await db.update(bots).set({ ...req.body, updatedAt: new Date() }).where(eq(bots.id, req.params.id)).returning();
+    res.json(updated);
+  } catch (error) {
+    console.error('Bot update error:', error);
+    res.status(500).json({ error: 'Failed to update bot' });
+  }
+});
+
+router.delete('/bots/:id', auditSensitiveAction('bot.delete'), async (req, res) => {
+  try {
+    await db.delete(bots).where(eq(bots.id, req.params.id));
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Bot delete error:', error);
+    res.status(500).json({ error: 'Failed to delete bot' });
   }
 });
 

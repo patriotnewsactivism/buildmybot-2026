@@ -688,4 +688,108 @@ export const dbService = {
     if (!response.ok) throw new Error('Failed to install template');
     return response.json();
   },
+
+  getAdminDiscountCodes: async () => {
+    const response = await request('/admin/discount-codes', { method: 'GET' }, false);
+    if (!response.ok) throw new Error('Failed to load discount codes');
+    return response.json();
+  },
+
+  createDiscountCode: async (payload: any) => {
+    const response = await request('/admin/discount-codes', { method: 'POST', body: JSON.stringify(payload) });
+    if (!response.ok) throw new Error('Failed to create discount code');
+    return response.json();
+  },
+
+  updateDiscountCode: async (id: string, payload: any) => {
+    const response = await request(`/admin/discount-codes/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+    if (!response.ok) throw new Error('Failed to update discount code');
+    return response.json();
+  },
+
+  deleteDiscountCode: async (id: string) => {
+    const response = await request(`/admin/discount-codes/${id}`, { method: 'DELETE' });
+    if (!response.ok) throw new Error('Failed to delete discount code');
+    return response.json();
+  },
+
+  getAdminFreeCodes: async () => {
+    const response = await request('/admin/free-codes', { method: 'GET' }, false);
+    if (!response.ok) throw new Error('Failed to load free codes');
+    return response.json();
+  },
+
+  createFreeCode: async (payload: any) => {
+    const response = await request('/admin/free-codes', { method: 'POST', body: JSON.stringify(payload) });
+    if (!response.ok) throw new Error('Failed to create free code');
+    return response.json();
+  },
+
+  updateFreeCode: async (id: string, payload: any) => {
+    const response = await request(`/admin/free-codes/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+    if (!response.ok) throw new Error('Failed to update free code');
+    return response.json();
+  },
+
+  deleteFreeCode: async (id: string) => {
+    const response = await request(`/admin/free-codes/${id}`, { method: 'DELETE' });
+    if (!response.ok) throw new Error('Failed to delete free code');
+    return response.json();
+  },
+
+  generateFreeCodeBatch: async (payload: { plan: string; durationDays: number; count: number; prefix?: string; validUntil?: string }) => {
+    const response = await request('/admin/free-codes/generate-batch', { method: 'POST', body: JSON.stringify(payload) });
+    if (!response.ok) throw new Error('Failed to generate codes');
+    return response.json();
+  },
+
+  getAdminPlans: async () => {
+    const response = await request('/admin/plans', { method: 'GET' }, false);
+    if (!response.ok) throw new Error('Failed to load plans');
+    return response.json();
+  },
+
+  syncPlansToStripe: async () => {
+    const response = await request('/admin/plans/sync-stripe', { method: 'POST' });
+    if (!response.ok) throw new Error('Failed to sync plans');
+    return response.json();
+  },
+
+  getAdminOrganizations: async (params?: Record<string, string>) => {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const response = await request(`/admin/organizations${query}`, { method: 'GET' }, false);
+    if (!response.ok) throw new Error('Failed to load organizations');
+    return response.json();
+  },
+
+  updateOrganization: async (id: string, payload: any) => {
+    const response = await request(`/admin/organizations/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+    if (!response.ok) throw new Error('Failed to update organization');
+    return response.json();
+  },
+
+  deleteOrganization: async (id: string) => {
+    const response = await request(`/admin/organizations/${id}`, { method: 'DELETE' });
+    if (!response.ok) throw new Error('Failed to delete organization');
+    return response.json();
+  },
+
+  getAdminBots: async (params?: Record<string, string>) => {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const response = await request(`/admin/bots${query}`, { method: 'GET' }, false);
+    if (!response.ok) throw new Error('Failed to load bots');
+    return response.json();
+  },
+
+  updateAdminBot: async (id: string, payload: any) => {
+    const response = await request(`/admin/bots/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+    if (!response.ok) throw new Error('Failed to update bot');
+    return response.json();
+  },
+
+  deleteAdminBot: async (id: string) => {
+    const response = await request(`/admin/bots/${id}`, { method: 'DELETE' });
+    if (!response.ok) throw new Error('Failed to delete bot');
+    return response.json();
+  },
 };

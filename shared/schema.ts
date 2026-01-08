@@ -596,8 +596,71 @@ export const conversationsRelations = relations(conversations, ({ one }) => ({
 }));
 
 // ========================================
+// DISCOUNT & PROMO CODES
+// ========================================
+
+export const discountCodes = pgTable('discount_codes', {
+  id: text('id').primaryKey(),
+  code: varchar('code', { length: 50 }).notNull().unique(),
+  type: varchar('type', { length: 20 }).notNull().default('percentage'),
+  value: integer('value').notNull(),
+  description: text('description'),
+  maxUses: integer('max_uses'),
+  currentUses: integer('current_uses').default(0),
+  minPurchaseAmount: integer('min_purchase_amount'),
+  applicablePlans: json('applicable_plans').default([]),
+  validFrom: timestamp('valid_from'),
+  validUntil: timestamp('valid_until'),
+  isActive: boolean('is_active').default(true),
+  createdBy: text('created_by').references(() => users.id),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const discountCodeRedemptions = pgTable('discount_code_redemptions', {
+  id: text('id').primaryKey(),
+  discountCodeId: text('discount_code_id').notNull().references(() => discountCodes.id),
+  userId: text('user_id').notNull().references(() => users.id),
+  orderId: text('order_id'),
+  amountSaved: integer('amount_saved'),
+  redeemedAt: timestamp('redeemed_at').defaultNow(),
+});
+
+export const freeAccessCodes = pgTable('free_access_codes', {
+  id: text('id').primaryKey(),
+  code: varchar('code', { length: 50 }).notNull().unique(),
+  plan: varchar('plan', { length: 50 }).notNull(),
+  durationDays: integer('duration_days').notNull().default(30),
+  description: text('description'),
+  maxUses: integer('max_uses').default(1),
+  currentUses: integer('current_uses').default(0),
+  validUntil: timestamp('valid_until'),
+  isActive: boolean('is_active').default(true),
+  createdBy: text('created_by').references(() => users.id),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const freeAccessRedemptions = pgTable('free_access_redemptions', {
+  id: text('id').primaryKey(),
+  freeCodeId: text('free_code_id').notNull().references(() => freeAccessCodes.id),
+  userId: text('user_id').notNull().references(() => users.id),
+  planGranted: varchar('plan_granted', { length: 50 }).notNull(),
+  expiresAt: timestamp('expires_at').notNull(),
+  redeemedAt: timestamp('redeemed_at').defaultNow(),
+});
+
+// ========================================
 // TYPE EXPORTS
 // ========================================
+
+export type DiscountCode = typeof discountCodes.$inferSelect;
+export type InsertDiscountCode = typeof discountCodes.$inferInsert;
+export type DiscountCodeRedemption = typeof discountCodeRedemptions.$inferSelect;
+export type InsertDiscountCodeRedemption = typeof discountCodeRedemptions.$inferInsert;
+export type FreeAccessCode = typeof freeAccessCodes.$inferSelect;
+export type InsertFreeAccessCode = typeof freeAccessCodes.$inferInsert;
+export type FreeAccessRedemption = typeof freeAccessRedemptions.$inferSelect;
+export type InsertFreeAccessRedemption = typeof freeAccessRedemptions.$inferInsert;
 
 export type Organization = typeof organizations.$inferSelect;
 export type InsertOrganization = typeof organizations.$inferInsert;
