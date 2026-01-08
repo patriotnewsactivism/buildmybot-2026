@@ -26,6 +26,11 @@ import { CareersPage } from './components/Landing/pages/CareersPage';
 import { ContactPage } from './components/Landing/pages/ContactPage';
 import { PrivacyPage } from './components/Landing/pages/PrivacyPage';
 import { FeaturesPage } from './components/Landing/pages/FeaturesPage';
+import { AdvancedAnalytics } from './components/Analytics/AdvancedAnalytics';
+import { LandingPageBuilder } from './components/LandingPages/LandingPageBuilder';
+import { ServiceCatalog } from './components/Services/ServiceCatalog';
+import { SupportTicketSystem } from './components/Support/SupportTicketSystem';
+import { TemplateMarketplace } from './components/Marketplace/TemplateMarketplace';
 // Phase 2: Dashboard Infrastructure
 import { DashboardProvider } from './hooks/useDashboardContext';
 import { DashboardShell } from './components/Dashboard/DashboardShell';
@@ -617,6 +622,22 @@ function App() {
                   dbService.saveUserProfile(updated);
                 }}
               />
+            )}
+
+            {currentView === 'analytics' && (
+              <AdvancedAnalytics organizationId={activeUser?.id || ''} />
+            )}
+
+            {currentView === 'landing-pages' && (
+              <LandingPageBuilder bots={bots} organizationId={activeUser?.id} />
+            )}
+
+            {currentView === 'services' && (
+              <ServiceCatalog organizationId={activeUser?.id || ''} userId={activeUser?.id} />
+            )}
+
+            {currentView === 'support' && (
+              <SupportTicketSystem user={activeUser || undefined} />
             )}
             
           </div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, MessageSquare, Users, TrendingUp, Settings, Briefcase, Bot, Megaphone, Globe, Shield, ShoppingBag, Phone, X, LogOut } from 'lucide-react';
+import { LayoutDashboard, MessageSquare, Users, TrendingUp, Settings, Briefcase, Bot, Megaphone, Globe, Shield, ShoppingBag, Phone, X, LogOut, Palette, Key, BarChart3, FileText, Headphones, Zap } from 'lucide-react';
 import { UserRole, User } from '../../types';
 import { PLANS } from '../../constants';
 
@@ -21,10 +21,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, role, is
     { id: 'chat-logs', label: 'Conversations', icon: MessageSquare },
     { id: 'leads', label: 'Lead CRM', icon: Users },
     { id: 'phone', label: 'Phone Agent', icon: Phone },
+    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+    { id: 'landing-pages', label: 'Landing Pages', icon: FileText },
     { id: 'marketing', label: 'AI Marketing', icon: Megaphone },
     { id: 'website', label: 'AI Sites', icon: Globe },
     { id: 'marketplace', label: 'Marketplace', icon: ShoppingBag },
-    { id: 'billing', label: 'Billing & Plan', icon: Shield },
+    { id: 'services', label: 'Pro Services', icon: Zap },
+    { id: 'billing', label: 'Billing & Usage', icon: Shield },
+    { id: 'support', label: 'Support', icon: Headphones },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
