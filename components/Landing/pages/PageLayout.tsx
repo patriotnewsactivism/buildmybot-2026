@@ -26,8 +26,8 @@ export const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
         {children}
       </main>
 
-      <footer className="bg-slate-900 text-slate-400 py-20 px-6">
-        <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-12">
+      <footer className="bg-slate-900 text-slate-400 py-12 sm:py-20 px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 sm:gap-12">
           <div>
             <div className="flex items-center gap-2 text-white font-bold text-xl mb-4">
               <Bot size={24} /> BuildMyBot

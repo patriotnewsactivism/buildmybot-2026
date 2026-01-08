@@ -87,7 +87,40 @@ export function DataTable<T extends { id: string }>({
         </div>
       )}
 
-      <div className="overflow-x-auto">
+      {/* Mobile Card View */}
+      <div className="block md:hidden">
+        {sortedData.length === 0 ? (
+          <div className="p-6 text-center text-slate-500">
+            {emptyMessage}
+          </div>
+        ) : (
+          <div className="space-y-3 p-3">
+            {sortedData.map((item) => (
+              <div
+                key={item.id}
+                onClick={() => onRowClick?.(item)}
+                className={`bg-white rounded-lg shadow-sm border border-slate-200 p-4 ${
+                  onRowClick ? 'cursor-pointer hover:bg-slate-50 active:bg-slate-100' : ''
+                }`}
+              >
+                {columns.map((column) => (
+                  <div key={String(column.key)} className="py-2 first:pt-0 last:pb-0 border-b border-slate-100 last:border-b-0">
+                    <div className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">
+                      {column.label}
+                    </div>
+                    <div className="text-sm text-slate-900">
+                      {column.render ? column.render(item) : String((item as any)[column.key] || '-')}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full">
           <thead className="bg-slate-50">
             <tr>

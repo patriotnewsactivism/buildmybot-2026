@@ -20,28 +20,28 @@ const PremiumCard: React.FC<{ children: React.ReactNode; className?: string }> =
 );
 
 const AnalyticsMetricCard: React.FC<{ icon: React.ElementType; label: string; value: string | number; subtext?: string }> = ({ icon: Icon, label, value, subtext }) => (
-  <PremiumCard className="p-6">
+  <PremiumCard className="p-4 md:p-6">
     <div className="flex items-start justify-between">
-      <div className="p-3 bg-gradient-to-br from-orange-500 to-amber-500 rounded-lg">
-        <Icon className="text-white" size={24} />
+      <div className="p-2 md:p-3 bg-gradient-to-br from-orange-500 to-amber-500 rounded-lg">
+        <Icon className="text-white" size={20} />
       </div>
     </div>
-    <div className="mt-4">
-      <div className="text-3xl font-bold text-slate-900">{value}</div>
-      <div className="text-sm font-medium text-slate-600 mt-1">{label}</div>
+    <div className="mt-3 md:mt-4">
+      <div className="text-2xl md:text-3xl font-bold text-slate-900">{value}</div>
+      <div className="text-xs md:text-sm font-medium text-slate-600 mt-1">{label}</div>
       {subtext && <div className="text-xs text-slate-400 mt-1">{subtext}</div>}
     </div>
   </PremiumCard>
 );
 
 const SupportStatCard: React.FC<{ icon: React.ElementType; label: string; value: number; color: string }> = ({ icon: Icon, label, value, color }) => (
-  <div className="flex items-center space-x-4 p-4 bg-slate-50 rounded-lg">
-    <div className={`p-3 rounded-lg ${color}`}>
-      <Icon className="text-white" size={20} />
+  <div className="flex items-center space-x-3 md:space-x-4 p-3 md:p-4 bg-slate-50 rounded-lg">
+    <div className={`p-2 md:p-3 rounded-lg ${color}`}>
+      <Icon className="text-white" size={18} />
     </div>
     <div>
-      <div className="text-2xl font-bold text-slate-900">{value}</div>
-      <div className="text-sm text-slate-600">{label}</div>
+      <div className="text-xl md:text-2xl font-bold text-slate-900">{value}</div>
+      <div className="text-xs md:text-sm text-slate-600">{label}</div>
     </div>
   </div>
 );
@@ -55,15 +55,15 @@ const SystemStatusItem: React.FC<{ label: string; status: 'operational' | 'degra
   const style = statusStyles[status];
   
   return (
-    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
-      <div className="flex items-center space-x-3">
-        <div className={`w-3 h-3 rounded-full ${style.dot} animate-pulse`}></div>
-        <div>
-          <div className="font-medium text-slate-900">{label}</div>
-          <div className="text-sm text-slate-500">{description}</div>
+    <div className="flex items-center justify-between p-3 md:p-4 bg-slate-50 rounded-lg gap-2">
+      <div className="flex items-center space-x-2 md:space-x-3 min-w-0 flex-1">
+        <div className={`w-2.5 md:w-3 h-2.5 md:h-3 rounded-full ${style.dot} animate-pulse flex-shrink-0`}></div>
+        <div className="min-w-0">
+          <div className="font-medium text-slate-900 text-sm md:text-base">{label}</div>
+          <div className="text-xs md:text-sm text-slate-500 truncate">{description}</div>
         </div>
       </div>
-      <span className={`px-3 py-1 rounded-full text-xs font-medium ${style.bg} ${style.text}`}>
+      <span className={`px-2 md:px-3 py-1 rounded-full text-xs font-medium ${style.bg} ${style.text} flex-shrink-0`}>
         {style.label}
       </span>
     </div>
@@ -100,9 +100,9 @@ export const AdminDashboardV2: React.FC<AdminDashboardV2Props> = ({ onImpersonat
   });
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">
+    <div className="max-w-7xl mx-auto space-y-4 md:space-y-6 animate-fade-in px-2 md:px-0">
       {/* Premium Header */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-8">
+      <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl md:rounded-2xl p-4 md:p-8">
         <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 via-transparent to-amber-500/10"></div>
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-orange-500/20 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-amber-500/20 to-transparent rounded-full blur-2xl translate-y-1/2 -translate-x-1/2"></div>
@@ -131,8 +131,8 @@ export const AdminDashboardV2: React.FC<AdminDashboardV2Props> = ({ onImpersonat
       </div>
 
       {/* Premium Tab Navigation */}
-      <div className="bg-slate-900 rounded-xl p-2 shadow-lg">
-        <div className="flex overflow-x-auto gap-1">
+      <div className="bg-slate-900 rounded-xl p-1.5 md:p-2 shadow-lg overflow-hidden">
+        <div className="flex overflow-x-auto gap-1 scrollbar-hide">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -140,14 +140,14 @@ export const AdminDashboardV2: React.FC<AdminDashboardV2Props> = ({ onImpersonat
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center space-x-2 px-5 py-3 rounded-lg transition-all duration-200 whitespace-nowrap ${
+                className={`flex items-center space-x-1.5 md:space-x-2 px-3 md:px-5 py-2.5 md:py-3 rounded-lg transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
                   isActive
                     ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold shadow-lg shadow-orange-500/25'
                     : 'text-slate-400 hover:text-white hover:bg-slate-800'
                 }`}
               >
-                <Icon size={18} />
-                <span className="text-sm">{tab.label}</span>
+                <Icon size={16} className="md:w-[18px] md:h-[18px]" />
+                <span className="text-xs md:text-sm">{tab.label}</span>
               </button>
             );
           })}
@@ -162,19 +162,19 @@ export const AdminDashboardV2: React.FC<AdminDashboardV2Props> = ({ onImpersonat
         {activeTab === 'financial' && <FinancialDashboard />}
         
         {activeTab === 'analytics' && (
-          <div className="space-y-6">
-            <PremiumCard className="p-6">
-              <div className="flex items-center justify-between mb-6">
+          <div className="space-y-4 md:space-y-6">
+            <PremiumCard className="p-4 md:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 md:mb-6">
                 <div>
-                  <h3 className="text-xl font-bold text-slate-900">Traffic Analytics</h3>
-                  <p className="text-sm text-slate-500 mt-1">Real-time visitor insights and engagement metrics</p>
+                  <h3 className="text-lg md:text-xl font-bold text-slate-900">Traffic Analytics</h3>
+                  <p className="text-xs md:text-sm text-slate-500 mt-1">Real-time visitor insights and engagement metrics</p>
                 </div>
-                <div className="px-3 py-1 bg-slate-100 rounded-full text-xs font-medium text-slate-600">
+                <div className="px-3 py-1 bg-slate-100 rounded-full text-xs font-medium text-slate-600 self-start sm:self-auto">
                   Last 30 days
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
                 <AnalyticsMetricCard icon={Eye} label="Total Page Views" value="0" subtext="No data yet" />
                 <AnalyticsMetricCard icon={UserCheck} label="Unique Visitors" value="0" subtext="No data yet" />
                 <AnalyticsMetricCard icon={Clock} label="Avg Session Duration" value="0:00" subtext="No data yet" />
@@ -182,13 +182,13 @@ export const AdminDashboardV2: React.FC<AdminDashboardV2Props> = ({ onImpersonat
               </div>
             </PremiumCard>
 
-            <PremiumCard className="p-6">
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="p-4 bg-slate-100 rounded-full mb-4">
-                  <BarChart3 className="text-slate-400" size={32} />
+            <PremiumCard className="p-4 md:p-6">
+              <div className="flex flex-col items-center justify-center py-8 md:py-12 text-center">
+                <div className="p-3 md:p-4 bg-slate-100 rounded-full mb-3 md:mb-4">
+                  <BarChart3 className="text-slate-400" size={28} />
                 </div>
-                <h4 className="text-lg font-semibold text-slate-900 mb-2">Analytics data will appear here</h4>
-                <p className="text-slate-500 max-w-md">
+                <h4 className="text-base md:text-lg font-semibold text-slate-900 mb-2">Analytics data will appear here</h4>
+                <p className="text-sm md:text-base text-slate-500 max-w-md px-2">
                   Once visitors start interacting with your platform, detailed analytics and trends will be displayed in this section.
                 </p>
               </div>
@@ -197,27 +197,25 @@ export const AdminDashboardV2: React.FC<AdminDashboardV2Props> = ({ onImpersonat
         )}
         
         {activeTab === 'support' && (
-          <div className="space-y-6">
-            <PremiumCard className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h3 className="text-xl font-bold text-slate-900">Support Overview</h3>
-                  <p className="text-sm text-slate-500 mt-1">Ticket management and customer support metrics</p>
-                </div>
+          <div className="space-y-4 md:space-y-6">
+            <PremiumCard className="p-4 md:p-6">
+              <div className="mb-4 md:mb-6">
+                <h3 className="text-lg md:text-xl font-bold text-slate-900">Support Overview</h3>
+                <p className="text-xs md:text-sm text-slate-500 mt-1">Ticket management and customer support metrics</p>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-4 md:mb-6">
                 <SupportStatCard icon={Ticket} label="Open Tickets" value={0} color="bg-blue-500" />
                 <SupportStatCard icon={AlertCircle} label="Pending" value={0} color="bg-amber-500" />
                 <SupportStatCard icon={CheckCircle} label="Resolved Today" value={0} color="bg-emerald-500" />
               </div>
 
-              <div className="flex flex-col items-center justify-center py-12 text-center border-t border-slate-100">
-                <div className="p-4 bg-emerald-50 rounded-full mb-4">
-                  <CheckCircle className="text-emerald-500" size={32} />
+              <div className="flex flex-col items-center justify-center py-8 md:py-12 text-center border-t border-slate-100">
+                <div className="p-3 md:p-4 bg-emerald-50 rounded-full mb-3 md:mb-4">
+                  <CheckCircle className="text-emerald-500" size={28} />
                 </div>
-                <h4 className="text-lg font-semibold text-slate-900 mb-2">All caught up!</h4>
-                <p className="text-slate-500 max-w-md">
+                <h4 className="text-base md:text-lg font-semibold text-slate-900 mb-2">All caught up!</h4>
+                <p className="text-sm md:text-base text-slate-500 max-w-md px-2">
                   No support tickets require your attention. When customers submit requests, they will appear here for review and resolution.
                 </p>
               </div>
@@ -226,16 +224,16 @@ export const AdminDashboardV2: React.FC<AdminDashboardV2Props> = ({ onImpersonat
         )}
         
         {activeTab === 'system' && (
-          <div className="space-y-6">
-            <PremiumCard className="p-6">
-              <div className="flex items-center justify-between mb-6">
+          <div className="space-y-4 md:space-y-6">
+            <PremiumCard className="p-4 md:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 md:mb-6">
                 <div>
-                  <h3 className="text-xl font-bold text-slate-900">System Status</h3>
-                  <p className="text-sm text-slate-500 mt-1">Infrastructure health and service monitoring</p>
+                  <h3 className="text-lg md:text-xl font-bold text-slate-900">System Status</h3>
+                  <p className="text-xs md:text-sm text-slate-500 mt-1">Infrastructure health and service monitoring</p>
                 </div>
-                <div className="flex items-center space-x-2 px-4 py-2 bg-emerald-50 rounded-full">
+                <div className="flex items-center space-x-2 px-3 md:px-4 py-1.5 md:py-2 bg-emerald-50 rounded-full self-start sm:self-auto">
                   <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium text-emerald-700">All Systems Operational</span>
+                  <span className="text-xs md:text-sm font-medium text-emerald-700">All Systems Operational</span>
                 </div>
               </div>
               
@@ -268,38 +266,38 @@ export const AdminDashboardV2: React.FC<AdminDashboardV2Props> = ({ onImpersonat
               </div>
             </PremiumCard>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <PremiumCard className="p-6">
-                <div className="flex items-center space-x-3 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+              <PremiumCard className="p-4 md:p-6">
+                <div className="flex items-center space-x-3 mb-3 md:mb-4">
                   <div className="p-2 bg-blue-100 rounded-lg">
-                    <Server className="text-blue-600" size={20} />
+                    <Server className="text-blue-600" size={18} />
                   </div>
-                  <span className="font-semibold text-slate-900">API Health</span>
+                  <span className="font-semibold text-slate-900 text-sm md:text-base">API Health</span>
                 </div>
-                <div className="text-3xl font-bold text-emerald-600 mb-1">100%</div>
-                <div className="text-sm text-slate-500">Uptime last 30 days</div>
+                <div className="text-2xl md:text-3xl font-bold text-emerald-600 mb-1">100%</div>
+                <div className="text-xs md:text-sm text-slate-500">Uptime last 30 days</div>
               </PremiumCard>
 
-              <PremiumCard className="p-6">
-                <div className="flex items-center space-x-3 mb-4">
+              <PremiumCard className="p-4 md:p-6">
+                <div className="flex items-center space-x-3 mb-3 md:mb-4">
                   <div className="p-2 bg-purple-100 rounded-lg">
-                    <Database className="text-purple-600" size={20} />
+                    <Database className="text-purple-600" size={18} />
                   </div>
-                  <span className="font-semibold text-slate-900">DB Health</span>
+                  <span className="font-semibold text-slate-900 text-sm md:text-base">DB Health</span>
                 </div>
-                <div className="text-3xl font-bold text-emerald-600 mb-1">100%</div>
-                <div className="text-sm text-slate-500">Queries optimized</div>
+                <div className="text-2xl md:text-3xl font-bold text-emerald-600 mb-1">100%</div>
+                <div className="text-xs md:text-sm text-slate-500">Queries optimized</div>
               </PremiumCard>
 
-              <PremiumCard className="p-6">
-                <div className="flex items-center space-x-3 mb-4">
+              <PremiumCard className="p-4 md:p-6">
+                <div className="flex items-center space-x-3 mb-3 md:mb-4">
                   <div className="p-2 bg-teal-100 rounded-lg">
-                    <Wifi className="text-teal-600" size={20} />
+                    <Wifi className="text-teal-600" size={18} />
                   </div>
-                  <span className="font-semibold text-slate-900">Network</span>
+                  <span className="font-semibold text-slate-900 text-sm md:text-base">Network</span>
                 </div>
-                <div className="text-3xl font-bold text-emerald-600 mb-1">100%</div>
-                <div className="text-sm text-slate-500">Connection stability</div>
+                <div className="text-2xl md:text-3xl font-bold text-emerald-600 mb-1">100%</div>
+                <div className="text-xs md:text-sm text-slate-500">Connection stability</div>
               </PremiumCard>
             </div>
           </div>

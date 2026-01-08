@@ -15,6 +15,7 @@ const AVATAR_COLORS = ['#1e3a8a', '#be123c', '#047857', '#d97706', '#7c3aed'];
 
 export const LandingPage: React.FC<LandingProps> = ({ onLogin, onNavigateToPartner, onAdminLogin }) => {
   const [isHoverOpen, setIsHoverOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [chatHistory, setChatHistory] = useState<{role: 'user'|'model', text: string}[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -310,28 +311,50 @@ export const LandingPage: React.FC<LandingProps> = ({ onLogin, onNavigateToPartn
       </div>
 
       {/* Navbar */}
-      <nav className="h-20 border-b border-slate-200/60 bg-white/95 backdrop-blur-lg px-6 lg:px-12 flex items-center justify-between sticky top-0 z-40 shadow-sm">
-        <div className="flex items-center gap-3">
-          <img src="/logo.jpg" alt="BuildMyBot" className="h-12 w-auto rounded-lg" />
-          <span className="font-bold text-xl text-slate-900 hidden sm:block">BuildMyBot</span>
+      <nav className="h-16 sm:h-20 border-b border-slate-200/60 bg-white/95 backdrop-blur-lg px-4 sm:px-6 lg:px-12 flex items-center justify-between sticky top-0 z-40 shadow-sm">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <img src="/logo.jpg" alt="BuildMyBot" className="h-10 sm:h-12 w-auto rounded-lg" />
+          <span className="font-bold text-lg sm:text-xl text-slate-900 hidden sm:block">BuildMyBot</span>
         </div>
         <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
           <a href="#features" className="hover:text-blue-700 transition-colors">Features</a>
-                    <a href="#pricing" className="hover:text-blue-700 transition-colors">Pricing</a>
+          <a href="#pricing" className="hover:text-blue-700 transition-colors">Pricing</a>
           <a href="#faq" className="hover:text-blue-700 transition-colors">FAQ</a>
           <button onClick={onNavigateToPartner} className="hover:text-blue-700 transition-colors text-emerald-600 font-semibold">Partners</button>
         </div>
-        <button onClick={onLogin} className="bg-blue-700 text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-blue-800 transition-all shadow-lg shadow-blue-700/25 hover:shadow-xl hover:shadow-blue-700/30">Get Started</button>
+        <div className="flex items-center gap-2">
+          <button onClick={onLogin} className="bg-blue-700 text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl font-semibold text-sm sm:text-base hover:bg-blue-800 transition-all shadow-lg shadow-blue-700/25 hover:shadow-xl hover:shadow-blue-700/30">Get Started</button>
+          <button 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
+            className="md:hidden p-2 text-slate-600 hover:text-slate-900"
+            aria-label="Toggle menu"
+          >
+            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-6 lg:px-12 py-16 sm:py-24 space-y-24 md:space-y-40">
+      {/* Mobile Menu */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 top-16 bg-white z-30 animate-in slide-in-from-top-2">
+          <div className="flex flex-col p-6 space-y-4">
+            <a href="#features" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium text-slate-700 hover:text-blue-700 py-3 border-b border-slate-100">Features</a>
+            <a href="#pricing" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium text-slate-700 hover:text-blue-700 py-3 border-b border-slate-100">Pricing</a>
+            <a href="#faq" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium text-slate-700 hover:text-blue-700 py-3 border-b border-slate-100">FAQ</a>
+            <button onClick={() => { onNavigateToPartner?.(); setIsMobileMenuOpen(false); }} className="text-lg font-medium text-emerald-600 hover:text-emerald-700 py-3 border-b border-slate-100 text-left">Partners</button>
+            <button onClick={() => { onLogin(); setIsMobileMenuOpen(false); }} className="w-full bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-800 transition-all mt-4">Get Started</button>
+          </div>
+        </div>
+      )}
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-12 sm:py-16 md:py-24 space-y-16 sm:space-y-24 md:space-y-40">
         
         {/* 1. Hero Section */}
         <section className="text-center space-y-10 pt-8">
           <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 px-5 py-2.5 rounded-full text-sm font-semibold border border-blue-100 shadow-sm">
             <Sparkles size={16} className="text-blue-500" /> AI That Never Sleeps, Never Misses a Lead
           </div>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-slate-900 leading-[1.1] tracking-tight">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-slate-900 leading-[1.1] tracking-tight px-2">
             Stop Losing Leads to<br className="hidden sm:block" /> Slow Response
           </h1>
           <p className="text-xl sm:text-2xl font-semibold text-blue-700 -mt-4">
@@ -357,10 +380,10 @@ export const LandingPage: React.FC<LandingProps> = ({ onLogin, onNavigateToPartn
         </section>
 
         {/* Intro Video Section */}
-        <section className="text-center space-y-8">
+        <section className="text-center space-y-6 sm:space-y-8">
           <div>
             <p className="text-blue-600 font-semibold text-sm uppercase tracking-wider mb-3">See How It Works</p>
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Watch Our Quick Intro</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 mb-4">Watch Our Quick Intro</h2>
             <p className="text-slate-600 text-lg max-w-2xl mx-auto">Learn how BuildMyBot can transform your business in just 2 minutes</p>
           </div>
           <div className="max-w-4xl mx-auto">
@@ -377,9 +400,9 @@ export const LandingPage: React.FC<LandingProps> = ({ onLogin, onNavigateToPartn
         </section>
 
         {/* 2. Dashboard Mockup */}
-        <section className="bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 rounded-3xl p-10 md:p-16 text-white shadow-2xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-3">Your Command Center</h2>
+        <section className="bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 rounded-2xl sm:rounded-3xl p-6 sm:p-10 md:p-16 text-white shadow-2xl">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3">Your Command Center</h2>
             <p className="text-slate-400 text-lg">Real-time insights at your fingertips</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
@@ -408,9 +431,9 @@ export const LandingPage: React.FC<LandingProps> = ({ onLogin, onNavigateToPartn
 
 
         {/* 4. Setup Steps */}
-        <section id="features" className="space-y-12">
+        <section id="features" className="space-y-8 sm:space-y-12">
           <div className="text-center">
-            <h2 className="text-4xl font-bold mb-4">Go Live in 5 Minutes</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">Go Live in 5 Minutes</h2>
             <p className="text-slate-600 text-lg">No coding required. No technical expertise needed.</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 sm:gap-8">
@@ -430,9 +453,9 @@ export const LandingPage: React.FC<LandingProps> = ({ onLogin, onNavigateToPartn
         </section>
 
         {/* 5. ROI Calculator */}
-        <section className="bg-white rounded-3xl shadow-xl p-8 md:p-12 border border-slate-200">
-          <div className="text-center mb-10">
-            <h2 className="text-4xl font-bold mb-4">Calculate Your ROI</h2>
+        <section className="bg-white rounded-2xl sm:rounded-3xl shadow-xl p-5 sm:p-8 md:p-12 border border-slate-200">
+          <div className="text-center mb-6 sm:mb-10">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">Calculate Your ROI</h2>
             <p className="text-slate-600 text-lg">See how much more revenue you could generate</p>
           </div>
           <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
@@ -538,9 +561,9 @@ export const LandingPage: React.FC<LandingProps> = ({ onLogin, onNavigateToPartn
         </section>
 
         {/* 7. Voice AI Preview */}
-        <section id="voice" className="space-y-12">
+        <section id="voice" className="space-y-8 sm:space-y-12">
           <div className="text-center">
-            <h2 className="text-4xl font-bold mb-4">AI Phone Receptionist</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">AI Phone Receptionist</h2>
             <p className="text-slate-600 text-lg max-w-2xl mx-auto">
               When your chat leads want to talk, your AI is ready. Ultra-realistic voice technology 
               handles calls, books appointments, and never puts anyone on hold.
@@ -567,9 +590,9 @@ export const LandingPage: React.FC<LandingProps> = ({ onLogin, onNavigateToPartn
         </section>
 
         {/* 8. Industries Section */}
-        <section className="space-y-12">
+        <section className="space-y-8 sm:space-y-12">
           <div className="text-center">
-            <h2 className="text-4xl font-bold mb-4">Built for Every Industry</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">Built for Every Industry</h2>
             <p className="text-slate-600 text-lg">Pre-trained templates for your specific business needs</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4">
@@ -584,15 +607,15 @@ export const LandingPage: React.FC<LandingProps> = ({ onLogin, onNavigateToPartn
         </section>
 
         {/* Partner/Reseller Teaser 1 */}
-        <section className="relative bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 rounded-3xl p-10 md:p-16 text-white overflow-hidden">
+        <section className="relative bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 rounded-2xl sm:rounded-3xl p-6 sm:p-10 md:p-16 text-white overflow-hidden">
           <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl"></div>
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl"></div>
-          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             <div>
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-sm font-bold mb-6">
                 <Briefcase size={16} /> Partner/Reseller Program
               </div>
-              <h2 className="text-3xl md:text-4xl font-extrabold mb-6 leading-tight">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold mb-4 sm:mb-6 leading-tight">
                 Start Your Own AI Agency.<br/>
                 <span className="text-emerald-400">Keep Up to 50% Revenue.</span>
               </h2>
@@ -617,33 +640,33 @@ export const LandingPage: React.FC<LandingProps> = ({ onLogin, onNavigateToPartn
                 Learn About Partnership <ArrowRight size={20} />
               </button>
             </div>
-            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10">
-              <div className="text-center mb-6">
+            <div className="bg-white/5 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-8 border border-white/10">
+              <div className="text-center mb-4 sm:mb-6">
                 <p className="text-slate-400 text-sm mb-2">Example: 50 Clients at $99/mo</p>
-                <div className="text-5xl font-extrabold text-emerald-400 mb-1">$2,475</div>
+                <div className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-emerald-400 mb-1">$2,475</div>
                 <p className="text-slate-300">Your Monthly Income</p>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center">
-                <div className="bg-white/5 rounded-lg p-3">
-                  <div className="text-lg font-bold text-white">20%</div>
-                  <div className="text-xs text-slate-400">Bronze</div>
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-3 text-center">
+                <div className="bg-white/5 rounded-lg p-2 sm:p-3">
+                  <div className="text-base sm:text-lg font-bold text-white">20%</div>
+                  <div className="text-[10px] sm:text-xs text-slate-400">Bronze</div>
                 </div>
-                <div className="bg-white/5 rounded-lg p-3">
-                  <div className="text-lg font-bold text-white">30%</div>
-                  <div className="text-xs text-slate-400">Silver</div>
+                <div className="bg-white/5 rounded-lg p-2 sm:p-3">
+                  <div className="text-base sm:text-lg font-bold text-white">30%</div>
+                  <div className="text-[10px] sm:text-xs text-slate-400">Silver</div>
                 </div>
-                <div className="bg-white/5 rounded-lg p-3">
-                  <div className="text-lg font-bold text-white">40%</div>
-                  <div className="text-xs text-slate-400">Gold</div>
+                <div className="bg-white/5 rounded-lg p-2 sm:p-3">
+                  <div className="text-base sm:text-lg font-bold text-white">40%</div>
+                  <div className="text-[10px] sm:text-xs text-slate-400">Gold</div>
                 </div>
-                <div className="bg-white/5 rounded-lg p-3">
-                  <div className="text-lg font-bold text-white">50%</div>
-                  <div className="text-xs text-slate-400">Platinum</div>
+                <div className="bg-white/5 rounded-lg p-2 sm:p-3">
+                  <div className="text-base sm:text-lg font-bold text-white">50%</div>
+                  <div className="text-[10px] sm:text-xs text-slate-400">Platinum</div>
                 </div>
-                <div className="bg-amber-500/20 rounded-lg p-3 border border-amber-500/30 col-span-2 sm:col-span-1">
-                  <div className="text-lg font-bold text-amber-400">50%</div>
-                  <div className="text-xs text-amber-300">Whitelabel</div>
-                  <div className="text-[10px] text-amber-400/70">$499 instant</div>
+                <div className="bg-amber-500/20 rounded-lg p-2 sm:p-3 border border-amber-500/30 col-span-2 sm:col-span-1">
+                  <div className="text-base sm:text-lg font-bold text-amber-400">50%</div>
+                  <div className="text-[10px] sm:text-xs text-amber-300">Whitelabel</div>
+                  <div className="text-[8px] sm:text-[10px] text-amber-400/70">$499 instant</div>
                 </div>
               </div>
             </div>
@@ -651,30 +674,30 @@ export const LandingPage: React.FC<LandingProps> = ({ onLogin, onNavigateToPartn
         </section>
 
         {/* 9. Live Demo Section */}
-        <section id="demo" className="space-y-12">
+        <section id="demo" className="space-y-8 sm:space-y-12">
           <div className="text-center">
-            <h2 className="text-4xl font-bold mb-4">Try It Yourself</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">Try It Yourself</h2>
             <p className="text-slate-600 text-lg">Experience the power of AI in real-time</p>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8 overflow-hidden">
-              <div className="flex items-center gap-3 mb-6">
-                <Globe className="text-blue-900" size={28} />
-                <h3 className="text-xl font-bold">Website URL Trainer</h3>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+            <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-slate-200 p-5 sm:p-8 overflow-hidden">
+              <div className="flex items-center gap-3 mb-4 sm:mb-6">
+                <Globe className="text-blue-900 shrink-0" size={24} />
+                <h3 className="text-lg sm:text-xl font-bold">Website URL Trainer</h3>
               </div>
-              <p className="text-slate-600 mb-6">Enter any website URL and watch our AI instantly learn about the business.</p>
-              <div className="flex gap-2 mb-4">
+              <p className="text-slate-600 mb-4 sm:mb-6 text-sm sm:text-base">Enter any website URL and watch our AI instantly learn about the business.</p>
+              <div className="flex flex-col sm:flex-row gap-2 mb-4">
                 <input 
                   type="text"
                   value={demoUrl}
                   onChange={(e) => setDemoUrl(e.target.value)}
                   placeholder="https://example.com"
-                  className="flex-1 border border-slate-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 border border-slate-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
                 />
                 <button 
                   onClick={handleDemoScrape}
                   disabled={demoLoading}
-                  className="bg-blue-900 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-950 transition disabled:opacity-50"
+                  className="bg-blue-900 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-950 transition disabled:opacity-50 shrink-0"
                 >
                   {demoLoading ? <Loader className="animate-spin" size={20} /> : <Search size={20} />}
                 </button>
@@ -686,24 +709,24 @@ export const LandingPage: React.FC<LandingProps> = ({ onLogin, onNavigateToPartn
               )}
             </div>
             
-            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8 overflow-hidden">
-              <div className="flex items-center gap-3 mb-6">
-                <Megaphone className="text-blue-900" size={28} />
-                <h3 className="text-xl font-bold">Viral Post Creator</h3>
+            <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-slate-200 p-5 sm:p-8 overflow-hidden">
+              <div className="flex items-center gap-3 mb-4 sm:mb-6">
+                <Megaphone className="text-blue-900 shrink-0" size={24} />
+                <h3 className="text-lg sm:text-xl font-bold">Viral Post Creator</h3>
               </div>
-              <p className="text-slate-600 mb-6">Generate engaging social media content instantly with AI.</p>
-              <div className="flex gap-2 mb-4">
+              <p className="text-slate-600 mb-4 sm:mb-6 text-sm sm:text-base">Generate engaging social media content instantly with AI.</p>
+              <div className="flex flex-col sm:flex-row gap-2 mb-4">
                 <input 
                   type="text"
                   value={marketingTopic}
                   onChange={(e) => setMarketingTopic(e.target.value)}
                   placeholder="Enter your topic or product..."
-                  className="flex-1 border border-slate-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 border border-slate-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
                 />
                 <button 
                   onClick={handleMarketingGenerate}
                   disabled={marketingLoading}
-                  className="bg-blue-900 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-950 transition disabled:opacity-50"
+                  className="bg-blue-900 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-950 transition disabled:opacity-50 shrink-0"
                 >
                   {marketingLoading ? <Loader className="animate-spin" size={20} /> : <Sparkles size={20} />}
                 </button>
@@ -718,7 +741,7 @@ export const LandingPage: React.FC<LandingProps> = ({ onLogin, onNavigateToPartn
         </section>
 
         {/* Both Chat Types Preview */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-20 items-center">
           <div className="space-y-6">
             <h2 className="text-3xl font-bold">Two Ways to Connect</h2>
             <p className="text-slate-600 text-lg">Choose between a discreet floating hover widget or a powerful fixed embed that stays as part of your page's content.</p>
@@ -738,9 +761,9 @@ export const LandingPage: React.FC<LandingProps> = ({ onLogin, onNavigateToPartn
         </section>
 
         {/* 10. Pricing Section */}
-        <section id="pricing" className="space-y-12">
+        <section id="pricing" className="space-y-8 sm:space-y-12">
           <div className="text-center">
-            <h2 className="text-4xl font-bold mb-4">Simple, Transparent Pricing</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">Simple, Transparent Pricing</h2>
             <p className="text-slate-600 text-lg">Start free, upgrade as you grow. No hidden fees.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6">
@@ -785,23 +808,23 @@ export const LandingPage: React.FC<LandingProps> = ({ onLogin, onNavigateToPartn
         </section>
 
         {/* 11. FAQ Section */}
-        <section id="faq" className="space-y-12">
+        <section id="faq" className="space-y-8 sm:space-y-12">
           <div className="text-center">
-            <h2 className="text-4xl font-bold mb-4">Frequently Asked Questions</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">Frequently Asked Questions</h2>
             <p className="text-slate-600 text-lg">Everything you need to know about BuildMyBot</p>
           </div>
-          <div className="max-w-3xl mx-auto space-y-4">
+          <div className="max-w-3xl mx-auto space-y-3 sm:space-y-4">
             {faqs.map((faq, i) => (
               <div key={i} className="bg-white rounded-xl border border-slate-200 overflow-hidden">
                 <button 
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="w-full flex items-center justify-between p-6 text-left hover:bg-slate-50 transition"
+                  className="w-full flex items-center justify-between p-4 sm:p-6 text-left hover:bg-slate-50 transition gap-4"
                 >
-                  <span className="font-bold text-lg">{faq.q}</span>
-                  {openFaq === i ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                  <span className="font-bold text-base sm:text-lg">{faq.q}</span>
+                  {openFaq === i ? <ChevronUp size={20} className="shrink-0" /> : <ChevronDown size={20} className="shrink-0" />}
                 </button>
                 {openFaq === i && (
-                  <div className="px-6 pb-6 text-slate-600 leading-relaxed break-words">
+                  <div className="px-4 sm:px-6 pb-4 sm:pb-6 text-slate-600 leading-relaxed break-words text-sm sm:text-base">
                     {faq.a}
                   </div>
                 )}
@@ -811,8 +834,8 @@ export const LandingPage: React.FC<LandingProps> = ({ onLogin, onNavigateToPartn
         </section>
 
         {/* 12. Final CTA */}
-        <section className="bg-gradient-to-br from-blue-900 to-blue-800 rounded-3xl p-12 md:p-16 text-white text-center">
-          <h2 className="text-4xl md:text-5xl font-extrabold mb-6">Ready to Stop Losing Leads?</h2>
+        <section className="bg-gradient-to-br from-blue-900 to-blue-800 rounded-2xl sm:rounded-3xl p-6 sm:p-10 md:p-16 text-white text-center">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-4 sm:mb-6">Ready to Stop Losing Leads?</h2>
           <p className="text-xl text-blue-200 mb-8 max-w-2xl mx-auto">
             Start using BuildMyBot today to capture, qualify, and convert leads 24/7. 
             Start free today — no credit card required.
@@ -833,8 +856,8 @@ export const LandingPage: React.FC<LandingProps> = ({ onLogin, onNavigateToPartn
         </section>
       </main>
 
-      <footer className="bg-slate-900 text-slate-400 py-20 px-6">
-        <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-12">
+      <footer className="bg-slate-900 text-slate-400 py-12 sm:py-20 px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 sm:gap-12">
           <div>
             <div className="flex items-center gap-2 text-white font-bold text-xl mb-4">
               <Bot size={24} /> BuildMyBot
