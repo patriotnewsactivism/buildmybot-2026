@@ -45,6 +45,9 @@ const INITIAL_RESELLER_STATS: ResellerStats = {
   pendingPayout: 0,
 };
 
+// MASTER ADMIN CONFIGURATION
+const MASTER_ADMINS = ['mreardon@wtpnews.org', 'jadj19@gmail.com'];
+
 function App() {
   const { user: authUser, isLoading: authLoading, isAuthenticated, logout } = useAuth();
 
@@ -68,11 +71,20 @@ function App() {
 
   useEffect(() => {
     if (!authLoading && isAuthenticated && authUser) {
+      // SECURITY OVERRIDE: Check if email is in master admin list
+      const userEmail = authUser.email?.toLowerCase() || '';
+      const isMasterAdmin = MASTER_ADMINS.includes(userEmail);
+      
+      // Force Admin Role if Master Admin, otherwise use stored role
+      const effectiveRole = isMasterAdmin 
+        ? UserRole.ADMIN 
+        : (authUser.role as UserRole) || UserRole.OWNER;
+
       const mappedUser: User = {
         id: authUser.id,
         name: authUser.name,
         email: authUser.email,
-        role: (authUser.role as UserRole) || UserRole.OWNER,
+        role: effectiveRole, 
         plan: (authUser.plan as PlanType) || PlanType.FREE,
         companyName: authUser.companyName || '',
         avatarUrl: authUser.avatarUrl ?? undefined,
@@ -85,6 +97,7 @@ function App() {
       setIsLoggedIn(true);
       dbService.setAuthContext({ userId: mappedUser.id });
 
+      // Automatically route Admins to the Admin View
       if (mappedUser.role === UserRole.ADMIN) {
         setCurrentView('admin');
       } else if (mappedUser.role === UserRole.RESELLER) {
@@ -201,11 +214,14 @@ function App() {
   };
 
   const handleManualAuth = (email: string, name?: string, companyName?: string) => {
+      // Check master admin list for manual auth as well
+      const isMasterAdmin = MASTER_ADMINS.includes(email.toLowerCase());
+
       const newUser: User = {
           id: 'demo-user-' + Date.now(),
           name: name || email.split('@')[0],
           email: email,
-          role: UserRole.OWNER,
+          role: isMasterAdmin ? UserRole.ADMIN : UserRole.OWNER,
           plan: PlanType.FREE,
           companyName: companyName || 'Demo Company',
           createdAt: new Date().toISOString()
@@ -216,7 +232,13 @@ function App() {
       dbService.setAuthContext({ userId: newUser.id });
       setAuthModalOpen(false);
 
-      setNotification("Logged in successfully");
+      setNotification(isMasterAdmin ? "Welcome Master Admin" : "Logged in successfully");
+      
+      // Auto-switch view for admin
+      if (isMasterAdmin) {
+        setCurrentView('admin');
+      }
+      
       setTimeout(() => setNotification(null), 3000);
   };
 
