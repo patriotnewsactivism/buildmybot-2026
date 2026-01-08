@@ -61,7 +61,8 @@ export class WebScraperService {
     startUrl: string,
     maxPages: number = 5,
     sourceId: string,
-    botId: string
+    botId: string,
+    organizationId?: string
   ): Promise<ScrapedContent[]> {
     const visited = new Set<string>();
     const toVisit = [startUrl];

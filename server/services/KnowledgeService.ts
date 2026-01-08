@@ -16,39 +16,60 @@ export class KnowledgeService {
     query: string,
     limit: number = 5
   ): Promise<KnowledgeSearchResult[]> {
-    const queryWords = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+    const queryLower = query.toLowerCase();
+    const queryWords = queryLower.split(/\s+/).filter(w => w.length > 2);
+    const importantWords = queryWords.filter(w => 
+      !['the', 'and', 'for', 'are', 'but', 'not', 'you', 'all', 'can', 'her', 'was', 'one', 'our', 'out', 'has', 'have', 'with', 'this', 'that', 'what', 'when', 'where', 'how', 'why', 'which'].includes(w)
+    );
     
-    if (queryWords.length === 0) {
+    if (importantWords.length === 0 && queryWords.length === 0) {
       return [];
     }
 
     const chunks = await db.select()
       .from(knowledgeChunks)
       .where(eq(knowledgeChunks.botId, botId))
-      .limit(100);
+      .limit(200);
 
     const scoredChunks = chunks.map(chunk => {
       const content = chunk.content.toLowerCase();
       let score = 0;
 
-      for (const word of queryWords) {
-        const regex = new RegExp(word, 'gi');
-        const matches = content.match(regex);
-        if (matches) {
-          score += matches.length;
+      const exactMatch = content.includes(queryLower);
+      if (exactMatch) {
+        score += 50;
+      }
+
+      const wordsToSearch = importantWords.length > 0 ? importantWords : queryWords;
+      let matchedWords = 0;
+      for (const word of wordsToSearch) {
+        if (content.includes(word)) {
+          matchedWords++;
+          const regex = new RegExp(`\\b${word}\\b`, 'gi');
+          const matches = content.match(regex);
+          if (matches) {
+            score += matches.length * 3;
+          } else {
+            score += 1;
+          }
         }
       }
 
-      const exactMatch = content.includes(query.toLowerCase());
-      if (exactMatch) {
-        score += 10;
+      if (wordsToSearch.length > 0) {
+        const coverage = matchedWords / wordsToSearch.length;
+        score *= (0.5 + coverage * 0.5);
+      }
+
+      const meta = chunk.metadata as any;
+      if (meta?.title && meta.title.toLowerCase().includes(queryLower.slice(0, 20))) {
+        score += 20;
       }
 
       return {
         id: chunk.id,
         content: chunk.content,
         metadata: chunk.metadata,
-        score,
+        score: Math.round(score),
         sourceId: chunk.sourceId!,
       };
     });

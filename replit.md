@@ -56,6 +56,32 @@ BuildMyBot is an AI-powered chatbot builder platform that helps businesses autom
 - `APP_BASE_URL` - Base URL for Stripe redirects
 - `STRIPE_SECRET_KEY` - Stripe API secret key
 - `STRIPE_WEBHOOK_SECRET` - Stripe webhook signing secret
+- `OPENAI_API_KEY` - OpenAI API key for AI features and OCR
+- `CARTESIA_API_KEY` - Cartesia API key for voice agents
+
+## Knowledge Base System
+
+### Architecture
+The knowledge base system enables clients to build custom knowledge repositories that power both chatbot and voice agent responses through RAG (Retrieval Augmented Generation).
+
+### Key Components
+- **WebScraperService** (`server/services/WebScraperService.ts`): Website crawling and content extraction with rate limiting
+- **DocumentProcessorService** (`server/services/DocumentProcessorService.ts`): PDF/DOCX extraction using pdf-parse and mammoth, OCR via OpenAI Vision
+- **KnowledgeService** (`server/services/KnowledgeService.ts`): Search and context building for RAG responses
+- **Knowledge API** (`server/routes/knowledge.ts`): REST endpoints for scraping, upload, search
+
+### Database Tables
+- `knowledge_sources`: Tracks URL and document sources per bot
+- `knowledge_chunks`: Stores chunked content with metadata for retrieval
+
+### Features
+- Website crawling with configurable depth (1-10 pages)
+- Document upload with automatic text extraction (PDF, DOCX, TXT, MD)
+- OCR for images and scanned PDFs using OpenAI Vision
+- Content chunking and indexing for efficient retrieval
+- Relevance-based search with stopword filtering
+- Per-client knowledge isolation through tenant/organization context
 
 ## Recent Changes
+- 2026-01-08: Implemented comprehensive knowledge base with website scraping, document OCR, and RAG integration
 - 2026-01-08: Initial Replit setup and configuration

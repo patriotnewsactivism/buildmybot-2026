@@ -79,7 +79,7 @@ router.post('/scrape/:botId', authenticate, loadOrganizationContext, async (req:
       updatedAt: new Date(),
     });
 
-    WebScraperService.crawlWebsite(url, maxPages, sourceId, botId)
+    WebScraperService.crawlWebsite(url, maxPages, sourceId, botId, organizationId)
       .catch(async (error) => {
         console.error('Crawl error:', error);
         await db.update(knowledgeSources)
