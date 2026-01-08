@@ -31,24 +31,42 @@ interface Payout {
   createdAt: string;
 }
 
+const defaultStats: CommissionStats = {
+  totalClients: 0,
+  totalRevenue: 0,
+  commissionRate: 0.20,
+  grossCommission: 0,
+  pendingPayout: 0,
+  whitelabelFeeDue: false,
+  whitelabelFeeAmount: 0,
+};
+
+const defaultTier: Tier = {
+  label: 'Starter',
+  min: 0,
+  max: 10,
+  commission: 0.20,
+};
+
 export const CommissionsEarnings: React.FC = () => {
-  const [stats, setStats] = useState<CommissionStats | null>(null);
-  const [tier, setTier] = useState<Tier | null>(null);
+  const [stats, setStats] = useState<CommissionStats>(defaultStats);
+  const [tier, setTier] = useState<Tier>(defaultTier);
   const [payouts, setPayouts] = useState<Payout[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   const fetchCommissions = async () => {
+    setLoading(true);
     try {
       const data = await dbService.getPartnerCommissions();
-      setStats(data.stats);
-      setTier(data.tier);
-      setPayouts(data.payouts);
-      setLoading(false);
-      setError(null);
+      setStats(data.stats || defaultStats);
+      setTier(data.tier || defaultTier);
+      setPayouts(data.payouts || []);
     } catch (err) {
       console.error('Error fetching commissions:', err);
-      setError('Failed to load commission data');
+      setStats(defaultStats);
+      setTier(defaultTier);
+      setPayouts([]);
+    } finally {
       setLoading(false);
     }
   };
@@ -105,85 +123,67 @@ export const CommissionsEarnings: React.FC = () => {
     },
   ];
 
-  if (error) {
-    return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-        <p className="text-red-800">{error}</p>
-        <button
-          onClick={fetchCommissions}
-          className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-        >
-          <RefreshCw size={16} className="inline mr-2" />
-          Retry
-        </button>
-      </div>
-    );
-  }
-
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-slate-900">Commissions & Earnings</h2>
         <button
           onClick={fetchCommissions}
-          className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 flex items-center space-x-2"
+          disabled={loading}
+          className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 flex items-center space-x-2 disabled:opacity-50"
         >
-          <RefreshCw size={16} />
+          <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
           <span>Refresh</span>
         </button>
       </div>
 
       {/* Commission Metrics */}
-      {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <MetricCard
-            icon={DollarSign}
-            label="Total Revenue"
-            value={`$${stats.totalRevenue.toLocaleString()}`}
-            loading={loading}
-          />
-          <MetricCard
-            icon={TrendingUp}
-            label="Gross Commission"
-            value={`$${stats.grossCommission.toLocaleString()}`}
-            loading={loading}
-          />
-          <MetricCard
-            icon={CreditCard}
-            label="Pending Payout"
-            value={`$${stats.pendingPayout.toLocaleString()}`}
-            status={stats.pendingPayout > 0 ? 'healthy' : 'warning'}
-            loading={loading}
-          />
-          <MetricCard
-            icon={Award}
-            label="Commission Rate"
-            value={`${(stats.commissionRate * 100).toFixed(0)}%`}
-            loading={loading}
-          />
-        </div>
-      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <MetricCard
+          icon={DollarSign}
+          label="Total Revenue"
+          value={`$${stats.totalRevenue.toLocaleString()}`}
+          loading={loading}
+        />
+        <MetricCard
+          icon={TrendingUp}
+          label="Gross Commission"
+          value={`$${stats.grossCommission.toLocaleString()}`}
+          loading={loading}
+        />
+        <MetricCard
+          icon={CreditCard}
+          label="Pending Payout"
+          value={`$${stats.pendingPayout.toLocaleString()}`}
+          status="healthy"
+          loading={loading}
+        />
+        <MetricCard
+          icon={Award}
+          label="Commission Rate"
+          value={`${(stats.commissionRate * 100).toFixed(0)}%`}
+          loading={loading}
+        />
+      </div>
 
       {/* Current Tier */}
-      {tier && (
-        <div className="mb-6 bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 rounded-lg p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">Current Tier: {tier.label}</h3>
-              <p className="text-sm text-slate-700">
-                You're earning <span className="font-bold text-orange-600">{(tier.commission * 100).toFixed(0)}%</span> commission on all client revenue
-              </p>
-              <p className="text-xs text-slate-600 mt-2">
-                Tier range: {tier.min}-{tier.max === 999999 ? 'inf' : tier.max} clients
-              </p>
-            </div>
-            <Award size={48} className="text-orange-600" />
+      <div className="mb-6 bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 rounded-lg p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900 mb-2">Current Tier: {tier.label}</h3>
+            <p className="text-sm text-slate-700">
+              You're earning <span className="font-bold text-orange-600">{(tier.commission * 100).toFixed(0)}%</span> commission on all client revenue
+            </p>
+            <p className="text-xs text-slate-600 mt-2">
+              Tier range: {tier.min}-{tier.max === 999999 ? '∞' : tier.max} clients
+            </p>
           </div>
+          <Award size={48} className="text-orange-600" />
         </div>
-      )}
+      </div>
 
       {/* Whitelabel Fee Notice */}
-      {stats && stats.whitelabelFeeDue && (
+      {stats.whitelabelFeeDue && (
         <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <div className="flex items-center space-x-2">
             <CreditCard className="text-yellow-600" size={20} />
@@ -211,7 +211,7 @@ export const CommissionsEarnings: React.FC = () => {
       </div>
 
       {/* Commission Breakdown */}
-      {stats && stats.grossCommission > 0 && (
+      {stats.grossCommission > 0 && (
         <div className="mt-6 bg-slate-50 rounded-lg p-6">
           <h3 className="text-sm font-semibold text-slate-700 mb-4">Commission Breakdown</h3>
           <div className="space-y-3">

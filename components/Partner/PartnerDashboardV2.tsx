@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, DollarSign, FileText, AlertTriangle, BarChart3, ListChecks } from 'lucide-react';
+import { Users, DollarSign, FileText, AlertTriangle, BarChart3, ListChecks, TrendingUp, UserCheck, Percent, Zap, Target, Clock, CheckCircle, Briefcase } from 'lucide-react';
 import { User } from '../../types';
 import { ClientManagement } from './widgets/ClientManagement';
 import { CommissionsEarnings } from './widgets/CommissionsEarnings';
@@ -14,10 +14,42 @@ interface PartnerDashboardV2Props {
   onTabChange?: (tab: PartnerTab) => void;
 }
 
+const PremiumCard: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
+  <div className={`bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow duration-200 ${className}`}>
+    {children}
+  </div>
+);
+
+const AnalyticsMetricCard: React.FC<{ icon: React.ElementType; label: string; value: string | number; subtext?: string }> = ({ icon: Icon, label, value, subtext }) => (
+  <PremiumCard className="p-6">
+    <div className="flex items-start justify-between">
+      <div className="p-3 bg-gradient-to-br from-orange-500 to-amber-500 rounded-lg">
+        <Icon className="text-white" size={24} />
+      </div>
+    </div>
+    <div className="mt-4">
+      <div className="text-3xl font-bold text-slate-900">{value}</div>
+      <div className="text-sm font-medium text-slate-600 mt-1">{label}</div>
+      {subtext && <div className="text-xs text-slate-400 mt-1">{subtext}</div>}
+    </div>
+  </PremiumCard>
+);
+
+const CollaborationStatCard: React.FC<{ icon: React.ElementType; label: string; value: number; color: string }> = ({ icon: Icon, label, value, color }) => (
+  <div className="flex items-center space-x-4 p-4 bg-slate-50 rounded-lg">
+    <div className={`p-3 rounded-lg ${color}`}>
+      <Icon className="text-white" size={20} />
+    </div>
+    <div>
+      <div className="text-2xl font-bold text-slate-900">{value}</div>
+      <div className="text-sm text-slate-600">{label}</div>
+    </div>
+  </div>
+);
+
 export const PartnerDashboardV2: React.FC<PartnerDashboardV2Props> = ({ user, onImpersonate, activeTab: controlledTab, onTabChange }) => {
   const [internalTab, setInternalTab] = useState<PartnerTab>('clients');
   
-  // Use controlled tab if provided, otherwise use internal state
   const activeTab = controlledTab ?? internalTab;
   const setActiveTab = (tab: PartnerTab) => {
     if (onTabChange) {
@@ -27,7 +59,13 @@ export const PartnerDashboardV2: React.FC<PartnerDashboardV2Props> = ({ user, on
     }
   };
 
-  // Show pending approval screen if status is Pending
+  const currentDate = new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+
   if (user.status === 'Pending') {
     return (
       <div className="max-w-2xl mx-auto">
@@ -59,23 +97,54 @@ export const PartnerDashboardV2: React.FC<PartnerDashboardV2Props> = ({ user, on
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">
-      {/* Tab Navigation */}
-      <div className="bg-white border-b border-slate-200 rounded-lg">
-        <div className="flex overflow-x-auto">
+      {/* Premium Header */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-8">
+        <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 via-transparent to-amber-500/10"></div>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-orange-500/20 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-amber-500/20 to-transparent rounded-full blur-2xl translate-y-1/2 -translate-x-1/2"></div>
+        
+        <div className="relative z-10">
+          <div className="flex items-center space-x-2 mb-2">
+            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+            <span className="text-emerald-400 text-sm font-medium">Partner Active</span>
+          </div>
+          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-white via-orange-100 to-amber-200 bg-clip-text text-transparent">
+            Partner Dashboard
+          </h1>
+          <p className="text-slate-300 mt-2 text-lg">Welcome back, {user.name || 'Partner'}</p>
+          <p className="text-slate-400 mt-1">{currentDate}</p>
+          <div className="flex items-center space-x-4 mt-4">
+            <div className="flex items-center space-x-2 text-slate-400 text-sm">
+              <Briefcase size={16} className="text-orange-400" />
+              <span>Partner Program</span>
+            </div>
+            <div className="w-px h-4 bg-slate-700"></div>
+            <div className="flex items-center space-x-2 text-slate-400 text-sm">
+              <Zap size={16} className="text-amber-400" />
+              <span>Full Access</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Premium Tab Navigation */}
+      <div className="bg-slate-900 rounded-xl p-2 shadow-lg">
+        <div className="flex overflow-x-auto gap-1">
           {tabs.map((tab) => {
             const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center space-x-2 px-6 py-4 border-b-2 transition-colors whitespace-nowrap ${
-                  activeTab === tab.id
-                    ? 'border-orange-600 text-orange-600 font-semibold'
-                    : 'border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300'
+                className={`flex items-center space-x-2 px-5 py-3 rounded-lg transition-all duration-200 whitespace-nowrap ${
+                  isActive
+                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold shadow-lg shadow-orange-500/25'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
                 }`}
               >
-                <Icon size={20} />
-                <span>{tab.label}</span>
+                <Icon size={18} />
+                <span className="text-sm">{tab.label}</span>
               </button>
             );
           })}
@@ -87,20 +156,71 @@ export const PartnerDashboardV2: React.FC<PartnerDashboardV2Props> = ({ user, on
         {activeTab === 'clients' && <ClientManagement onImpersonate={onImpersonate} />}
         {activeTab === 'commissions' && <CommissionsEarnings />}
         {activeTab === 'marketing' && <MarketingMaterials />}
+        
         {activeTab === 'analytics' && (
-          <div className="bg-white border border-slate-200 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">Performance Analytics</h3>
-            <p className="text-sm text-slate-600">
-              Analytics reporting is syncing. Review referral funnel progress and retention summaries here once available.
-            </p>
+          <div className="space-y-6">
+            <PremiumCard className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900">Performance Analytics</h3>
+                  <p className="text-sm text-slate-500 mt-1">Track your referral performance and client metrics</p>
+                </div>
+                <div className="px-3 py-1 bg-slate-100 rounded-full text-xs font-medium text-slate-600">
+                  All Time
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <AnalyticsMetricCard icon={TrendingUp} label="Total Referrals" value="0" subtext="Start referring to grow" />
+                <AnalyticsMetricCard icon={Percent} label="Conversion Rate" value="0%" subtext="No conversions yet" />
+                <AnalyticsMetricCard icon={UserCheck} label="Active Clients" value="0" subtext="No active clients" />
+                <AnalyticsMetricCard icon={DollarSign} label="Avg Revenue per Client" value="$0" subtext="Revenue tracking" />
+              </div>
+            </PremiumCard>
+
+            <PremiumCard className="p-6">
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="p-4 bg-slate-100 rounded-full mb-4">
+                  <BarChart3 className="text-slate-400" size={32} />
+                </div>
+                <h4 className="text-lg font-semibold text-slate-900 mb-2">Analytics will appear here</h4>
+                <p className="text-slate-500 max-w-md">
+                  Once you start referring clients, detailed analytics about your referral funnel, conversion rates, and revenue trends will be displayed here.
+                </p>
+              </div>
+            </PremiumCard>
           </div>
         )}
+        
         {activeTab === 'collaboration' && (
-          <div className="bg-white border border-slate-200 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">Collaboration Hub</h3>
-            <p className="text-sm text-slate-600">
-              Collaboration tools are on the way. Use this space to coordinate joint campaigns and shared tasks.
-            </p>
+          <div className="space-y-6">
+            <PremiumCard className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900">Collaboration Hub</h3>
+                  <p className="text-sm text-slate-500 mt-1">Coordinate campaigns and tasks with your team</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <CollaborationStatCard icon={Target} label="Shared Campaigns" value={0} color="bg-blue-500" />
+                <CollaborationStatCard icon={Clock} label="Pending Tasks" value={0} color="bg-amber-500" />
+                <CollaborationStatCard icon={CheckCircle} label="Completed This Month" value={0} color="bg-emerald-500" />
+              </div>
+
+              <div className="flex flex-col items-center justify-center py-12 text-center border-t border-slate-100">
+                <div className="p-4 bg-orange-50 rounded-full mb-4">
+                  <ListChecks className="text-orange-500" size={32} />
+                </div>
+                <h4 className="text-lg font-semibold text-slate-900 mb-2">Ready to collaborate</h4>
+                <p className="text-slate-500 max-w-md mb-6">
+                  Create joint campaigns, assign tasks, and track progress with your team. Collaboration tools help you maximize your partnership potential.
+                </p>
+                <button className="px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold rounded-lg shadow-lg shadow-orange-500/25 hover:shadow-xl hover:shadow-orange-500/30 transition-all duration-200">
+                  Start a Campaign
+                </button>
+              </div>
+            </PremiumCard>
           </div>
         )}
       </div>
