@@ -80,19 +80,27 @@ router.post('/login', async (req: Request, res: Response) => {
       return res.status(403).json({ error: 'Account is suspended' });
     }
 
-    // Set session
-    const session = req.session as any;
-    session.userId = user.id;
-
     // Update last login
     await db
       .update(users)
       .set({ lastLoginAt: new Date() })
       .where(eq(users.id, user.id));
 
-    // Don't return password hash
-    const { passwordHash, ...safeUser } = user as any;
-    res.json({ user: safeUser, message: 'Login successful' });
+    // Set session
+    const session = req.session as any;
+    session.userId = user.id;
+
+    // Save session before sending response
+    req.session.save((err) => {
+      if (err) {
+        console.error('Session save error:', err);
+        return res.status(500).json({ error: 'Login failed - session error' });
+      }
+
+      // Don't return password hash
+      const { passwordHash, ...safeUser } = user as any;
+      res.json({ user: safeUser, message: 'Login successful' });
+    });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Login failed' });
@@ -175,9 +183,17 @@ router.post('/signup', async (req: Request, res: Response) => {
     const session = req.session as any;
     session.userId = newUser.id;
 
-    // Don't return password hash
-    const { passwordHash: _, ...safeUser } = newUser as any;
-    res.status(201).json({ user: safeUser, message: 'Account created successfully' });
+    // Save session before sending response
+    req.session.save((err) => {
+      if (err) {
+        console.error('Session save error:', err);
+        return res.status(500).json({ error: 'Signup failed - session error' });
+      }
+
+      // Don't return password hash
+      const { passwordHash: _, ...safeUser } = newUser as any;
+      res.status(201).json({ user: safeUser, message: 'Account created successfully' });
+    });
   } catch (error) {
     console.error('Signup error:', error);
     res.status(500).json({ error: 'Signup failed' });
