@@ -26,7 +26,7 @@ import { stripeService } from './stripeService';
 import { PLANS, RESELLER_TIERS, WHITELABEL_FEE } from '../constants';
 import multer from 'multer';
 import { securityHeaders, apiLimiter, metricsMiddleware, authenticate, loadOrganizationContext, tenantIsolation, applyImpersonation, authorize } from './middleware';
-import { auditRouter, analyticsRouter, organizationsRouter, adminRouter, partnersRouter, clientsRouter, impersonationRouter, templatesRouter } from './routes';
+import { auditRouter, analyticsRouter, organizationsRouter, adminRouter, partnersRouter, clientsRouter, impersonationRouter, templatesRouter, channelsRouter } from './routes';
 
 const uploadsDir = path.join(process.cwd(), 'uploads');
 if (!fs.existsSync(uploadsDir)) {
@@ -65,6 +65,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+
+// Trust proxy to properly handle X-Forwarded-For header for rate limiting
+app.set('trust proxy', 1);
 
 const isProduction = process.env.NODE_ENV === 'production';
 const PORT = isProduction ? 5000 : parseInt(process.env.API_PORT || '3001', 10);
@@ -715,6 +718,9 @@ app.use('/api/impersonation', authenticate, impersonationRouter);
 
 // Bot template marketplace
 app.use('/api/templates', authenticate, applyImpersonation, loadOrganizationContext, tenantIsolation, templatesRouter);
+
+// Multi-channel deployment
+app.use('/api/channels', channelsRouter);
 
 // Serve static files in production
 if (isProduction) {

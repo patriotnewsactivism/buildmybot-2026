@@ -7,10 +7,22 @@ export { LeadService } from './LeadService';
 export { OrganizationService } from './OrganizationService';
 export { UserService } from './UserService';
 export { AnalyticsService } from './AnalyticsService';
+export { ChannelService } from './ChannelService';
 
 // Export types from AnalyticsService
 export type {
   ConversionMetrics,
   BotPerformance,
   TimeSeriesData,
+  Insight,
+  PeakHours,
+  SentimentBreakdown,
 } from './AnalyticsService';
+
+// Export types from ChannelService
+export type {
+  ChannelType,
+  ChannelConfig,
+  Deployment,
+  ChannelStatus,
+} from './ChannelService';

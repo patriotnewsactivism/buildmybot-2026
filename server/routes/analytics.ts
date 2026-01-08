@@ -172,4 +172,128 @@ router.post('/track', async (req: Request, res: Response) => {
   }
 });
 
+// ========================================
+// GET /api/analytics/insights/:orgId
+// Get AI-powered insights for an organization
+// ========================================
+router.get('/insights/:orgId', async (req: Request, res: Response) => {
+  try {
+    const { orgId } = req.params;
+    const user = (req as any).user;
+    const organization = (req as any).organization;
+
+    if (user.role !== 'MasterAdmin' && user.role !== 'Admin' && user.role !== 'ADMIN') {
+      if (organization?.id !== orgId) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+    }
+
+    const insights = await analyticsService.generateInsights(orgId);
+    res.json(insights);
+  } catch (error) {
+    console.error('Error generating insights:', error);
+    res.status(500).json({ error: 'Failed to generate insights' });
+  }
+});
+
+// ========================================
+// GET /api/analytics/sentiment/:orgId
+// Get sentiment breakdown for an organization
+// ========================================
+router.get('/sentiment/:orgId', async (req: Request, res: Response) => {
+  try {
+    const { orgId } = req.params;
+    const { startDate, endDate } = req.query;
+    const user = (req as any).user;
+    const organization = (req as any).organization;
+
+    if (user.role !== 'MasterAdmin' && user.role !== 'Admin' && user.role !== 'ADMIN') {
+      if (organization?.id !== orgId) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+    }
+
+    const start = startDate ? new Date(startDate as string) : undefined;
+    const end = endDate ? new Date(endDate as string) : undefined;
+
+    const sentiment = await analyticsService.getSentimentBreakdown(orgId, start, end);
+    res.json(sentiment);
+  } catch (error) {
+    console.error('Error fetching sentiment:', error);
+    res.status(500).json({ error: 'Failed to fetch sentiment data' });
+  }
+});
+
+// ========================================
+// GET /api/analytics/peak-hours/:orgId
+// Get peak activity hours for an organization
+// ========================================
+router.get('/peak-hours/:orgId', async (req: Request, res: Response) => {
+  try {
+    const { orgId } = req.params;
+    const user = (req as any).user;
+    const organization = (req as any).organization;
+
+    if (user.role !== 'MasterAdmin' && user.role !== 'Admin' && user.role !== 'ADMIN') {
+      if (organization?.id !== orgId) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+    }
+
+    const peakHours = await analyticsService.analyzePeakHours(orgId);
+    res.json(peakHours);
+  } catch (error) {
+    console.error('Error analyzing peak hours:', error);
+    res.status(500).json({ error: 'Failed to analyze peak hours' });
+  }
+});
+
+// ========================================
+// GET /api/analytics/lead-quality/:orgId
+// Get lead quality distribution for an organization
+// ========================================
+router.get('/lead-quality/:orgId', async (req: Request, res: Response) => {
+  try {
+    const { orgId } = req.params;
+    const user = (req as any).user;
+    const organization = (req as any).organization;
+
+    if (user.role !== 'MasterAdmin' && user.role !== 'Admin' && user.role !== 'ADMIN') {
+      if (organization?.id !== orgId) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+    }
+
+    const distribution = await analyticsService.getLeadQualityDistribution(orgId);
+    res.json(distribution);
+  } catch (error) {
+    console.error('Error fetching lead quality:', error);
+    res.status(500).json({ error: 'Failed to fetch lead quality data' });
+  }
+});
+
+// ========================================
+// GET /api/analytics/growth/:orgId
+// Get week-over-week growth metrics for an organization
+// ========================================
+router.get('/growth/:orgId', async (req: Request, res: Response) => {
+  try {
+    const { orgId } = req.params;
+    const user = (req as any).user;
+    const organization = (req as any).organization;
+
+    if (user.role !== 'MasterAdmin' && user.role !== 'Admin' && user.role !== 'ADMIN') {
+      if (organization?.id !== orgId) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+    }
+
+    const growth = await analyticsService.getWeekOverWeekGrowth(orgId);
+    res.json(growth);
+  } catch (error) {
+    console.error('Error fetching growth metrics:', error);
+    res.status(500).json({ error: 'Failed to fetch growth metrics' });
+  }
+});
+
 export default router;
