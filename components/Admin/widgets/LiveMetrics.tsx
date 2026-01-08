@@ -28,7 +28,6 @@ export const LiveMetrics: React.FC = () => {
     mrrCents: 0,
   });
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchMetrics = async () => {
@@ -36,10 +35,8 @@ export const LiveMetrics: React.FC = () => {
         const data = await dbService.getAdminMetrics();
         setMetrics(data);
         setLoading(false);
-        setError(null);
       } catch (err) {
         console.error('Error fetching metrics:', err);
-        setError('Failed to load metrics');
         setLoading(false);
       }
     };
@@ -52,15 +49,6 @@ export const LiveMetrics: React.FC = () => {
 
     return () => clearInterval(interval);
   }, []);
-
-  if (error) {
-    return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-        <AlertTriangle className="mx-auto mb-2 text-red-600" size={32} />
-        <p className="text-red-800">{error}</p>
-      </div>
-    );
-  }
 
   const dbConnectionStatus =
     metrics.dbConnections > 80

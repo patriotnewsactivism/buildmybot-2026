@@ -210,36 +210,27 @@ export const FinancialDashboard: React.FC = () => {
     },
   ];
 
-  if (error) {
-    return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-        <p className="text-red-800">{error}</p>
-        <button
-          onClick={fetchFinancialData}
-          className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-        >
-          <RefreshCw size={16} className="inline mr-2" />
-          Retry
-        </button>
-      </div>
-    );
-  }
+  const displayOverview = overview || {
+    mrrCents: 0,
+    arrCents: 0,
+    churnRate: 0,
+    activeCustomers: 0,
+    churnedCustomers: 0,
+  };
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-slate-900">Financial Dashboard</h2>
         <div className="flex items-center space-x-4">
-          {stripeHealth && (
-            <div className={`px-4 py-2 rounded-lg flex items-center space-x-2 ${
-              stripeHealth.ok ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-            }`}>
-              <CreditCard size={16} />
-              <span className="text-sm font-medium">
-                Stripe: {stripeHealth.ok ? 'Connected' : 'Disconnected'}
-              </span>
-            </div>
-          )}
+          <div className={`px-4 py-2 rounded-lg flex items-center space-x-2 ${
+            stripeHealth?.ok ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-600'
+          }`}>
+            <CreditCard size={16} />
+            <span className="text-sm font-medium">
+              Stripe: {stripeHealth?.ok ? 'Connected' : 'Not configured'}
+            </span>
+          </div>
           <button
             onClick={fetchFinancialData}
             className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 flex items-center space-x-2"
@@ -251,42 +242,40 @@ export const FinancialDashboard: React.FC = () => {
       </div>
 
       {/* Financial Overview Metrics */}
-      {overview && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-          <MetricCard
-            icon={DollarSign}
-            label="Monthly Recurring Revenue"
-            value={`$${(overview.mrrCents / 100).toLocaleString()}`}
-            loading={loading}
-          />
-          <MetricCard
-            icon={TrendingUp}
-            label="Annual Recurring Revenue"
-            value={`$${(overview.arrCents / 100).toLocaleString()}`}
-            loading={loading}
-          />
-          <MetricCard
-            icon={Users}
-            label="Active Customers"
-            value={overview.activeCustomers}
-            loading={loading}
-          />
-          <MetricCard
-            icon={AlertTriangle}
-            label="Churn Rate"
-            value={`${overview.churnRate.toFixed(2)}%`}
-            status={overview.churnRate > 10 ? 'critical' : overview.churnRate > 5 ? 'warning' : 'healthy'}
-            loading={loading}
-          />
-          <MetricCard
-            icon={Users}
-            label="Churned Customers"
-            value={overview.churnedCustomers}
-            status={overview.churnedCustomers > 10 ? 'warning' : 'healthy'}
-            loading={loading}
-          />
-        </div>
-      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+        <MetricCard
+          icon={DollarSign}
+          label="Monthly Recurring Revenue"
+          value={`$${(displayOverview.mrrCents / 100).toLocaleString()}`}
+          loading={loading}
+        />
+        <MetricCard
+          icon={TrendingUp}
+          label="Annual Recurring Revenue"
+          value={`$${(displayOverview.arrCents / 100).toLocaleString()}`}
+          loading={loading}
+        />
+        <MetricCard
+          icon={Users}
+          label="Active Customers"
+          value={displayOverview.activeCustomers}
+          loading={loading}
+        />
+        <MetricCard
+          icon={AlertTriangle}
+          label="Churn Rate"
+          value={`${displayOverview.churnRate.toFixed(2)}%`}
+          status={displayOverview.churnRate > 10 ? 'critical' : displayOverview.churnRate > 5 ? 'warning' : 'healthy'}
+          loading={loading}
+        />
+        <MetricCard
+          icon={Users}
+          label="Churned Customers"
+          value={displayOverview.churnedCustomers}
+          status={displayOverview.churnedCustomers > 10 ? 'warning' : 'healthy'}
+          loading={loading}
+        />
+      </div>
 
       {/* Recent Invoices */}
       <div className="mb-8">
