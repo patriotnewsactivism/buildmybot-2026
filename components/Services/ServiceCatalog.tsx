@@ -20,6 +20,7 @@ import {
   Calendar,
   MessageSquare
 } from 'lucide-react';
+import { buildApiUrl } from '../../services/apiConfig';
 
 interface ServiceCatalogProps {
   organizationId: string;
@@ -52,8 +53,6 @@ interface ServiceOrder {
   createdAt: string;
   updatedAt: string;
 }
-
-const API_BASE = import.meta.env.VITE_API_URL || '';
 
 const PremiumCard: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
   <div className={`bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow duration-200 ${className}`}>
@@ -131,8 +130,8 @@ export const ServiceCatalog: React.FC<ServiceCatalogProps> = ({ organizationId, 
     setError(null);
     try {
       const [servicesRes, ordersRes] = await Promise.all([
-        fetch(`${API_BASE}/api/revenue/services`),
-        fetch(`${API_BASE}/api/revenue/services/orders/${organizationId}`)
+        fetch(buildApiUrl('/revenue/services')),
+        fetch(buildApiUrl(`/revenue/services/orders/${organizationId}`))
       ]);
 
       const servicesData = await servicesRes.json();
@@ -153,7 +152,7 @@ export const ServiceCatalog: React.FC<ServiceCatalogProps> = ({ organizationId, 
 
     setSubmitting(true);
     try {
-      const res = await fetch(`${API_BASE}/api/revenue/services/order`, {
+      const res = await fetch(buildApiUrl('/revenue/services/order'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

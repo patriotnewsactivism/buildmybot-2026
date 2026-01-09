@@ -18,6 +18,7 @@ import {
   X,
   Loader2
 } from 'lucide-react';
+import { buildApiUrl } from '../../services/apiConfig';
 
 interface BrandingSettings {
   id?: string;
@@ -195,7 +196,7 @@ export const WhiteLabelSettings: React.FC<WhiteLabelSettingsProps> = ({ organiza
   const fetchBranding = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/revenue/branding/${organizationId}`);
+      const response = await fetch(buildApiUrl(`/revenue/branding/${organizationId}`));
       if (response.ok) {
         const data = await response.json();
         if (data) {
@@ -218,7 +219,7 @@ export const WhiteLabelSettings: React.FC<WhiteLabelSettingsProps> = ({ organiza
   const saveBranding = async () => {
     try {
       setSaving(true);
-      const response = await fetch(`/api/revenue/branding/${organizationId}`, {
+      const response = await fetch(buildApiUrl(`/revenue/branding/${organizationId}`), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(branding),
@@ -242,7 +243,7 @@ export const WhiteLabelSettings: React.FC<WhiteLabelSettingsProps> = ({ organiza
   const verifyDomain = async () => {
     try {
       setVerifying(true);
-      const response = await fetch(`/api/revenue/branding/${organizationId}/verify-domain`, {
+      const response = await fetch(buildApiUrl(`/revenue/branding/${organizationId}/verify-domain`), {
         method: 'POST',
       });
       

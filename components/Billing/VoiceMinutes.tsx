@@ -15,6 +15,7 @@ import {
   Check,
   AlertCircle
 } from 'lucide-react';
+import { buildApiUrl } from '../../services/apiConfig';
 
 interface VoiceMinutesProps {
   organizationId: string;
@@ -52,8 +53,6 @@ interface CallLog {
   createdAt: string;
 }
 
-const API_BASE = import.meta.env.VITE_API_URL || '';
-
 const PremiumCard: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
   <div className={`bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow duration-200 ${className}`}>
     {children}
@@ -80,8 +79,8 @@ export const VoiceMinutes: React.FC<VoiceMinutesProps> = ({ organizationId }) =>
     setError(null);
     try {
       const [usageRes, packagesRes] = await Promise.all([
-        fetch(`${API_BASE}/api/revenue/usage/${organizationId}`),
-        fetch(`${API_BASE}/api/revenue/voice-packages`)
+        fetch(buildApiUrl(`/revenue/usage/${organizationId}`)),
+        fetch(buildApiUrl('/revenue/voice-packages'))
       ]);
 
       const usageData = await usageRes.json();
@@ -110,7 +109,7 @@ export const VoiceMinutes: React.FC<VoiceMinutesProps> = ({ organizationId }) =>
     setPurchasing(pkg.id);
 
     try {
-      const res = await fetch(`${API_BASE}/api/stripe/checkout`, {
+      const res = await fetch(buildApiUrl('/stripe/checkout'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

@@ -23,6 +23,7 @@ import {
   ArrowDownRight,
   Gauge
 } from 'lucide-react';
+import { buildApiUrl } from '../../services/apiConfig';
 
 interface ApiKey {
   id: string;
@@ -131,9 +132,9 @@ export const ApiKeyManager: React.FC<ApiKeyManagerProps> = ({ organizationId, us
     try {
       setLoading(true);
       const [keysRes, statsRes, logsRes] = await Promise.all([
-        fetch(`/api/revenue/api-keys/${organizationId}`),
-        fetch(`/api/revenue/api-keys/${organizationId}/stats`),
-        fetch(`/api/revenue/api-keys/${organizationId}/logs`),
+        fetch(buildApiUrl(`/revenue/api-keys/${organizationId}`)),
+        fetch(buildApiUrl(`/revenue/api-keys/${organizationId}/stats`)),
+        fetch(buildApiUrl(`/revenue/api-keys/${organizationId}/logs`)),
       ]);
 
       if (keysRes.ok) {
@@ -167,7 +168,7 @@ export const ApiKeyManager: React.FC<ApiKeyManagerProps> = ({ organizationId, us
       setCreating(true);
       const expiresInDays = newKeyExpiration ? Math.ceil((new Date(newKeyExpiration).getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : undefined;
 
-      const response = await fetch(`/api/revenue/api-keys/${organizationId}`, {
+      const response = await fetch(buildApiUrl(`/revenue/api-keys/${organizationId}`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -200,7 +201,7 @@ export const ApiKeyManager: React.FC<ApiKeyManagerProps> = ({ organizationId, us
     if (!confirm('Are you sure you want to revoke this API key? This action cannot be undone.')) return;
 
     try {
-      const response = await fetch(`/api/revenue/api-keys/${apiKeyId}/revoke`, {
+      const response = await fetch(buildApiUrl(`/revenue/api-keys/${apiKeyId}/revoke`), {
         method: 'POST',
       });
 
@@ -219,7 +220,7 @@ export const ApiKeyManager: React.FC<ApiKeyManagerProps> = ({ organizationId, us
     if (!confirm('Are you sure you want to permanently delete this API key?')) return;
 
     try {
-      const response = await fetch(`/api/revenue/api-keys/${apiKeyId}`, {
+      const response = await fetch(buildApiUrl(`/revenue/api-keys/${apiKeyId}`), {
         method: 'DELETE',
       });
 

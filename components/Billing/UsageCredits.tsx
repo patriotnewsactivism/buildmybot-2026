@@ -15,6 +15,7 @@ import {
   Clock,
   Settings
 } from 'lucide-react';
+import { buildApiUrl } from '../../services/apiConfig';
 
 interface UsageCreditsProps {
   organizationId: string;
@@ -56,8 +57,6 @@ interface AutoTopUpSettings {
   threshold: number;
   topUpAmount: number;
 }
-
-const API_BASE = import.meta.env.VITE_API_URL || '';
 
 const PremiumCard: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
   <div className={`bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow duration-200 ${className}`}>
@@ -118,10 +117,10 @@ export const UsageCredits: React.FC<UsageCreditsProps> = ({ organizationId }) =>
     setError(null);
     try {
       const [usageRes, smsRes, emailRes, storageRes] = await Promise.all([
-        fetch(`${API_BASE}/api/revenue/usage/${organizationId}`),
-        fetch(`${API_BASE}/api/revenue/credit-packages?resourceType=sms_credits`),
-        fetch(`${API_BASE}/api/revenue/credit-packages?resourceType=email_credits`),
-        fetch(`${API_BASE}/api/revenue/credit-packages?resourceType=storage_mb`)
+        fetch(buildApiUrl(`/revenue/usage/${organizationId}`)),
+        fetch(buildApiUrl('/revenue/credit-packages?resourceType=sms_credits')),
+        fetch(buildApiUrl('/revenue/credit-packages?resourceType=email_credits')),
+        fetch(buildApiUrl('/revenue/credit-packages?resourceType=storage_mb'))
       ]);
 
       const usageData = await usageRes.json();
@@ -164,7 +163,7 @@ export const UsageCredits: React.FC<UsageCreditsProps> = ({ organizationId }) =>
     setPurchasing(pkg.id);
 
     try {
-      const res = await fetch(`${API_BASE}/api/stripe/checkout`, {
+      const res = await fetch(buildApiUrl('/stripe/checkout'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

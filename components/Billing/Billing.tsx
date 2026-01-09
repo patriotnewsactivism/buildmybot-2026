@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { CheckCircle, Shield, Crown, Loader, ExternalLink, CreditCard } from 'lucide-react';
 import { PLANS } from '../../constants';
 import { PlanType, User } from '../../types';
+import { buildApiUrl } from '../../services/apiConfig';
 
 interface BillingProps {
   user?: User;
@@ -15,8 +16,6 @@ interface StripeProduct {
   prices: { id: string; unit_amount: number; currency: string }[];
 }
 
-const API_BASE = import.meta.env.VITE_API_URL || '';
-
 export const Billing: React.FC<BillingProps> = ({ user }) => {
   const currentPlan = user?.plan || PlanType.FREE;
   const [processingPlan, setProcessingPlan] = useState<string | null>(null);
@@ -29,7 +28,7 @@ export const Billing: React.FC<BillingProps> = ({ user }) => {
 
   const fetchStripeProducts = async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/stripe/products`);
+      const res = await fetch(buildApiUrl('/stripe/products'));
       const data = await res.json();
       setStripeProducts(data.data || []);
     } catch (error) {
@@ -60,7 +59,7 @@ export const Billing: React.FC<BillingProps> = ({ user }) => {
     setProcessingPlan(planId);
 
     try {
-      const res = await fetch(`${API_BASE}/api/stripe/checkout`, {
+      const res = await fetch(buildApiUrl('/stripe/checkout'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id, priceId }),
@@ -83,7 +82,7 @@ export const Billing: React.FC<BillingProps> = ({ user }) => {
     if (!user) return;
 
     try {
-      const res = await fetch(`${API_BASE}/api/stripe/portal`, {
+      const res = await fetch(buildApiUrl('/stripe/portal'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id }),
