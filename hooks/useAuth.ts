@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { User } from '../shared/schema';
+import { buildApiUrl, safeParseJson } from '../services/apiConfig';
 
 async function fetchUser(): Promise<User | null> {
-  const response = await fetch("/api/auth/user", {
+  const response = await fetch(buildApiUrl('/auth/user'), {
     credentials: "include",
   });
 
@@ -14,7 +15,7 @@ async function fetchUser(): Promise<User | null> {
     return null;
   }
 
-  return response.json();
+  return safeParseJson<User>(response);
 }
 
 export function useAuth() {
@@ -27,12 +28,20 @@ export function useAuth() {
       .finally(() => setIsLoading(false));
   }, []);
 
-  const logout = useCallback(() => {
-    window.location.href = "/api/logout";
+  const logout = useCallback(async () => {
+    try {
+      await fetch(buildApiUrl('/auth/logout'), {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch (error) {
+      console.warn('Logout failed:', error);
+    }
+    window.location.href = '/';
   }, []);
 
   const login = useCallback(() => {
-    window.location.href = "/api/login";
+    window.location.href = '/?auth=login';
   }, []);
 
   return {

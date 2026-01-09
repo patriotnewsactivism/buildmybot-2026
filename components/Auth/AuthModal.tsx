@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Mail, Lock, Loader, ArrowRight, Bot } from 'lucide-react';
+import { buildApiUrl, safeParseJson } from '../../services/apiConfig';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -24,7 +25,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultMo
     setError('');
 
     try {
-      const endpoint = mode === 'login' ? '/api/auth/login' : '/api/auth/signup';
+      const endpoint = mode === 'login'
+        ? buildApiUrl('/auth/login')
+        : buildApiUrl('/auth/signup');
       const body = mode === 'login'
         ? { email, password }
         : { email, password, name: email.split('@')[0], companyName };
@@ -44,7 +47,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultMo
         body: JSON.stringify(body),
       });
 
-      const data = await response.json();
+      const data = await safeParseJson<{ error?: string }>(response);
+
+      if (!data) {
+        const message = response.ok
+          ? 'Unexpected response from server'
+          : `Authentication failed (${response.status})`;
+        throw new Error(message);
+      }
 
       if (!response.ok) {
         throw new Error(data.error || 'Authentication failed');

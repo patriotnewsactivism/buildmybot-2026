@@ -24,6 +24,7 @@ import {
   Legend,
   Filler
 } from 'chart.js';
+import { buildApiUrl } from '../../services/apiConfig';
 
 // Register Chart.js components
 ChartJS.register(
@@ -94,17 +95,17 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ organiza
       setLoading(true);
 
       // Fetch metrics
-      const metricsRes = await fetch(`/api/analytics/metrics/${organizationId}`);
+      const metricsRes = await fetch(buildApiUrl(`/analytics/metrics/${organizationId}`));
       const metricsData = await metricsRes.json();
       setMetrics(metricsData);
 
       // Fetch time series
-      const timeSeriesRes = await fetch(`/api/analytics/timeseries/${organizationId}?days=${timeRange}`);
+      const timeSeriesRes = await fetch(buildApiUrl(`/analytics/timeseries/${organizationId}?days=${timeRange}`));
       const timeSeriesData = await timeSeriesRes.json();
       setTimeSeriesData(timeSeriesData);
 
       // Fetch performance
-      const performanceRes = await fetch(`/api/analytics/performance/${organizationId}`);
+      const performanceRes = await fetch(buildApiUrl(`/analytics/performance/${organizationId}`));
       const performanceData = await performanceRes.json();
       setPerformance(performanceData);
 

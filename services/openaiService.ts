@@ -1,3 +1,5 @@
+import { buildApiUrl } from './apiConfig';
+
 export const generateBotResponse = async (
   systemPrompt: string,
   history: { role: 'user' | 'model'; text: string }[],
@@ -8,7 +10,7 @@ export const generateBotResponse = async (
   const messages = [...history, { role: 'user' as const, text: lastMessage }];
 
   try {
-    const response = await fetch('/api/chat', {
+    const response = await fetch(buildApiUrl('/chat'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -56,7 +58,7 @@ export const generateBotResponseDemo = async (
   const messages = [...history, { role: 'user' as const, text: lastMessage }];
 
   try {
-    const response = await fetch('/api/chat/demo', {
+    const response = await fetch(buildApiUrl('/chat/demo'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -106,7 +108,7 @@ export const scrapeWebsiteContent = async (url: string): Promise<string> => {
     const rawText = await scrapeResponse.text();
     const truncatedText = rawText.substring(0, 15000);
 
-    const response = await fetch('/api/chat/demo', {
+    const response = await fetch(buildApiUrl('/chat/demo'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -130,7 +132,7 @@ export const scrapeWebsiteContent = async (url: string): Promise<string> => {
 
 export const generateMarketingContent = async (type: string, topic: string, tone: string): Promise<string> => {
   try {
-    const response = await fetch('/api/chat/demo', {
+    const response = await fetch(buildApiUrl('/chat/demo'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -150,7 +152,7 @@ export const generateMarketingContent = async (type: string, topic: string, tone
 
 export const generateWebsiteStructure = async (businessName: string, description: string): Promise<string> => {
   try {
-    const response = await fetch('/api/chat/demo', {
+    const response = await fetch(buildApiUrl('/chat/demo'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

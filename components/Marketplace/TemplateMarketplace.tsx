@@ -4,6 +4,7 @@ import {
   ShoppingBag, Filter, ChevronDown, DollarSign, Sparkles, Package, 
   MessageSquare, ThumbsUp, Play, Loader, Menu, XCircle
 } from 'lucide-react';
+import { buildApiUrl } from '../../services/apiConfig';
 
 interface Template {
   id: string;
@@ -68,7 +69,7 @@ export const TemplateMarketplace: React.FC<TemplateMarketplaceProps> = ({
   const fetchTemplates = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/templates');
+      const response = await fetch(buildApiUrl('/templates'));
       if (!response.ok) throw new Error('Failed to fetch templates');
       const data = await response.json();
       setTemplates(data);
@@ -84,7 +85,7 @@ export const TemplateMarketplace: React.FC<TemplateMarketplaceProps> = ({
 
   const handleInstall = async (template: Template) => {
     try {
-      const response = await fetch(`/api/templates/${template.id}/install`, {
+      const response = await fetch(buildApiUrl(`/templates/${template.id}/install`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -118,7 +119,7 @@ export const TemplateMarketplace: React.FC<TemplateMarketplaceProps> = ({
 
     try {
       setPurchasing(true);
-      const response = await fetch('/api/revenue/services/order', {
+      const response = await fetch(buildApiUrl('/revenue/services/order'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -7,8 +7,7 @@ import {
   BotDocument,
   ResellerStats,
 } from '../types';
-
-const API_BASE = '/api';
+import { API_BASE } from './apiConfig';
 
 type AuthContext = {
   userId?: string;

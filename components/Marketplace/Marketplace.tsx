@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, ShoppingBag, Star, Download, Eye, Tag, Zap, Loader } from 'lucide-react';
+import { buildApiUrl } from '../../services/apiConfig';
 
 interface Template {
   id: string;
@@ -32,7 +33,7 @@ export const Marketplace: React.FC<MarketplaceProps> = ({ onInstall }) => {
   const fetchTemplates = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/templates?featured=true');
+      const response = await fetch(buildApiUrl('/templates?featured=true'));
       if (!response.ok) throw new Error('Failed to fetch templates');
       const data = await response.json();
       setTemplates(data);
@@ -46,7 +47,7 @@ export const Marketplace: React.FC<MarketplaceProps> = ({ onInstall }) => {
 
   const handleInstall = async (template: Template) => {
     try {
-      const response = await fetch(`/api/templates/${template.id}/install`, {
+      const response = await fetch(buildApiUrl(`/templates/${template.id}/install`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });

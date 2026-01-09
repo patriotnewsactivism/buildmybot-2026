@@ -4,6 +4,7 @@ import { ResellerStats, User } from '../../types';
 import { RESELLER_TIERS, PLANS, REFERRAL_REWARDS, WHITELABEL_FEE } from '../../constants';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { dbService } from '../../services/dbService';
+import { buildApiUrl } from '../../services/apiConfig';
 
 interface ResellerProps {
   user: User;
@@ -94,7 +95,7 @@ export const ResellerDashboard: React.FC<ResellerProps> = ({ user, stats: initia
   useEffect(() => {
     const fetchCredits = async () => {
       try {
-        const res = await fetch(`/api/users/${user.id}/credits`);
+        const res = await fetch(buildApiUrl(`/users/${user.id}/credits`));
         if (res.ok) {
           const data = await res.json();
           setReferralCredits({
@@ -131,7 +132,7 @@ export const ResellerDashboard: React.FC<ResellerProps> = ({ user, stats: initia
     }
     setWhitelabelProcessing(true);
     try {
-      const res = await fetch('/api/stripe/whitelabel/checkout', {
+      const res = await fetch(buildApiUrl('/stripe/whitelabel/checkout'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id }),

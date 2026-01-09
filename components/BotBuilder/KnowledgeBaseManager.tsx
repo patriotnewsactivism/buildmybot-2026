@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Upload, FileText, X, CheckCircle, AlertCircle, Loader, Trash2, Globe, RefreshCw, Database, Link } from 'lucide-react';
 import { BotDocument } from '../../types';
 import { dbService } from '../../services/dbService';
+import { buildApiUrl } from '../../services/apiConfig';
 
 interface KnowledgeSource {
   id: string;
@@ -53,7 +54,7 @@ export const KnowledgeBaseManager: React.FC<KnowledgeBaseManagerProps> = ({
     if (!botId || botId === 'new') return;
     
     try {
-      const response = await fetch(`/api/knowledge/sources/${botId}`);
+      const response = await fetch(buildApiUrl(`/knowledge/sources/${botId}`));
       if (response.ok) {
         const data = await response.json();
         setSources(data.sources || []);
@@ -91,7 +92,7 @@ export const KnowledgeBaseManager: React.FC<KnowledgeBaseManagerProps> = ({
     setSuccess(null);
 
     try {
-      const response = await fetch(`/api/knowledge/scrape/${botId}`, {
+      const response = await fetch(buildApiUrl(`/knowledge/scrape/${botId}`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: urlInput, crawlDepth }),
@@ -162,7 +163,7 @@ export const KnowledgeBaseManager: React.FC<KnowledgeBaseManagerProps> = ({
         const formData = new FormData();
         formData.append('file', file);
 
-        const response = await fetch(`/api/knowledge/upload/${botId}`, {
+        const response = await fetch(buildApiUrl(`/knowledge/upload/${botId}`), {
           method: 'POST',
           body: formData,
         });
@@ -191,7 +192,7 @@ export const KnowledgeBaseManager: React.FC<KnowledgeBaseManagerProps> = ({
 
   const handleDeleteSource = async (sourceId: string) => {
     try {
-      const response = await fetch(`/api/knowledge/sources/${sourceId}`, {
+      const response = await fetch(buildApiUrl(`/knowledge/sources/${sourceId}`), {
         method: 'DELETE',
       });
 
@@ -209,7 +210,7 @@ export const KnowledgeBaseManager: React.FC<KnowledgeBaseManagerProps> = ({
 
   const handleRefreshSource = async (sourceId: string) => {
     try {
-      const response = await fetch(`/api/knowledge/refresh/${sourceId}`, {
+      const response = await fetch(buildApiUrl(`/knowledge/refresh/${sourceId}`), {
         method: 'POST',
       });
 
