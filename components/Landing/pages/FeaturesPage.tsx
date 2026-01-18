@@ -160,16 +160,65 @@ export const FeaturesPage: React.FC = () => {
     setDemoMessages(prev => [...prev, { role: 'user', text: userMsg }]);
     setDemoInput('');
     setIsTyping(true);
-    
+
     setTimeout(() => {
-      const responses = [
-        'Great question! BuildMyBot can help with that. Our AI learns from your website and documents to provide accurate, instant responses 24/7.',
-        'That\'s one of our most popular features! Thousands of businesses use it to capture more leads and convert visitors into customers.',
-        'Absolutely! Our platform is designed to be intuitive—no coding required. Most businesses are up and running in under 5 minutes.',
-        'Our Voice Agent powered by Cartesia sounds incredibly human. Customers often can\'t tell they\'re speaking with AI!'
-      ];
-      const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-      setDemoMessages(prev => [...prev, { role: 'bot', text: randomResponse }]);
+      const lowerMsg = userMsg.toLowerCase();
+      let response = '';
+
+      // AI Training / Knowledge Base
+      if (lowerMsg.includes('train') || lowerMsg.includes('learn') || lowerMsg.includes('knowledge') || lowerMsg.includes('teach')) {
+        response = 'Great question! BuildMyBot learns from your content in seconds. Simply paste your website URL or upload documents like PDFs, FAQs, and product manuals. Our AI scans and learns everything about your business, enabling it to answer customer questions with perfect accuracy. You can also manually add specific Q&As to fine-tune responses.';
+      }
+      // Voice Agent
+      else if (lowerMsg.includes('voice') || lowerMsg.includes('phone') || lowerMsg.includes('call') || lowerMsg.includes('cartesia')) {
+        response = 'Our Voice Agent is powered by Cartesia—the same cutting-edge voice synthesis used in Hollywood productions! It handles inbound and outbound calls, qualifies leads, and books appointments. In blind tests, most callers can\'t tell they\'re speaking with AI. The voice sounds incredibly natural and human-like.';
+      }
+      // Pricing
+      else if (lowerMsg.includes('price') || lowerMsg.includes('pricing') || lowerMsg.includes('cost') || lowerMsg.includes('plan') || lowerMsg.includes('free')) {
+        response = 'BuildMyBot starts completely FREE—no credit card required! Our free tier includes AI chatbots, lead capture, and basic features. Paid plans start at just $29/mo with advanced features like Voice Agents, marketing automation, and analytics. We\'re significantly more affordable than competitors like Intercom ($74/mo) or Drift ($2,500/mo).';
+      }
+      // Lead Capture / CRM
+      else if (lowerMsg.includes('lead') || lowerMsg.includes('crm') || lowerMsg.includes('capture') || lowerMsg.includes('conversion')) {
+        response = 'Our intelligent CRM automatically captures, scores, and nurtures leads 24/7! Every conversation is tracked with automatic lead scoring that prioritizes your hottest prospects. The system includes smart follow-ups, conversion tracking, and pipeline management—so you never miss an opportunity.';
+      }
+      // Setup / Easy to use
+      else if (lowerMsg.includes('setup') || lowerMsg.includes('easy') || lowerMsg.includes('difficult') || lowerMsg.includes('code') || lowerMsg.includes('technical')) {
+        response = 'Absolutely! BuildMyBot is designed to be intuitive—no coding required whatsoever. Most businesses are up and running in under 5 minutes using our visual drag-and-drop builder. Just describe what you want, customize your bot\'s personality, and deploy with one click. It\'s that simple!';
+      }
+      // Integrations
+      else if (lowerMsg.includes('integrat') || lowerMsg.includes('connect') || lowerMsg.includes('zapier') || lowerMsg.includes('api')) {
+        response = 'We integrate with 50+ popular tools including Stripe, OpenAI, Slack, HubSpot, Salesforce, Google Calendar, Calendly, Zapier, Mailchimp, Twilio, and more! API access is available on Professional plans for custom integrations. This means BuildMyBot fits seamlessly into your existing workflow.';
+      }
+      // White Label / Partner
+      else if (lowerMsg.includes('white') || lowerMsg.includes('label') || lowerMsg.includes('resell') || lowerMsg.includes('agency') || lowerMsg.includes('partner')) {
+        response = 'Yes! Our Partner Program lets you resell BuildMyBot under your own brand. You get custom domain, full white-label branding throughout the platform, and up to 50% revenue share. It\'s perfect for agencies, consultants, and businesses that want to offer AI solutions to their clients.';
+      }
+      // Analytics / Chat Logs
+      else if (lowerMsg.includes('analytic') || lowerMsg.includes('report') || lowerMsg.includes('log') || lowerMsg.includes('data') || lowerMsg.includes('insight')) {
+        response = 'BuildMyBot provides deep conversation insights with sentiment analysis, topic detection, and real-time monitoring. You can search through all conversations, export reports, and get actionable insights that help you improve conversions. See exactly what your customers are asking and optimize your bot\'s responses accordingly.';
+      }
+      // Security / Data
+      else if (lowerMsg.includes('secur') || lowerMsg.includes('privacy') || lowerMsg.includes('gdpr') || lowerMsg.includes('data')) {
+        response = 'Your data security is our top priority! We use enterprise-grade AES-256 encryption, maintain SOC 2 Type II compliance, and never train our models on your proprietary data. We\'re fully GDPR and CCPA compliant with optional data residency. Your information is safe with us.';
+      }
+      // Marketing / Email / SMS
+      else if (lowerMsg.includes('market') || lowerMsg.includes('email') || lowerMsg.includes('sms') || lowerMsg.includes('campaign')) {
+        response = 'Our marketing automation tools let you create email sequences, SMS campaigns, and automated follow-ups that nurture leads through your funnel—all powered by AI! Set up drip campaigns, run A/B tests, and watch your conversions soar while the system works on autopilot.';
+      }
+      // Website Builder
+      else if (lowerMsg.includes('website') || lowerMsg.includes('landing') || lowerMsg.includes('page') || lowerMsg.includes('form')) {
+        response = 'Yes! BuildMyBot includes a powerful website builder with drag-and-drop landing pages, customizable forms, and a template library. All pages are mobile responsive and optimized for conversions. Embed your chatbot anywhere and start capturing leads instantly!';
+      }
+      // Features / What can it do
+      else if (lowerMsg.includes('feature') || lowerMsg.includes('what') || lowerMsg.includes('can') || lowerMsg.includes('do')) {
+        response = 'BuildMyBot is an all-in-one platform! We offer AI Chatbots, Voice Agents (powered by Cartesia), Lead Capture & CRM, Knowledge Base training, Marketing Automation (email/SMS), Website Builder, Chat Analytics, White-Label options, and 50+ integrations. Everything you need to automate conversations and grow your business—no coding required!';
+      }
+      // Default fallback for unmatched questions
+      else {
+        response = 'Great question! BuildMyBot provides everything you need to automate conversations and grow your business. Our platform includes AI chatbots, voice agents, lead capture, marketing automation, and more—all with no coding required. What specific feature would you like to know more about?';
+      }
+
+      setDemoMessages(prev => [...prev, { role: 'bot', text: response }]);
       setIsTyping(false);
     }, 1500);
   };
